@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Page Header with improved layout -->
+  <header class="mb-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Quality Assessments</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Track & price purchases based on quality metrics</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions with better grouping -->
+      <div class="flex items-center gap-2">
+        {% if unassessed_purchases %}
+        <a href="{% url 'assessment_list' %}#unassessed"
+           class="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-medium shadow-md transition-all duration-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          New Assessment
+        </a>
+        {% endif %}
+        <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 p-1.5 rounded-lg">
+          <button onclick="toggleDark()" class="p-2 rounded-md bg-white dark:bg-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:text-emerald-500 transition-colors">
+            <span class="sr-only">Toggle theme</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          </button>
+          <button onclick="location.reload()" class="p-2 rounded-md bg-white dark:bg-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:text-emerald-500 transition-colors">
+            <span class="sr-only">Refresh</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20.52 11A8.002 8.002 0 004.58 9M4.58 9H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Sticky Tools Bar -->
+    <div class="sticky top-0 z-20 mt-4 -mx-3 sm:mx-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-gray-900/80 border-y border-gray-200 dark:border-gray-700 shadow-sm">
+      <div class="px-3 sm:px-4 lg:px-6 py-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center gap-2 w-full md:w-auto">
+          <div class="relative flex-1 md:w-80">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input id="assess-search" placeholder="Search supplier, type, price…"
+                   class="w-full pl-9 pr-3 py-2.5 rounded-lg border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" />
+          </div>
+          <select id="assess-filter" class="px-3 py-2.5 rounded-lg border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+            <option>All Status</option>
+            <option>Approved</option>
+            <option>Rejected</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Add Unassessed Purchases (seed) -->
+          <a href="{% url 'assessment_list' %}?seed=1"
+             class="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm font-medium shadow-md transition-all duration-200"
+             title="Create assessments for all unassessed purchases">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8m12 0a8 8 0 11-16 0 8 8 0 0116 0z"/></svg>
+            Add Unassessed
+          </a>
+          <button class="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm" onclick="exportTable()">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M8 12l4 4m0 0l4-4m-4 4V4"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Enhanced Stats Cards with better visual hierarchy -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Pending</p>
+        <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <p class="mt-3 text-2xl font-bold text-gray-900 dark:text-white">{{ totals.pending_count }}</p>
+      <div class="mt-2 flex items-center">
+        <span class="text-[11px] text-blue-600 dark:text-blue-400">Needs assessment</span>
+      </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Completed</p>
+        <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <p class="mt-3 text-2xl font-bold text-gray-900 dark:text-white">{{ totals.completed_count }}</p>
+      <div class="mt-2 flex items-center">
+        <span class="text-[11px] text-emerald-600 dark:text-emerald-400">All time</span>
+      </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Rejection Rate</p>
+        <div class="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <div class="mt-3 flex items-end justify-between gap-3">
+        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ totals.rejection_rate|floatformat:1 }}%</p>
+        <span class="inline-flex items-center px-2 py-1 text-[11px] rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">Q.A. risk</span>
+      </div>
+      <div class="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+        <div class="progress-bar bg-red-500 h-1.5 rounded-full transition-all duration-700" style="width: {{ totals.rejection_rate }}%"></div>
+      </div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Total Assessments</p>
+        <div class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+      </div>
+      <p class="mt-3 text-2xl font-bold text-gray-900 dark:text-white">{{ totals.total_assessments }}</p>
+      <div class="mt-2 flex items-center">
+        <span class="text-[11px] text-gray-500 dark:text-gray-400">All time</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pending Section with improved cards layout -->
+  {% if unassessed_purchases %}
+  <section id="unassessed" class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Pending Assessments</h2>
+        <span class="px-2.5 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+          {{ unassessed_purchases|length }} pending
+        </span>
+      </div>
+      <a href="{% url 'assessment_list' %}?seed=1" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm shadow-md transition-all duration-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8m12 0a8 8 0 11-16 0 8 8 0 0116 0z"/></svg>
+        Add All
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for purchase in unassessed_purchases %}
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-all duration-200">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white grid place-items-center text-xs font-semibold">
+              {{ purchase.supplier.name|slice:":2"|upper }}
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-900 dark:text-white">{{ purchase.supplier.name }}</div>
+              {% if purchase.supplier.phone %}
+              <div class="text-xs text-gray-500 dark:text-gray-400">{{ purchase.supplier.phone }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <div class="text-sm text-gray-900 dark:text-white font-medium mb-1">
+            {{ purchase.get_coffee_type_display }} • {{ purchase.get_coffee_category_display }}
+          </div>
+          <div class="flex items-center justify-between text-xs text-red-600 dark:text-red-500">
+            <span>{{ purchase.quantity|floatformat:0|intcomma }} kg</span>
+            <span>{{ purchase.purchase_date|date:"M d, Y" }}</span>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <a href="{% url 'assessment_create' purchase.id %}"
+             class="flex-1 text-center px-3 py-2 rounded-lg text-xs bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-sm transition-all duration-200">
+            Assess
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Assessment History with improved table design -->
+  <section class="mb-4">
+    <div class="mb-4">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Assessment History</h2>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Completed quality evaluations</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="sticky top-[10px] bg-gray-50/95 dark:bg-gray-800/95 backdrop-blur text-xs text-gray-600 dark:text-gray-300">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wider">Coffee Details</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wider">Quality Metrics</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wider hidden lg:table-cell">Price</th>
+              <th class="px-4 py-3 text-left font-semibold uppercase tracking-wider">Status</th>
+              <th class="px-4 py-3 text-right font-semibold uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="assess-tbody" class="divide-y divide-gray-100 dark:divide-gray-700">
+            {% for assessment in assessments %}
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+              <td class="px-4 py-4 align-top">
+                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ assessment.coffee.supplier.name }}
+                </div>
+                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  {{ assessment.coffee.get_coffee_type_display }} • {{ assessment.coffee.get_coffee_category_display }}
+                </div>
+                <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  {{ assessment.coffee.quantity|floatformat:0|intcomma }} kg • {{ assessment.coffee.purchase_date|date:"M d, Y" }}
+                </div>
+              </td>
+
+              <td class="px-4 py-4 align-top">
+                <div class="flex flex-wrap gap-1.5">
+                  {% if assessment.moisture_content is not None %}
+                    <span class="px-2 py-1 rounded-md text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">MC {{ assessment.moisture_content|floatformat:2 }}%</span>
+                  {% endif %}
+                  {% if assessment.group1_defects %}<span class="px-2 py-1 rounded-md text-xs bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300">GP1 {{ assessment.group1_defects|floatformat:2 }}%</span>{% endif %}
+                  {% if assessment.group2_defects %}<span class="px-2 py-1 rounded-md text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">GP2 {{ assessment.group2_defects|floatformat:2 }}%</span>{% endif %}
+                  {% if assessment.below_screen_12 %}<span class="px-2 py-1 rounded-md text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">&lt;12 {{ assessment.below_screen_12|floatformat:2 }}%</span>{% endif %}
+                  {% if assessment.pods %}<span class="px-2 py-1 rounded-md text-xs bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300">Pods {{ assessment.pods|floatformat:2 }}%</span>{% endif %}
+                  {% if assessment.husks %}<span class="px-2 py-1 rounded-md text-xs bg-lime-100 dark:bg-lime-900/30 text-lime-700 dark:text-lime-300">Husks {{ assessment.husks|floatformat:2 }}%</span>{% endif %}
+                  {% if assessment.stones %}<span class="px-2 py-1 rounded-md text-xs bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">Stones {{ assessment.stones|floatformat:2 }}%</span>{% endif %}
+                  {% if assessment.fm %}<span class="px-2 py-1 rounded-md text-xs bg-slate-100 dark:bg-slate-900/30 text-slate-700 dark:text-slate-300">FM {{ assessment.fm|floatformat:2 }}%</span>{% endif %}
+                  <span class="px-2 py-1 rounded-md text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">Outturn {{ assessment.analysis_outturn_pct|floatformat:2 }}%</span>
+                </div>
+              </td>
+
+              <td class="px-4 py-4 hidden lg:table-cell align-top">
+                <div class="text-sm text-gray-900 dark:text-white">
+                  Ref: UGX {{ assessment.ref_price|floatformat:0|intcomma }}
+                </div>
+                <div class="text-sm text-gray-900 dark:text-white mt-2">
+                  Analysis:
+                  <span class="font-semibold inline-flex items-center gap-1 mt-1">
+                    UGX {{ assessment.analysis_price_ugx|floatformat:0|intcomma }}
+                    <span class="px-1.5 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">per kg</span>
+                  </span>
+                </div>
+                {% if assessment.moisture_penalty_ugx %}
+                <div class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                  Moisture penalty: UGX {{ assessment.moisture_penalty_ugx|floatformat:0|intcomma }}
+                </div>
+                {% endif %}
+                {% if assessment.discretion and assessment.discretion != 0 %}
+                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  Discretion: UGX {{ assessment.discretion|floatformat:0|intcomma }}
+                </div>
+                {% endif %}
+                {% if assessment.offered_price and assessment.offered_price|floatformat:0 != "0" %}
+                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  Offer: UGX {{ assessment.offered_price|floatformat:0|intcomma }}
+                </div>
+                {% endif %}
+              </td>
+
+              <td class="px-4 py-4 align-top">
+                {% with rej=assessment.is_rejected %}
+                  {% if rej and rej.0 or rej == True %}
+                    <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">Rejected</span>
+                  {% else %}
+                    <span class="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Approved</span>
+                  {% endif %}
+                {% endwith %}
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                  {% if assessment.assessed_by %}By {{ assessment.assessed_by.get_full_name|default:assessment.assessed_by.username }} · {% endif %}
+                  {{ assessment.created_at|date:"M d, Y" }}
+                </div>
+              </td>
+
+              <td class="px-4 py-4 text-right align-top">
+                <div class="inline-flex items-center gap-2 justify-end">
+                  <a href="{% url 'assessment_detail' assessment.id %}" class="px-3 py-1.5 text-xs rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors">
+                    View
+                  </a>
+                  <a href="{% url 'assessment_create' assessment.coffee.id %}" class="px-3 py-1.5 text-xs rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-sm transition-all duration-200">
+                    Edit
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="px-6 py-12 text-center">
+                <div class="mx-auto w-12 h-12 mt-5 rounded-full bg-gray-100 dark:bg-gray-700 grid place-items-center">
+                  <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">No assessments yet</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // Theme
+  function toggleDark() {
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+  }
+  if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+
+  // Progress bar animation
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.progress-bar').forEach(bar => {
+      const w = bar.style.width || '0%';
+      requestAnimationFrame(() => bar.style.width = w);
+    });
+  });
+
+  // Search + filter (history table only)
+  const searchInput = document.getElementById('assess-search');
+  const filterSelect = document.getElementById('assess-filter');
+  const tbody = document.getElementById('assess-tbody');
+
+  function applyFilter() {
+    const term = (searchInput?.value || '').toLowerCase();
+    const filter = (filterSelect?.value || 'All Status').toLowerCase();
+    Array.from(tbody.querySelectorAll('tr')).forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const statusBadge = row.querySelector('.inline-flex');
+      const statusText = statusBadge ? statusBadge.textContent.toLowerCase() : '';
+      const matchTerm = text.includes(term);
+      const matchStatus = (filter === 'all status') || statusText.includes(filter);
+      row.style.display = (matchTerm && matchStatus) ? '' : 'none';
+    });
+  }
+  searchInput?.addEventListener('input', applyFilter);
+  filterSelect?.addEventListener('change', applyFilter);
+
+  // Enhanced CSV export with better data extraction
+  function exportTable() {
+    const rows = [['Supplier','Coffee Type','Coffee Category','Quantity (kg)','Date','Ref Price (UGX)','Analysis Price (UGX)','Status']];
+    
+    document.querySelectorAll('#assess-tbody tr').forEach(tr => {
+      if (tr.querySelector('td').colSpan === 5) return; // Skip empty row
+      
+      const tds = tr.querySelectorAll('td');
+      const supplier = tds[0]?.querySelector('.text-sm.font-medium')?.textContent.trim() || '';
+      const coffeeText = tds[0]?.querySelector('.text-xs')?.textContent.trim() || '';
+      const [type, category] = coffeeText.split('•').map(s => s.trim());
+      const quantityDate = tds[0]?.querySelector('.text-xs:last-child')?.textContent.trim() || '';
+      const quantity = quantityDate.split('kg')[0]?.trim() || '';
+      const date = quantityDate.split('•')[1]?.trim() || '';
+      
+      const refPriceText = tds[2]?.querySelector('.text-sm:first-child')?.textContent.replace('Ref:', '').replace('UGX', '').trim() || '';
+      const analysisPriceText = tds[2]?.querySelector('.font-semibold')?.textContent.replace('UGX', '').trim() || '';
+      
+      const status = tds[3]?.querySelector('.inline-flex')?.textContent.trim() || '';
+      
+      rows.push([
+        supplier, 
+        type || '', 
+        category || '', 
+        quantity, 
+        date,
+        refPriceText.replace(/,/g, ''),
+        analysisPriceText.replace(/,/g, ''),
+        status
+      ]);
+    });
+    
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), { 
+      href: url, 
+      download: `assessments-${new Date().toISOString().slice(0,10)}.csv` 
+    });
+    document.body.appendChild(a); 
+    a.click(); 
+    a.remove(); 
+    URL.revokeObjectURL(url);
+  }
+  window.exportTable = exportTable;
+</script>
+{% endblock content %}

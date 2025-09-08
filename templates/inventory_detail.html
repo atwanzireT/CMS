@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ page_title }}</h3>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Coffee Type:</dt>
+                    <dd class="col-sm-8">{{ object.get_coffee_type_display }}</dd>
+                    
+                    <dt class="col-sm-4">Current Stock:</dt>
+                    <dd class="col-sm-8">{{ object.quantity }}{{ object.unit }}</dd>
+                    
+                    <dt class="col-sm-4">Average Unit Cost:</dt>
+                    <dd class="col-sm-8">{{ object.average_unit_cost }}</dd>
+                    
+                    <dt class="col-sm-4">Current Value:</dt>
+                    <dd class="col-sm-8">{{ object.current_value }}</dd>
+                    
+                    <dt class="col-sm-4">Last Updated:</dt>
+                    <dd class="col-sm-8">{{ object.last_updated }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Purchases</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for purchase in purchases %}
+                            <tr>
+                                <td>{{ purchase.purchase_date }}</td>
+                                <td>{{ purchase.quantity }}</td>
+                                <td>{{ purchase.unit_price }}</td>
+                                <td>{{ purchase.total_price }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">No recent purchases</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Recent Sales</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in sales %}
+                            <tr>
+                                <td>{{ sale.sale_date }}</td>
+                                <td>{{ sale.quantity }}</td>
+                                <td>{{ sale.unit_price }}</td>
+                                <td>{{ sale.total_price }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">No recent sales</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

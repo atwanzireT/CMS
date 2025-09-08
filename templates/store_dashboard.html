@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Store Dashboard - Coffee Management System{% endblock %}
+{% block header_actions %}
+<div class="mt-0">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-md mx-auto sm:max-w-full">
+        <a class="inline-flex items-center justify-center px-4 py-3 sm:px-5 sm:py-3 rounded-lg bg-emerald-600 text-white font-semibold text-center text-sm sm:text-base shadow hover:bg-emerald-700 transition-colors duration-300"
+            href="{% url 'purchase_list' %}">
+            <i class="fas fa-coffee mr-2 text-emerald-200"></i>
+            Coffee Purchases
+        </a>
+        <a class="inline-flex items-center justify-center px-4 py-3 sm:px-5 sm:py-3 rounded-lg bg-emerald-600 text-white font-semibold text-center text-sm sm:text-base shadow hover:bg-emerald-700 transition-colors duration-300"
+            href="#">
+            <i class="fas fa-file-contract mr-2 text-emerald-200"></i>
+            EUDR Doc
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <!-- Summary Cards -->
+    <div class="max-w-12xl mx-auto px-3 xs:px-4 sm:px-5 md:px-6 py-4 sm:py-6 md:py-8">
+        <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 mb-5 sm:mb-7 md:mb-8">
+            <!-- Total Inventory Value -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                            Inventory Value</p>
+                        <p class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mt-1">
+                            Ugx {{ total_inventory_value|floatformat:2|intcomma }}</p>
+                    </div>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43A2 2 0 008.07 11h5.94a2 2 0 001.985-1.782l1.358-5.43a.995.995 0 00.01-.042L17.78 3H19a1 1 0 000-2H3z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Purchases -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                            Purchases (30d)</p>
+                        <p class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mt-1">
+                            {{ total_purchase_quantity|floatformat:0|intcomma }} kg</p>
+                    </div>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Sales -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sales
+                            Revenue (30d)</p>
+                        <p class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mt-1">
+                            Ugx {{ total_revenue|floatformat:2|intcomma }}</p>
+                    </div>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-amber-50 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Alerts -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Low
+                            Stock Items</p>
+                        <p class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mt-1">{{ low_stock_items.count }}
+                        </p>
+                    </div>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6 mb-5 sm:mb-7 md:mb-8">
+            <!-- Inventory Overview -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
+                <div class="flex items-center justify-between mb-4 sm:mb-5 md:mb-6">
+                    <h2 class="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Inventory Overview</h2>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ inventory_items.count }} items</span>
+                </div>
+                <div class="space-y-3 sm:space-y-4">
+                    {% for item in inventory_items %}
+                    <div class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <div class="mb-2 xs:mb-0">
+                            <p class="text-sm font-medium text-gray-800 dark:text-white">
+                                {{ item.get_coffee_type_display }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ item.get_coffee_category_display }}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between xs:justify-end xs:gap-4 w-full xs:w-auto">
+                            <div class="text-right xs:text-left">
+                                <p class="text-sm text-gray-800 dark:text-white">
+                                    {{ item.quantity|floatformat:2 }} {{ item.unit }}
+                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    Ush {{ item.average_unit_cost|floatformat:2 }}/unit
+                                </p>
+                            </div>
+                            <div class="xs:ml-2">
+                                {% if item in low_stock_items %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">
+                                    Low
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200">
+                                    Good
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400 text-sm text-center py-6 sm:py-8">No inventory items found</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
+                <h2 class="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-5 md:mb-6">Payment Status</h2>
+                <div class="space-y-3 sm:space-y-4">
+                    {% for status in payment_status %}
+                    <div class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <div class="flex items-center space-x-2 sm:space-x-3">
+                            {% if status.payment_status == 'P' %}
+                            <div class="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full"></div>
+                            <span class="text-sm font-medium text-gray-800 dark:text-white">Pending</span>
+                            {% elif status.payment_status == 'D' %}
+                            <div class="w-2 h-2 sm:w-3 sm:h-3 bg-emerald-400 rounded-full"></div>
+                            <span class="text-sm font-medium text-gray-800 dark:text-white">Paid</span>
+                            {% elif status.payment_status == 'T' %}
+                            <div class="w-2 h-2 sm:w-3 sm:h-3 bg-blue-400 rounded-full"></div>
+                            <span class="text-sm font-medium text-gray-800 dark:text-white">Partial</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-800 dark:text-white">{{ status.count }} orders</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ status.total_quantity|floatformat:0}} kg
+                            </p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400 text-sm text-center py-6 sm:py-8">No payment data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6 mb-5 sm:mb-7 md:mb-8">
+            <!-- Recent Purchases -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
+                <div class="flex items-center justify-between mb-4 sm:mb-5 md:mb-6">
+                    <h2 class="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Recent Purchases</h2>
+                    <a href="#" class="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-300">View all</a>
+                </div>
+                <div class="space-y-3 sm:space-y-4">
+                    {% for purchase in recent_purchases %}
+                    <div class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <div class="mb-2 xs:mb-0">
+                            <p class="text-sm font-medium text-gray-800 dark:text-white">{{ purchase.supplier.name }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ purchase.purchase_date|date:"M d, Y"}}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between xs:justify-end xs:gap-4 w-full xs:w-auto">
+                            <p class="text-sm text-gray-800 dark:text-white">
+                                {{ purchase.quantity|floatformat:0 }} kg
+                            </p>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                                {{ purchase.get_coffee_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400 text-sm text-center py-6 sm:py-8">No recent purchases</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Sales -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
+                <div class="flex items-center justify-between mb-4 sm:mb-5 md:mb-6">
+                    <h2 class="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white">Recent Sales</h2>
+                    <a href="#" class="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-300">View all</a>
+                </div>
+                <div class="space-y-3 sm:space-y-4">
+                    {% for sale in recent_sales %}
+                    <div class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <div class="mb-2 xs:mb-0">
+                            <p class="text-sm font-medium text-gray-800 dark:text-white">{{ sale.customer|default:"N/A" }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ sale.sale_date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="flex items-center justify-between xs:justify-end xs:gap-4 w-full xs:w-auto">
+                            <p class="text-sm font-medium text-emerald-600 dark:text-emerald-400">${{ sale.total_amount|floatformat:2 }}</p>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                                {{ sale.get_coffee_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400 text-sm text-center py-6 sm:py-8">No recent sales</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+            <!-- Coffee Type Analysis -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
+                <h2 class="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-5 md:mb-6">Coffee Type Analysis</h2>
+                <div class="space-y-3 sm:space-y-4">
+                    {% for item in coffee_type_purchases %}
+                    <div class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <span class="text-sm font-medium text-gray-800 dark:text-white">{{ item.get_coffee_type_display }}</span>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-800 dark:text-white">{{ item.total_quantity|floatformat:0 }} kg</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.count }} purchases</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400 text-sm text-center py-6 sm:py-8">No purchase data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Top Suppliers -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
+                <h2 class="text-base sm:text-lg md:text-xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-5 md:mb-6">Top Suppliers</h2>
+                <div class="space-y-3 sm:space-y-4">
+                    {% for supplier in active_suppliers %}
+                    <div class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <span class="text-sm font-medium text-gray-800 dark:text-white">{{ supplier.name }}</span>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-800 dark:text-white">{{ supplier.total_quantity|floatformat:0 }} kg</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ supplier.purchase_count }} orders</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 dark:text-gray-400 text-sm text-center py-6 sm:py-8">No supplier data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-colors {
+        transition-property: background-color, border-color, color, fill, stroke;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .duration-300 {
+        transition-duration: 300ms;
+    }
+</style>
+{% endblock %}

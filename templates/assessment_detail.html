@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Assessment Details - GreatPearl Coffee{% endblock %}
+
+{% block page_title %}Assessment Details{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-700 dark:to-gray-800">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div class="mb-4 md:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+                    <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Quality Assessment
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {{ assessment.coffee.get_coffee_type_display }} {{ assessment.coffee.get_coffee_category_display }}
+                </p>
+            </div>
+            <div class="flex space-x-2">
+                <a href="{% url 'assessment_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 dark:focus:ring-offset-gray-800 transition-colors duration-200">
+                    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to List
+                </a>
+                <button onclick="window.print()" 
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 dark:focus:ring-offset-gray-800 transition-colors duration-200">
+                    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Print
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Content -->
+    <div class="p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Coffee Information Card -->
+            <div class="bg-gray-50 dark:bg-gray-700 p-5 rounded-xl border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+                <div class="flex items-center mb-4">
+                    <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Coffee Details</h3>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Supplier</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ assessment.coffee.supplier.name }}</span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Type</span>
+                        <span class="text-sm text-gray-900 dark:text-gray-200">{{ assessment.coffee.get_coffee_type_display }}</span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Form</span>
+                        <span class="text-sm text-gray-900 dark:text-gray-200">{{ assessment.coffee.get_coffee_category_display }}</span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Quantity</span>
+                        <span class="text-sm text-gray-900 dark:text-gray-200">{{ assessment.coffee.quantity|floatformat:"0" }} kg</span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Purchase Date</span>
+                        <span class="text-sm text-gray-900 dark:text-gray-200">{{ assessment.coffee.purchase_date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Reference Price</span>
+                        <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">UGX {{ assessment.coffee.reference_price }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Metrics Card -->
+            <div class="bg-gray-50 dark:bg-gray-700 p-5 rounded-xl border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+                <div class="flex items-center mb-4">
+                    <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Quality Metrics</h3>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Moisture Content</span>
+                        <span class="text-sm font-medium {% if assessment.moisture_content >= 18.5 %}text-red-600 dark:text-red-400{% else %}text-gray-900 dark:text-gray-200{% endif %}">
+                            {{ assessment.moisture_content|default:"-" }}%
+                            {% if assessment.moisture_content >= 18.5 %}
+                            <span class="ml-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 px-1.5 py-0.5 rounded-full">High</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Group 1 Defects</span>
+                        <span class="text-sm {% if assessment.group1_defects > 12 %}text-red-600 dark:text-red-400 font-medium{% else %}text-gray-900 dark:text-gray-200{% endif %}">
+                            {{ assessment.group1_defects|default:"-" }}
+                            {% if assessment.group1_defects > 12 %}
+                            <span class="ml-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 px-1.5 py-0.5 rounded-full">High</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Group 2 Defects</span>
+                        <span class="text-sm {% if assessment.group2_defects > 25 %}text-red-600 dark:text-red-400 font-medium{% else %}text-gray-900 dark:text-gray-200{% endif %}">
+                            {{ assessment.group2_defects|default:"-" }}
+                            {% if assessment.group2_defects > 25 %}
+                            <span class="ml-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 px-1.5 py-0.5 rounded-full">High</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Below Screen 12</span>
+                        <span class="text-sm {% if assessment.below_screen_12 > 5 %}text-red-600 dark:text-red-400 font-medium{% else %}text-gray-900 dark:text-gray-200{% endif %}">
+                            {{ assessment.below_screen_12|default:"-" }}%
+                            {% if assessment.below_screen_12 > 5 %}
+                            <span class="ml-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 px-1.5 py-0.5 rounded-full">High</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Expected Outturn</span>
+                        <span class="text-sm text-gray-900 dark:text-gray-200">{{ assessment.outturn|default:"-" }}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Actual Outturn</span>
+                        <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">{{ assessment.actual_outturn|default:"-" }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Card -->
+            <div class="bg-gray-50 dark:bg-gray-700 p-5 rounded-xl border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+                <div class="flex items-center mb-4">
+                    <div class="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Assessment Results</h3>
+                </div>
+                
+                <!-- Foreign Matter -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        Foreign Matter
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Pods:</span>
+                            <span class="text-gray-900 dark:text-gray-200">{{ assessment.pods|default:"-" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Husks:</span>
+                            <span class="text-gray-900 dark:text-gray-200">{{ assessment.husks|default:"-" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Stones:</span>
+                            <span class="text-gray-900 dark:text-gray-200">{{ assessment.stones|default:"-" }}</span>
+                        </div>
+                        <div class="flex justify-between pb-2 border-b border-gray-200 dark:border-gray-600">
+                            <span class="text-gray-500 dark:text-gray-400">FM Total:</span>
+                            <span class="font-medium {% if assessment.fm > 6 %}text-red-600 dark:text-red-400{% else %}text-gray-900 dark:text-gray-200{% endif %}">
+                                {{ assessment.fm|default:"-" }}%
+                                {% if assessment.fm > 6 %}
+                                <span class="ml-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 px-1.5 py-0.5 rounded-full">High</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Price Calculation -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Price Calculation
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Status:</span>
+                            <span class="font-medium {% if assessment.is_rejected %}text-red-600 dark:text-red-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                                {% if assessment.is_rejected %}
+                                <span class="inline-flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    REJECTED
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    ACCEPTED
+                                </span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Final Price:</span>
+                            <span class="text-gray-900 dark:text-gray-200">UGX {{ assessment.final_price|default:"-" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">FM Penalty:</span>
+                            <span class="text-red-600 dark:text-red-400">- UGX {{ assessment.foreign_matter_penalty|default:"0" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">Discretion:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400">+ UGX {{ assessment.discretion|default:"0" }}</span>
+                        </div>
+                        <div class="flex justify-between pt-2 mt-2 border-t border-gray-200 dark:border-gray-600">
+                            <span class="text-gray-700 dark:text-gray-300 font-medium">Offered Price:</span>
+                            <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                                UGX {{ assessment.analysis_price_ugx|default:"-" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        {% if assessment.coffee.notes %}
+        <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800 transition-colors duration-200">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-500 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">Purchase Notes</h3>
+            </div>
+            <p class="mt-2 text-sm text-blue-900 dark:text-blue-200">{{ assessment.coffee.notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="mt-6 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+            <div class="mb-2 sm:mb-0">
+                Assessed by: <span class="font-medium text-gray-700 dark:text-gray-300">{{ assessment.assessed_by.get_full_name|default:"System" }}</span>
+            </div>
+            <div>
+                Assessment date: <span class="font-medium text-gray-700 dark:text-gray-300">{{ assessment.coffee.purchase_date|date:"M d, Y" }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style type="text/css" media="print">
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+    body {
+        padding: 0;
+        background: white;
+        font-size: 12pt;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .bg-gray-50 {
+        background-color: #f9fafb !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .border-gray-200 {
+        border-color: #e5e7eb !important;
+    }
+    .text-emerald-600 {
+        color: #059669 !important;
+    }
+    .text-red-600 {
+        color: #dc2626 !important;
+    }
+    .shadow-lg, .shadow-sm {
+        box-shadow: none !important;
+    }
+    .dark\:bg-gray-800 {
+        background-color: white !important;
+    }
+    .dark\:text-white {
+        color: black !important;
+    }
+    .dark\:text-gray-200 {
+        color: #374151 !important;
+    }
+    .dark\:border-gray-700 {
+        border-color: #e5e7eb !important;
+    }
+</style>
+{% endblock %}

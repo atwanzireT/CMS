@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+    {% if object %}Update Purchase Information{% else %}Create Purchase Information{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Form Card -->
+        <div class="bg-white/70 backdrop-blur-sm shadow-xl rounded-2xl border border-white/20 overflow-hidden">
+            <!-- Card Header -->
+            <div class="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="h-10 w-10 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-xl font-semibold text-gray-900">Process Configuration</h3>
+                        <p class="text-sm text-gray-500">Configure all process parameters and settings</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" class="divide-y divide-gray-100">
+                {% csrf_token %}
+                
+                <div class="px-8 py-8">
+                    <div class="space-y-8">
+                        {% for field in form %}
+                        <div class="group">
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-gray-800 mb-2">
+                                <span class="flex items-center">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="ml-1 text-red-500 font-bold">*</span>
+                                    {% endif %}
+                                </span>
+                            </label>
+                            
+                            <div class="relative">
+                                <div class="field-wrapper relative rounded-lg border border-gray-300 bg-white shadow-sm transition-all duration-200 group-hover:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-opacity-20 focus-within:border-blue-500">
+                                    {{ field }}
+                                </div>
+                                
+                                {% if field.help_text %}
+                                <div class="mt-2 flex items-start">
+                                    <svg class="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-600">{{ field.help_text }}</p>
+                                </div>
+                                {% endif %}
+                                
+                                {% if field.errors %}
+                                <div class="mt-2">
+                                    {% for error in field.errors %}
+                                    <div class="flex items-start">
+                                        <svg class="h-4 w-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <p class="text-sm text-red-600 font-medium">{{ error }}</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100">
+                    <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+                        <a href="{% url 'milling_list' %}" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 transform hover:scale-105">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            Cancel
+                        </a>
+                        <button type="submit" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:scale-105 hover:shadow-lg">
+                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            {% if object %}Update{% else %}Create{% endif %} Process
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Additional Info Card -->
+        <div class="mt-8 bg-blue-50/50 backdrop-blur-sm border border-blue-200 rounded-xl p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">
+                        Need Help?
+                    </h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <p>Make sure to fill in all required fields marked with <span class="text-red-500 font-bold">*</span>. Contact your system administrator if you need assistance with process configuration.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Custom Styling -->
+<style>
+    /* Form field styling */
+    .field-wrapper input,
+    .field-wrapper select,
+    .field-wrapper textarea {
+        @apply w-full border-0 bg-transparent px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-0 focus:outline-none;
+        min-height: 44px;
+    }
+    
+    .field-wrapper textarea {
+        @apply resize-none;
+        min-height: 100px;
+    }
+    
+    /* Select2 integration */
+    .select2-container {
+        width: 100% !important;
+    }
+    
+    .select2-container--default .select2-selection--single {
+        @apply h-12 border-0 bg-transparent;
+        line-height: 46px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        @apply text-gray-900 pl-4;
+        line-height: 46px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 46px;
+        right: 12px;
+    }
+    
+    .select2-dropdown {
+        @apply border border-gray-300 rounded-lg shadow-lg;
+    }
+    
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        @apply bg-blue-600;
+    }
+    
+    /* Error states */
+    .group:has(.errorlist) .field-wrapper,
+    .group:has(input.error) .field-wrapper,
+    .group:has(select.error) .field-wrapper,
+    .group:has(textarea.error) .field-wrapper {
+        @apply border-red-300 ring-2 ring-red-500 ring-opacity-20;
+    }
+    
+    /* Focus states */
+    .field-wrapper:focus-within {
+        @apply border-blue-500 ring-2 ring-blue-500 ring-opacity-20;
+    }
+    
+    /* Loading animation */
+    @keyframes pulse-subtle {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+    
+    .form-loading {
+        animation: pulse-subtle 1.5s ease-in-out infinite;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+        .field-wrapper input,
+        .field-wrapper select,
+        .field-wrapper textarea {
+            @apply px-3 py-2;
+            min-height: 40px;
+        }
+    }
+</style>
+
+<script>
+    // Add subtle loading state on form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const submitButton = form.querySelector('button[type="submit"]');
+        
+        form.addEventListener('submit', function() {
+            submitButton.disabled = true;
+            submitButton.classList.add('form-loading');
+            
+            const buttonText = submitButton.querySelector('span') || submitButton;
+            const originalText = buttonText.textContent;
+            buttonText.textContent = 'Processing...';
+            
+            // Re-enable after 10 seconds as fallback
+            setTimeout(() => {
+                submitButton.disabled = false;
+                submitButton.classList.remove('form-loading');
+                buttonText.textContent = originalText;
+            }, 10000);
+        });
+    });
+</script>
+{% endblock %}

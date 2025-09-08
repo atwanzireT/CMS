@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+    {% if object %}Update Sale{% else %}Record Coffee Sale{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Form Card -->
+    <div class="bg-white shadow-xl rounded-lg border border-gray-200 overflow-hidden">
+        <!-- Card Header -->
+        <div class="px-6 py-5 bg-gradient-to-r from-coffee-600 to-coffee-800">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-white">
+                    <i class="fas fa-coffee mr-2"></i>
+                    {% if object %}Update Sale #{{ object.id }}{% else %}Record New Coffee Sale{% endif %}
+                </h2>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-coffee-900 text-white">
+                    <i class="fas fa-{{ object|yesno:'edit,plus' }} mr-1"></i>
+                    {{ object|yesno:'Edit,New' }}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Form Content -->
+        <form method="post" class="divide-y divide-gray-200" x-data="{ calculatedTotal: 0 }" 
+              x-effect="calculatedTotal = (parseFloat($el.querySelector('[name=quantity]').value) || 0) * (parseFloat($el.querySelector('[name=unit_price]').value) || 0)">
+            {% csrf_token %}
+            
+            <div class="px-6 py-6 space-y-8">
+                <!-- Customer Section -->
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <!-- Customer Info -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">
+                            <i class="fas fa-user-tie mr-2 text-coffee-600"></i>Customer Details
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label for="{{ form.customer.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                    Full Name <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1 relative">
+                                    {{ form.customer }}
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                    </div>
+                                </div>
+                                {% if form.customer.errors %}
+                                <p class="mt-1 text-sm text-red-600">
+                                    <i class="fas fa-exclamation-circle mr-1"></i> {{ form.customer.errors.as_text }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.customer_contact.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                    Contact Information
+                                </label>
+                                <div class="mt-1 relative">
+                                    {{ form.customer_contact }}
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-phone text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Coffee Details -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">
+                            <i class="fas fa-coffee-bean mr-2 text-coffee-600"></i>Coffee Details
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="{{ form.coffee_type.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                    Coffee Type <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1">
+                                    {{ form.coffee_type }}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="{{ form.coffee_category.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                    Coffee Form <span class="text-red-500">*</span>
+                                </label>
+                                <div class="mt-1">
+                                    {{ form.coffee_category }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Transaction Details -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-medium text-gray-900 border-b pb-2">
+                        <i class="fas fa-receipt mr-2 text-coffee-600"></i>Transaction Details
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <!-- Quantity -->
+                        <div class="space-y-2">
+                            <label for="{{ form.quantity.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Quantity <span class="text-red-500">*</span>
+                            </label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                {{ form.quantity }}
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">kg</span>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">Weight in kilograms</p>
+                            {% if form.quantity.errors %}
+                            <p class="mt-1 text-sm text-red-600">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.quantity.errors.as_text }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Unit Price -->
+                        <div class="space-y-2">
+                            <label for="{{ form.unit_price.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Unit Price <span class="text-red-500">*</span>
+                            </label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">UGX</span>
+                                </div>
+                                {{ form.unit_price }}
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">/kg</span>
+                                </div>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">Price per kilogram</p>
+                            {% if form.unit_price.errors %}
+                            <p class="mt-1 text-sm text-red-600">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.unit_price.errors.as_text }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Total Amount -->
+                        <div class="bg-coffee-50 p-4 rounded-lg border border-coffee-200 flex flex-col justify-center">
+                            <p class="text-xs font-medium text-coffee-800 uppercase tracking-wider">
+                                <i class="fas fa-calculator mr-1"></i> Total Amount
+                            </p>
+                            <p class="text-2xl font-bold text-coffee-900 mt-1" 
+                               x-text="'UGX ' + calculatedTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})">
+                                UGX 0.00
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Date & Notes -->
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div class="space-y-2">
+                            <label for="{{ form.sale_date.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Sale Date <span class="text-red-500">*</span>
+                            </label>
+                            <div class="mt-1">
+                                {{ form.sale_date }}
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                <i class="far fa-sticky-note mr-1 text-gray-500"></i> Notes
+                            </label>
+                            <div class="mt-1">
+                                {{ form.notes }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                    <a href="{% url 'sale_list' %}" class="inline-flex items-center justify-center px-5 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500 transition-colors duration-200">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to List
+                    </a>
+                    <button type="submit" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500 transition-colors duration-200">
+                        <i class="fas fa-save mr-2"></i> {% if object %}Update{% else %}Record{% endif %} Sale
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize datepicker with better defaults
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set today's date as default if empty
+        const dateField = document.querySelector('[name="sale_date"]');
+        if (dateField && !dateField.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateField.value = today;
+        }
+        
+        // Focus first field with error or customer field
+        const firstError = document.querySelector('.error');
+        if (firstError) {
+            firstError.querySelector('input, select, textarea').focus();
+        } else {
+            document.querySelector('[name="customer"]').focus();
+        }
+    });
+</script>
+{% endblock %}

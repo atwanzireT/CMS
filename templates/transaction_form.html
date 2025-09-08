@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block page_title %}Create Transaction{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+    {% if request.GET.milling %}
+    <div class="mb-4 p-4 bg-green-50 border-l-4 border-green-400 rounded">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-check-circle text-green-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-green-700">
+                    Milling process created successfully. Please record the payment details below.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+  
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">
+                <i class="fas fa-exchange-alt mr-2 text-primary-600"></i>
+                Transaction Details
+            </h2>
+        </div>
+        
+        <form method="post" class="px-6 py-5 space-y-6">
+            {% csrf_token %}
+            
+            <!-- Hidden fields for disabled values -->
+            {% for field in form %}
+                {% if field.field.widget.attrs.data_disabled and field.value %}
+                    <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+                {% endif %}
+            {% endfor %}
+            
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <!-- Customer Account -->
+                <div>
+                    <label for="{{ form.account.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Customer Account <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative mt-1">
+                        {{ form.account }}
+                    </div>
+                </div>
+                
+                <!-- Transaction Type -->
+                <div>
+                    <label for="{{ form.transaction_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Transaction Type <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        {{ form.transaction_type }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <!-- Amount -->
+                <div>
+                    <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Amount <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative mt-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500">Ugx. </span>
+                        </div>
+                        {{ form.amount }}
+                    </div>
+                </div>
+                
+                <!-- Reference -->
+                <div>
+                    <label for="{{ form.reference.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Reference <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-1">
+                        {{ form.reference }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Milling Process -->
+            <div>
+                <label for="{{ form.milling_process.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    <i class="fas fa-link mr-1 text-gray-400"></i> Milling Process
+                </label>
+                <div class="mt-1">
+                    {{ form.milling_process }}
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200">
+                <a href="{% url 'milling_list' %}" class="inline-flex justify-center items-center px-4 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-150">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-150">
+                    <i class="fas fa-save mr-2"></i>
+                    Record Transaction
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<style>
+    [data-disabled="true"] {
+        background-color: #f3f4f6;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}

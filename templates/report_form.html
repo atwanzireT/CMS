@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+  <!-- Page header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">Create Daily Store Report</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        Fill the form below and click <span class="font-medium">Save Report</span>.
+      </p>
+    </div>
+    <a href="{% url 'general_reports' %}"
+       class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+      ← Back to Reports
+    </a>
+  </div>
+
+  <!-- Non-field errors -->
+  {% if form.non_field_errors %}
+    <div class="mb-6 rounded-lg border border-red-300 bg-red-50 p-4 text-red-800 dark:bg-red-900/20 dark:text-red-200">
+      {% for err in form.non_field_errors %}
+        <p class="text-sm">{{ err }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="space-y-8">
+    {% csrf_token %}
+
+    <!-- Core -->
+    <section class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Core Details</h2>
+      </div>
+      <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- date -->
+        <div>
+          <label for="{{ form.date.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Date</label>
+          {{ form.date }}
+          {% if form.date.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.date.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <!-- coffee_type -->
+        <div>
+          <label for="{{ form.coffee_type.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Coffee Type</label>
+          {{ form.coffee_type }}
+          {% if form.coffee_type.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.coffee_type.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Prices & Transactions -->
+    <section class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Prices &amp; Transactions</h2>
+      </div>
+      <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- average_buying_price_ugx_per_kg -->
+        <div>
+          <label for="{{ form.average_buying_price_ugx_per_kg.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+            Average Buying Price (UGX/kg)
+          </label>
+          {{ form.average_buying_price_ugx_per_kg }}
+          {% if form.average_buying_price_ugx_per_kg.help_text %}
+            <p class="mt-1 text-xs text-gray-500">{{ form.average_buying_price_ugx_per_kg.help_text }}</p>
+          {% endif %}
+          {% if form.average_buying_price_ugx_per_kg.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.average_buying_price_ugx_per_kg.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <!-- kilograms_bought -->
+        <div>
+          <label for="{{ form.kilograms_bought.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Kilograms Bought</label>
+          {{ form.kilograms_bought }}
+          {% if form.kilograms_bought.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.kilograms_bought.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <!-- kilograms_sold -->
+        <div>
+          <label for="{{ form.kilograms_sold.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Kilograms Sold</label>
+          {{ form.kilograms_sold }}
+          {% if form.kilograms_sold.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.kilograms_sold.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <!-- number_of_bags_sold -->
+        <div>
+          <label for="{{ form.number_of_bags_sold.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Number of Bags Sold</label>
+          {{ form.number_of_bags_sold }}
+          {% if form.number_of_bags_sold.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.number_of_bags_sold.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Inventory Snapshot -->
+    <section class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Inventory Snapshot</h2>
+      </div>
+      <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- bags_left_in_store -->
+        <div>
+          <label for="{{ form.bags_left_in_store.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Bags Left in Store</label>
+          {{ form.bags_left_in_store }}
+          {% if form.bags_left_in_store.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.bags_left_in_store.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <!-- kilograms_left_in_store -->
+        <div>
+          <label for="{{ form.kilograms_left_in_store.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Kilograms Left in Store</label>
+          {{ form.kilograms_left_in_store }}
+          {% if form.kilograms_left_in_store.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.kilograms_left_in_store.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <!-- kilograms_unbought_in_store -->
+        <div>
+          <label for="{{ form.kilograms_unbought_in_store.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+            Kilograms Unbought in Store
+          </label>
+          {{ form.kilograms_unbought_in_store }}
+          {% if form.kilograms_unbought_in_store.help_text %}
+            <p class="mt-1 text-xs text-gray-500">{{ form.kilograms_unbought_in_store.help_text }}</p>
+          {% endif %}
+          {% if form.kilograms_unbought_in_store.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.kilograms_unbought_in_store.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Parties & Cash -->
+    <section class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Parties &amp; Cash</h2>
+      </div>
+      <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- sold_to -->
+        <div class="md:col-span-1 lg:col-span-1">
+          <label for="{{ form.sold_to.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Sold To</label>
+          {{ form.sold_to }}
+          {% if form.sold_to.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.sold_to.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <!-- advances_given_ugx -->
+        <div>
+          <label for="{{ form.advances_given_ugx.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Advances Given (UGX)</label>
+          {{ form.advances_given_ugx }}
+          {% if form.advances_given_ugx.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.advances_given_ugx.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Attachment & Comments -->
+    <section class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Attachment &amp; Comments</h2>
+      </div>
+      <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- attachment -->
+        <div>
+          <label for="{{ form.attachment.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Attachment (optional)</label>
+          {{ form.attachment }}
+          {% if form.attachment.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.attachment.errors|striptags }}</p>
+          {% endif %}
+        </div>
+        <!-- comments -->
+        <div>
+          <label for="{{ form.comments.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Comments</label>
+          {{ form.comments }}
+          {% if form.comments.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.comments.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="{% url 'general_reports' %}"
+         class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+        Cancel
+      </a>
+      <button type="submit"
+              class="inline-flex items-center rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+        Save Report
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

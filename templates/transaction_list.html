@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Transactions - GreatPearl Coffee{% endblock %}
+
+{% block page_title %}Customer Transactions{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex text-sm text-gray-500">
+    <a href="{% url 'home' %}" class="hover:text-gray-700">Home</a>
+    <span class="mx-2">/</span>
+    <span class="text-gray-600">Transactions</span>
+</nav>
+{% endblock %}
+
+{% block header_actions %}
+<button onclick="toggleTransactionForm()" 
+        class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+    <i class="fas fa-plus mr-2"></i> New Transaction
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+    <!-- Transaction Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Customer
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount (UGX)
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Type
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Reference
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for transaction in transactions %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ transaction.account.customer.name }}</div>
+                        <div class="text-xs text-gray-500">{{ transaction.account.customer.phone }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {% if transaction.transaction_type == 'C' %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ transaction.amount|floatformat:2 }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if transaction.transaction_type == 'C' %}bg-green-100 text-green-800
+                            {% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ transaction.get_transaction_type_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ transaction.reference|default:"-" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ transaction.created_at|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="editTransaction(
+                            '{{ transaction.id }}',
+                            '{{ transaction.account.id }}',
+                            '{{ transaction.amount }}',
+                            '{{ transaction.transaction_type }}',
+                            '{{ transaction.reference|default:""|escapejs }}',
+                            '{{ transaction.milling_process.id|default:"" }}'
+                        )" class="text-primary-600 hover:text-primary-900 px-3 py-1 rounded-md hover:bg-primary-50 transition-colors">
+                            <i class="fas fa-edit mr-1"></i> Edit
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                        No transactions found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Overlay -->
+<div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden transition-opacity duration-300"></div>
+
+<!-- Transaction Modal -->
+<div id="transactionModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 transform transition-all duration-300 scale-95 opacity-0">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900" id="transactionFormTitle">New Transaction</h2>
+                <button onclick="toggleTransactionForm()" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form method="post" id="transactionForm">
+                {% csrf_token %}
+                <input type="hidden" name="transaction_id" id="transaction_id" value="">
+                
+                <div class="space-y-4">
+                    <!-- Customer Account Field -->
+                    <div>
+                        <label for="id_account" class="block text-sm font-medium text-gray-700 mb-1">Customer Account</label>
+                        {{ form.account }}
+                        {% if form.account.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.account.errors }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Amount Field -->
+                    <div>
+                        <label for="id_amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (UGX)</label>
+                        <input type="number" name="amount" id="id_amount" step="0.01" min="0.01"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                               required>
+                        {% if form.amount.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.amount.errors }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Transaction Type Field -->
+                    <div>
+                        <label for="id_transaction_type" class="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
+                        <select name="transaction_type" id="id_transaction_type"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
+                            <option value="C">Credit</option>
+                            <option value="D">Debit</option>
+                        </select>
+                        {% if form.transaction_type.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.transaction_type.errors }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Reference Field -->
+                    <div>
+                        <label for="id_reference" class="block text-sm font-medium text-gray-700 mb-1">Reference</label>
+                        <input type="text" name="reference" id="id_reference" maxlength="50"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500">
+                        {% if form.reference.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.reference.errors }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Milling Process Field -->
+                    <div>
+                        <label for="id_milling_process" class="block text-sm font-medium text-gray-700 mb-1">Milling Process (Optional)</label>
+                        {{ form.milling_process }}
+                        {% if form.milling_process.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.milling_process.errors }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" onclick="toggleTransactionForm()" 
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                        Save Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle transaction form visibility
+    function toggleTransactionForm() {
+        const overlay = document.getElementById('modalOverlay');
+        const modal = document.getElementById('transactionModal');
+        const modalContent = modal.querySelector('div');
+        
+        if (modal.classList.contains('hidden')) {
+            // Show modal
+            overlay.classList.remove('hidden');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            // Reset form when showing
+            document.getElementById('transactionForm').reset();
+            document.getElementById('transaction_id').value = '';
+            document.getElementById('transactionFormTitle').textContent = 'New Transaction';
+        } else {
+            // Hide modal
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+    }
+    
+    // Edit transaction function
+    function editTransaction(id, accountId, amount, type, reference, millingProcessId) {
+        // Fill the form with transaction data
+        document.getElementById('transaction_id').value = id;
+        document.getElementById('id_account').value = accountId;
+        document.getElementById('id_amount').value = amount;
+        document.getElementById('id_transaction_type').value = type;
+        document.getElementById('id_reference').value = reference;
+        
+        if (millingProcessId) {
+            document.getElementById('id_milling_process').value = millingProcessId;
+        }
+        
+        // Update form title
+        document.getElementById('transactionFormTitle').textContent = 'Edit Transaction';
+        
+        // Show the modal
+        const overlay = document.getElementById('modalOverlay');
+        const modal = document.getElementById('transactionModal');
+        const modalContent = modal.querySelector('div');
+        
+        overlay.classList.remove('hidden');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('modalOverlay').addEventListener('click', toggleTransactionForm);
+</script>
+{% endblock %}
