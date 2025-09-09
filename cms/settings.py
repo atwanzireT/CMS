@@ -26,7 +26,10 @@ SECRET_KEY = 'django-insecure-aj^4%_$6hfa52o54x#d%4$+ckdbjde#ogp76&+_222=z%1-uv@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["system.greatpearlcoffee.com"]
+ALLOWED_HOSTS = [
+    "system.greatpearlcoffee.com",
+    "www.system.greatpearlcoffee.com",
+]
 
 # Application definition
 
