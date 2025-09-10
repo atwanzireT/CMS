@@ -48,8 +48,12 @@ class MillingProcess(models.Model):
     ]
 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='milling_processes')
-    initial_weight = models.DecimalField(max_digits=6, blank=True, null=True, decimal_places=2, validators=[MinValueValidator(0.1)])
-    hulled_weight = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0.1)], null=True, blank=True)
+    initial_weight = models.PositiveIntegerField(
+        default=0, validators=[MinValueValidator(0)], help_text="Coffee quantity in kilograms"
+    )
+    hulled_weight = models.PositiveIntegerField(
+        default=0, validators=[MinValueValidator(0)], help_text="Coffee quantity in kilograms"
+    )
     milling_rate = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null = True, default=150.00)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, blank=True, null = True, default=COMPLETED)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -29,6 +29,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "system.greatpearlcoffee.com",
     "www.system.greatpearlcoffee.com",
+    "127.0.0.1",
+    "localhost",
 ]
 
 # Application definition

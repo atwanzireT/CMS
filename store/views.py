@@ -7,6 +7,8 @@ from django.db import transaction
 from django.db.models import (
     Sum, Count, Avg, Q, F, Case, When, Value, IntegerField
 )
+from django.db.models import Q, Max, Case, When, Value, CharField
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -114,12 +116,30 @@ def store_dashboard(request):
 # ========== SUPPLIER VIEWS ==========
 @login_required
 def supplier_list(request):
-    suppliers = Supplier.objects.order_by('name')
-    supplier_id = request.POST.get('supplier_id') if request.method == 'POST' else None
-    instance = None
+    # Include assessed-only purchases (change to decision="Accepted" if needed)
+    assessed_filter = Q(purchases__assessment__isnull=False)
+    # assessed_filter = Q(purchases__assessment__decision="Accepted")
 
-    if supplier_id:
-        instance = get_object_or_404(Supplier, id=supplier_id)
+    suppliers = (
+        Supplier.objects
+        .annotate(
+            last_supply=Max('purchases__delivery_date', filter=assessed_filter),
+            coffee_types=ArrayAgg(
+                Case(
+                    When(purchases__coffee_type=CoffeePurchase.ARABICA, then=Value('Arabica')),
+                    When(purchases__coffee_type=CoffeePurchase.ROBUSTA, then=Value('Robusta')),
+                    default=Value('Unknown'),
+                    output_field=CharField(),
+                ),
+                filter=assessed_filter,
+                distinct=True,
+            ),
+        )
+        .order_by('name')
+    )
+
+    supplier_id = request.POST.get('supplier_id') if request.method == 'POST' else None
+    instance = get_object_or_404(Supplier, id=supplier_id) if supplier_id else None
 
     if request.method == 'POST':
         form = SupplierForm(request.POST, instance=instance, user=request.user)
@@ -133,11 +153,9 @@ def supplier_list(request):
     else:
         form = SupplierForm(user=request.user)
 
-    context = {
-        'form': form,
-        'suppliers': suppliers,
-    }
-    return render(request, 'supplier_list.html', context)
+    return render(request, 'supplier_list.html', {'form': form, 'suppliers': suppliers})
+
+
 
 @login_required
 def supplier_detail(request, pk):

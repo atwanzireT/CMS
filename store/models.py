@@ -84,8 +84,8 @@ class CoffeePurchase(models.Model):
         max_length=2, choices=COFFEE_CATEGORIES, verbose_name="Coffee Form", blank=True
     )
     coffee_type = models.CharField(max_length=2, choices=COFFEE_TYPES, default="AR")
-    quantity = models.DecimalField(
-        max_digits=8, decimal_places=0, validators=[MinValueValidator(0.01)], help_text="Weight in kilograms"
+    quantity = models.PositiveIntegerField(
+        default=0, validators=[MinValueValidator(0)], help_text="Coffee quantity in kilograms"
     )
     bags = models.PositiveIntegerField(
         default=0, validators=[MinValueValidator(0)], help_text="Number of bags (if applicable)"
