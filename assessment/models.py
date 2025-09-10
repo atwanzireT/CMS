@@ -38,27 +38,26 @@ class Assessment(models.Model):
     )
 
     # Core inputs
-    ref_price = models.DecimalField("Reference Price (UGX)", max_digits=12, decimal_places=2,
-                                    validators=[MinValueValidator(Decimal("0"))])
-    discretion = models.DecimalField("Discretion (UGX)", max_digits=12, decimal_places=2,
+    ref_price = models.PositiveIntegerField(help_text="Reference Price (UGX)")
+    discretion = models.DecimalField("Discretion (UGX)", max_digits=12, decimal_places=1,
                                      default=Decimal("0.00"), blank=True)
-    moisture_content = models.DecimalField("Moisture (%)", max_digits=5, decimal_places=2,
+    moisture_content = models.DecimalField("Moisture (%)", max_digits=5, decimal_places=1,
                                            validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    group1_defects = models.DecimalField("Group 1 Defects (%)", max_digits=5, decimal_places=2,
+    group1_defects = models.DecimalField("Group 1 Defects (%)", max_digits=5, decimal_places=1,
                                          validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    group2_defects = models.DecimalField("Group 2 Defects (%)", max_digits=5, decimal_places=2,
+    group2_defects = models.DecimalField("Group 2 Defects (%)", max_digits=5, decimal_places=1,
                                          validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    below_screen_12 = models.DecimalField("Below Screen 12 (%)", max_digits=5, decimal_places=2,
+    below_screen_12 = models.DecimalField("Below Screen 12 (%)", max_digits=5, decimal_places=1,
                                           validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    pods = models.DecimalField("Pods (%)", max_digits=5, decimal_places=2,
+    pods = models.DecimalField("Pods (%)", max_digits=5, decimal_places=1,
                                validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    husks = models.DecimalField("Husks (%)", max_digits=5, decimal_places=2,
+    husks = models.DecimalField("Husks (%)", max_digits=5, decimal_places=1,
                                 validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    stones = models.DecimalField("Stones (%)", max_digits=5, decimal_places=2,
+    stones = models.DecimalField("Stones (%)", max_digits=5, decimal_places=1,
                                  validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    fm = models.DecimalField("Foreign Matter (%)", max_digits=5, decimal_places=2, default=Decimal("0.00"), blank=True,
+    fm = models.DecimalField("Foreign Matter (%)", max_digits=5, decimal_places=1, default=Decimal("0.00"), blank=True,
                              validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    offered_price = models.DecimalField("Offered Price (UGX)", max_digits=12, decimal_places=2,
+    offered_price = models.DecimalField("Offered Price (UGX)", max_digits=12, decimal_places=1,
                                         default=Decimal("0.00"), blank=True,
                                         validators=[MinValueValidator(Decimal("0"))])
 
