@@ -149,8 +149,8 @@ class MillingProcessForm(EnhancedTailwindFormMixin, forms.ModelForm):
         fields = ['customer', 'hulled_weight', 'milling_rate', 'status', 'notes']
         widgets = {
             'customer': CustomerWidget,
-            'hulled_weight': forms.NumberInput(attrs={'step': '0.01', 'min': '0.1'}),
-            'milling_rate': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'hulled_weight': forms.NumberInput(attrs={'step': '1', 'min': '1'}),
+            'milling_rate': forms.NumberInput(attrs={'step': '1', 'min': '0'}),
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
     

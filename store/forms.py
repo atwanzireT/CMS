@@ -169,8 +169,8 @@ class CoffeePurchaseForm(EnhancedTailwindFormMixin, forms.ModelForm):
 
     def setup_fields(self):
         self.fields['quantity'].widget.attrs.update({
-            'step': '0.01',
-            'min': '0.01'
+            'step': '1',
+            'min': '1'
         })
         self.fields['bags'].widget.attrs.update({
             'min': '0'
