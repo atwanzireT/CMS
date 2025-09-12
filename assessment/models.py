@@ -5,22 +5,18 @@ from django.conf import settings
 from store.models import CoffeePurchase
 
 
-def clamp2(x: Decimal | float | None) -> Decimal | None:
+def clamp1(x: Decimal | float | None) -> Decimal | None:
+    """
+    Quantize to 1 decimal place.
+    """
     if x is None:
         return None
     if not isinstance(x, Decimal):
         x = Decimal(str(x))
-    return x.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return x.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
 
 
 class Assessment(models.Model):
-    """
-    One assessment per purchase. Views/templates expect:
-    - assessment.coffee (OneToOne to CoffeePurchase)
-    - assessment.assessed_by (FK to user)
-    - final_price / decision / decision_reasons
-    """
-
     # Make coffee REQUIRED so signals (and any logic elsewhere) never see None.
     coffee = models.OneToOneField(
         CoffeePurchase,
@@ -37,27 +33,29 @@ class Assessment(models.Model):
         blank=True,
     )
 
+
     # Core inputs
-    ref_price = models.PositiveIntegerField(help_text="Reference Price (UGX)")
-    discretion = models.DecimalField("Discretion (UGX)", max_digits=12, decimal_places=1,
+    ref_price = models.DecimalField("Reference Price (UGX)", max_digits=12, decimal_places=2,
+                                    validators=[MinValueValidator(Decimal("0"))])
+    discretion = models.DecimalField("Discretion (UGX)", max_digits=12, decimal_places=2,
                                      default=Decimal("0.00"), blank=True)
-    moisture_content = models.DecimalField("Moisture (%)", max_digits=5, decimal_places=1,
+    moisture_content = models.DecimalField("Moisture (%)", max_digits=5, decimal_places=2,
                                            validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    group1_defects = models.DecimalField("Group 1 Defects (%)", max_digits=5, decimal_places=1,
+    group1_defects = models.DecimalField("Group 1 Defects (%)", max_digits=5, decimal_places=2,
                                          validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    group2_defects = models.DecimalField("Group 2 Defects (%)", max_digits=5, decimal_places=1,
+    group2_defects = models.DecimalField("Group 2 Defects (%)", max_digits=5, decimal_places=2,
                                          validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    below_screen_12 = models.DecimalField("Below Screen 12 (%)", max_digits=5, decimal_places=1,
+    below_screen_12 = models.DecimalField("Below Screen 12 (%)", max_digits=5, decimal_places=2,
                                           validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    pods = models.DecimalField("Pods (%)", max_digits=5, decimal_places=1,
+    pods = models.DecimalField("Pods (%)", max_digits=5, decimal_places=2,
                                validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    husks = models.DecimalField("Husks (%)", max_digits=5, decimal_places=1,
+    husks = models.DecimalField("Husks (%)", max_digits=5, decimal_places=2,
                                 validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    stones = models.DecimalField("Stones (%)", max_digits=5, decimal_places=1,
+    stones = models.DecimalField("Stones (%)", max_digits=5, decimal_places=2,
                                  validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    fm = models.DecimalField("Foreign Matter (%)", max_digits=5, decimal_places=1, default=Decimal("0.00"), blank=True,
+    fm = models.DecimalField("Foreign Matter (%)", max_digits=5, decimal_places=2, default=Decimal("0.00"), blank=True,
                              validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))])
-    offered_price = models.DecimalField("Offered Price (UGX)", max_digits=12, decimal_places=1,
+    offered_price = models.DecimalField("Offered Price (UGX)", max_digits=12, decimal_places=2,
                                         default=Decimal("0.00"), blank=True,
                                         validators=[MinValueValidator(Decimal("0"))])
 
@@ -93,7 +91,7 @@ class Assessment(models.Model):
                  - (self.husks or 0)
                  - (self.stones or 0)
                  - (self.below_screen_12 or 0))
-        return clamp2(value)
+        return clamp1(value)
 
     def compute_derived_outturn(self) -> Decimal | None:
         """
@@ -120,7 +118,7 @@ class Assessment(models.Model):
                - (self.husks or 0)
                - (self.stones or 0)
                - excess(self.below_screen_12 or 0, Decimal("1")))
-        return clamp2(val)
+        return clamp1(val)
 
     def compute_rejection_reasons(self) -> list[str]:
         reasons: list[str] = []
@@ -140,7 +138,7 @@ class Assessment(models.Model):
         if pods > 6:              reasons.append(f"Pods {pods}% > 6%")
         if husks > 6:             reasons.append(f"Husks {husks}% > 6%")
         if stones > 6:            reasons.append(f"Stones {stones}% > 6%")
-        if phs_sum > 6:           reasons.append(f"Pods+Husks+Stones {clamp2(phs_sum)}% > 6%")
+        if phs_sum > 6:           reasons.append(f"Pods+Husks+Stones {clamp1(phs_sum)}% > 6%")
         return reasons
 
     def compute_final_price(self) -> Decimal | None:
@@ -201,12 +199,12 @@ class Assessment(models.Model):
         if self.discretion is not None:
             price += Decimal(self.discretion)
 
-        price = max(Decimal("0.00"), clamp2(price))
+        price = max(Decimal("0.0"), clamp1(price))
         return price
 
     # ---------- Lifecycle ----------
     def refresh_computed_fields(self):
-        self.clean_outturn = self.compute_clean_outturn()
+        self.clean_outturn = clamp1(self.compute_clean_outturn())
         self.derived_outturn = self.compute_derived_outturn()
         reasons = self.compute_rejection_reasons()
         if reasons:
@@ -220,13 +218,14 @@ class Assessment(models.Model):
         # Ensure strong validation before computing/saving
         self.full_clean()
         self.refresh_computed_fields()
-        self.fm = self.stones + self.husks + self.pods
+        # keep fm in sync (quantized to 1 dp)
+        self.fm = clamp1((self.stones or 0) + (self.husks or 0) + (self.pods or 0)) or Decimal("0.0")
         super().save(*args, **kwargs)
 
     # ---------- Handy aliases for templates ----------
     @property
     def phs_sum(self) -> Decimal:
-        return clamp2((self.pods or 0) + (self.husks or 0) + (self.stones or 0)) or Decimal("0.00")
+        return clamp1((self.pods or 0) + (self.husks or 0) + (self.stones or 0)) or Decimal("0.0")
 
     @property
     def is_rejected(self) -> bool:

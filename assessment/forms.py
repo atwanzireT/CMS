@@ -16,6 +16,14 @@ class AssessmentForm(TailwindFormMixin, forms.ModelForm):
         if self.coffee_purchase and not self.instance.pk:
             self.instance.coffee = self.coffee_purchase
 
+        # Apply step increments
+        for name, field in self.fields.items():
+            if isinstance(field.widget, forms.NumberInput):
+                if name == "ref_price":
+                    field.widget.attrs.update({"step": "50", "min": "0", "inputmode": "numeric"})
+                else:
+                    field.widget.attrs.update({"step": "0.1", "inputmode": "decimal"})
+
     class Meta:
         model = Assessment
         fields = [
@@ -24,7 +32,15 @@ class AssessmentForm(TailwindFormMixin, forms.ModelForm):
             'discretion', 'ref_price', 'offered_price'
         ]
         widgets = {
-            # Increment by 50 UGX in the UI
-            'ref_price': forms.NumberInput(attrs={'step': 50, 'min': 0, 'inputmode': 'numeric'}),
-            'offered_price': forms.TextInput(attrs={'class': 'block w-full px-3 py-2 border rounded'}),
+            'ref_price': forms.NumberInput(),
+            'offered_price': forms.NumberInput(),
+            'discretion': forms.NumberInput(),
+            'moisture_content': forms.NumberInput(),
+            'group1_defects': forms.NumberInput(),
+            'group2_defects': forms.NumberInput(),
+            'below_screen_12': forms.NumberInput(),
+            'pods': forms.NumberInput(),
+            'husks': forms.NumberInput(),
+            'stones': forms.NumberInput(),
+            'fm': forms.NumberInput(),
         }

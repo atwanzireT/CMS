@@ -6,7 +6,8 @@ from django.core.paginator import Paginator
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from django.shortcuts import render, redirect
 from django.urls import reverse
-
+from django.views.generic import DetailView
+from django.shortcuts import get_object_or_404
 from .forms import GeneralReportFilterForm, DailyStoreReportForm
 from .models import DailyStoreReport
 
@@ -89,3 +90,14 @@ def create_report(request):
         form = DailyStoreReportForm()
 
     return render(request, "report_form.html", {"form": form})
+
+
+class ReportDetailView(DetailView):
+    model = DailyStoreReport
+    template_name = "report_detail.html"
+    context_object_name = "report"
+    pk_url_kwarg = "pk"
+
+    def get_queryset(self):
+        # Ensure related user is prefetched for efficiency
+        return DailyStoreReport.objects.select_related("input_by")

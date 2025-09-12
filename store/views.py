@@ -5,21 +5,15 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import (
-    Sum, Count, Avg, Q, F, Case, When, Value, IntegerField
+    Sum, Count, Avg, Q, F, Case, When, Value, IntegerField, Max, CharField, Prefetch
 )
-from django.db.models import Q, Max, Case, When, Value, CharField
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django.db.models import Prefetch
 from assessment.models import Assessment
-from .models import *
-from .forms import *
-from decimal import Decimal
-from django.contrib.auth.decorators import login_required
-from django.db.models import Prefetch
-from django.utils import timezone
+from .models import Supplier, CoffeePurchase, CoffeeSale, CoffeeInventory, SupplierTransaction, SupplierAccount
+from .forms import SupplierForm, CoffeePurchaseForm, CoffeeSaleForm
 
 # ========== UTILITY FUNCTIONS ==========
 def get_base_context(request, page_title='Default Page Title'):
@@ -114,14 +108,41 @@ def store_dashboard(request):
 
 
 # ========== SUPPLIER VIEWS ==========
+PER_PAGE_OPTIONS = [10, 20, 50, 100]
+
+
 @login_required
 def supplier_list(request):
-    # Include assessed-only purchases (change to decision="Accepted" if needed)
-    assessed_filter = Q(purchases__assessment__isnull=False)
-    # assessed_filter = Q(purchases__assessment__decision="Accepted")
+    """
+    Supplier list with:
+    - GET ?q= search (name/phone/id)
+    - Annotated last assessed delivery & distinct coffee types (Arabica/Robusta)
+    - POST create/update Supplier OR create CoffeePurchase (same page)
+    - Pagination with Paginator.get_page()
+    """
+    # --- inputs
+    q = (request.GET.get("q") or "").strip()
+    try:
+        per_page = int(request.GET.get("per_page", 20))
+    except ValueError:
+        per_page = 20
+    if per_page not in PER_PAGE_OPTIONS:
+        per_page = 20
 
-    suppliers = (
-        Supplier.objects
+    # --- base queryset + search
+    base_qs = Supplier.objects.all()
+    if q:
+        base_qs = base_qs.filter(
+            Q(name__icontains=q) |
+            Q(phone__icontains=q) |
+            Q(id__icontains=q)
+        )
+
+    # Only consider purchases that have an assessment for annotations
+    assessed_filter = Q(purchases__assessment__isnull=False)
+
+    suppliers_qs = (
+        base_qs
         .annotate(
             last_supply=Max('purchases__delivery_date', filter=assessed_filter),
             coffee_types=ArrayAgg(
@@ -138,23 +159,59 @@ def supplier_list(request):
         .order_by('name')
     )
 
-    supplier_id = request.POST.get('supplier_id') if request.method == 'POST' else None
-    instance = get_object_or_404(Supplier, id=supplier_id) if supplier_id else None
-
+    # --- handle POSTs (two cases): SupplierForm OR CoffeePurchaseForm
     if request.method == 'POST':
+        # Heuristic: if purchase fields are present, treat it as a purchase submission
+        is_purchase_post = any(k in request.POST for k in ("coffee_category", "coffee_type", "quantity"))
+
+        if is_purchase_post:
+            supplier_id = request.POST.get('supplier_id')
+            supplier = get_object_or_404(Supplier, id=supplier_id)
+
+            purchase_form = CoffeePurchaseForm(request.POST)
+            if purchase_form.is_valid():
+                obj: CoffeePurchase = purchase_form.save(commit=False)
+                obj.supplier = supplier
+                obj.recorded_by = request.user
+                obj.assessment_needed = True
+                if not obj.purchase_date:
+                    obj.purchase_date = timezone.now().date()
+                if not obj.delivery_date:
+                    obj.delivery_date = timezone.now().date()
+                obj.save()
+                messages.success(request, f"Purchase recorded for {supplier.name}.")
+                # Preserve query context on redirect
+                return redirect(f"{request.path}?q={q}&per_page={per_page}")
+            else:
+                # Show a concise error message; keep UI simple
+                messages.error(request, "Please correct the errors in the purchase form.")
+                return redirect(f"{request.path}?q={q}&per_page={per_page}")
+
+        # Otherwise, it’s a Supplier create/update
+        supplier_id = request.POST.get('supplier_id')  # may be blank for create
+        instance = get_object_or_404(Supplier, id=supplier_id) if supplier_id else None
         form = SupplierForm(request.POST, instance=instance, user=request.user)
         if form.is_valid():
             supplier = form.save(commit=False)
-            if not instance:
+            if instance is None:
                 supplier.created_by = request.user
             supplier.save()
-            messages.success(request, f'Supplier {"updated" if instance else "created"} successfully!')
-            return redirect('supplier_list')
+            messages.success(request, f"Supplier {'updated' if instance else 'created'} successfully!")
+            return redirect(f"{request.path}?q={q}&per_page={per_page}")
     else:
         form = SupplierForm(user=request.user)
 
-    return render(request, 'supplier_list.html', {'form': form, 'suppliers': suppliers})
+    # --- pagination (robust & simple)
+    paginator = Paginator(suppliers_qs, per_page)
+    suppliers_page = paginator.get_page(request.GET.get('page'))
 
+    return render(request, 'supplier_list.html', {
+        'form': form,                       # supplier form
+        'suppliers': suppliers_page,        # page object
+        'q': q,
+        'per_page': per_page,
+        'per_page_options': PER_PAGE_OPTIONS,
+    })
 
 
 @login_required

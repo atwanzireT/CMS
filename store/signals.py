@@ -10,7 +10,7 @@ from assessment.models import Assessment  # if you keep the assessment logic
 
 # ------------ utils ------------
 def _q2(x: Decimal | None) -> Decimal:
-    return (x or Decimal("0")).quantize(Decimal("0.01"))
+    return (x or Decimal("0")).quantize(Decimal("0.1"))
 
 def _signed_amount(tx: SupplierTransaction) -> Decimal:
     """
@@ -49,14 +49,14 @@ def cache_previous_payable(sender, instance: Assessment, **kwargs):
             prev = Assessment.objects.select_related("coffee").get(pk=instance.pk)
             instance._prev_payable = total_payable(prev)
         except Assessment.DoesNotExist:
-            instance._prev_payable = Decimal("0.00")
+            instance._prev_payable = Decimal("0.0")
     else:
-        instance._prev_payable = Decimal("0.00")
+        instance._prev_payable = Decimal("0.0")
 
 @receiver(post_save, sender=Assessment)
 def post_assessment_to_account(sender, instance: Assessment, created: bool, **kwargs):
     new_payable = total_payable(instance)
-    prev_payable = getattr(instance, "_prev_payable", Decimal("0.00"))
+    prev_payable = getattr(instance, "_prev_payable", Decimal("0.0"))
     delta = _q2(new_payable - prev_payable)
     if delta == 0:
         return

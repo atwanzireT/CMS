@@ -11,8 +11,6 @@
   .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow{height:40px}
   .select2-container--bootstrap4 .select2-dropdown{border:1px solid #d1d5db;border-radius:.5rem}
   .select2-container--bootstrap4 .select2-results__option--highlighted{background-color:#2563eb!important}
-  .stats-card{transition:all .3s}
-  .stats-card:hover{transform:translateY(-5px);box-shadow:0 10px 25px -5px rgba(0,0,0,.1)}
   .supplier-row{transition:all .2s}
   .supplier-row:hover{background-color:#f9fafb}
   .dark .supplier-row:hover{background-color:#374151}
@@ -30,62 +28,36 @@
 
 {% block content %}
 
-<!-- Stats Overview -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-  <div class="stats-card bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-    <div class="flex items-center">
-      <div class="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-3 mr-4">
-        <i class="fas fa-truck text-blue-600 dark:text-blue-400 text-xl"></i>
-      </div>
-      <div>
-        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Suppliers</p>
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">{{ suppliers|length }}</h3>
-      </div>
-    </div>
-  </div>
-
-  <!-- Active = those with a last_supply date -->
-  <div class="stats-card bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-    <div class="flex items-center">
-      <div class="rounded-lg bg-green-100 dark:bg-green-900/30 p-3 mr-4">
-        <i class="fas fa-coffee text-green-600 dark:text-green-400 text-xl"></i>
-      </div>
-      <div>
-        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Suppliers</p>
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ suppliers|dictsort:"last_supply"|length }}{# fallback simple count; list is already suppliers #}
-        </h3>
-      </div>
-    </div>
-  </div>
-
-  <div class="stats-card bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-    <div class="flex items-center">
-      <div class="rounded-lg bg-purple-100 dark:bg-purple-900/30 p-3 mr-4">
-        <i class="fas fa-calendar text-purple-600 dark:text-purple-400 text-xl"></i>
-      </div>
-      <div>
-        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">This Month Purchases</p>
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ monthly_purchases|default:"0" }} kg
-        </h3>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
   <!-- Search & actions -->
   <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div class="relative w-full sm:w-72">
-      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <i class="fas fa-search text-gray-400"></i>
+    <form method="get" class="flex items-center gap-3 w-full sm:w-auto">
+      <div class="relative w-full sm:w-72">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <i class="fas fa-search text-gray-400"></i>
+        </div>
+        <input
+          id="supplier-search"
+          name="q"
+          type="text"
+          value="{{ q|default:'' }}"
+          placeholder="Search suppliers..."
+          class="pl-10 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400">
       </div>
-      <input id="supplier-search" type="text" placeholder="Search suppliers..."
-        class="pl-10 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400">
-    </div>
+
+      <select name="per_page" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+        {% for n in per_page_options %}
+          <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }} / page</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white text-sm font-medium rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600">
+        Apply
+      </button>
+    </form>
+
     <div class="text-sm text-gray-500 dark:text-gray-400">
-      Total: {{ suppliers|length }}
+      Total: {{ suppliers.paginator.count }}
     </div>
   </div>
 
@@ -177,7 +149,7 @@
     </table>
   </div>
 
-  <!-- Pagination (uses Django pagination object if present) -->
+  <!-- Pagination -->
   {% if suppliers.has_other_pages %}
   <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
     <div class="text-sm text-gray-700 dark:text-gray-400">
@@ -185,17 +157,17 @@
     </div>
     <div class="flex gap-2">
       {% if suppliers.has_previous %}
-      <a href="?page={{ suppliers.previous_page_number }}" class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
+        <a href="?page={{ suppliers.previous_page_number }}&q={{ q|urlencode }}&per_page={{ per_page }}" class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
       {% endif %}
       {% for i in suppliers.paginator.page_range %}
         {% if suppliers.number == i %}
           <span class="px-3 py-1 rounded-lg bg-primary-600 text-white">{{ i }}</span>
         {% else %}
-          <a href="?page={{ i }}" class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">{{ i }}</a>
+          <a href="?page={{ i }}&q={{ q|urlencode }}&per_page={{ per_page }}" class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">{{ i }}</a>
         {% endif %}
       {% endfor %}
       {% if suppliers.has_next %}
-      <a href="?page={{ suppliers.next_page_number }}" class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
+        <a href="?page={{ suppliers.next_page_number }}&q={{ q|urlencode }}&per_page={{ per_page }}" class="px-3 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
       {% endif %}
     </div>
   </div>
@@ -216,7 +188,7 @@
             <i class="fas fa-times text-lg"></i>
           </button>
         </div>
-        <form method="post" id="supplierForm" class="space-y-4">
+        <form method="post" id="supplierForm" class="space-y-4" action="{% url 'supplier_list' %}?q={{ q|urlencode }}&per_page={{ per_page }}">
           {% csrf_token %}
           <input type="hidden" name="supplier_id" id="supplier_id" value="">
           <div>
@@ -256,7 +228,7 @@
             <i class="fas fa-times text-lg"></i>
           </button>
         </div>
-        <form method="post" id="purchaseForm" action="#" class="space-y-4">
+        <form method="post" id="purchaseForm" action="{% url 'supplier_list' %}?q={{ q|urlencode }}&per_page={{ per_page }}" class="space-y-4">
           {% csrf_token %}
           <input type="hidden" name="supplier_id" id="purchase_supplier_id" value="">
           <div>
@@ -281,7 +253,7 @@
           </div>
           <div>
             <label for="id_quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity (kg)*</label>
-            <input id="id_quantity" name="quantity" type="number" min="0.01" step="0.01" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Weight in kilograms">
+            <input id="id_quantity" name="quantity" type="number" min="1" step="1" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Weight in kilograms">
           </div>
           <div>
             <label for="id_bags" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bags</label>
@@ -310,15 +282,6 @@
   document.addEventListener('DOMContentLoaded', function () {
     const selects = document.querySelectorAll('#supplierModal select, #purchaseModal select');
     selects.forEach(s => $(s).select2({ theme: 'bootstrap4', width: '100%' }));
-  });
-
-  // Search filter
-  document.getElementById('supplier-search').addEventListener('input', function (e) {
-    const q = e.target.value.toLowerCase();
-    document.querySelectorAll('tbody tr').forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(q) ? '' : 'none';
-    });
   });
 
   // Overlay handling
