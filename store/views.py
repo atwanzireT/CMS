@@ -12,8 +12,12 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from assessment.models import Assessment
-from .models import Supplier, CoffeePurchase, CoffeeSale, CoffeeInventory, SupplierTransaction, SupplierAccount
-from .forms import SupplierForm, CoffeePurchaseForm, CoffeeSaleForm
+from .models import Supplier, CoffeePurchase, SupplierTransaction, SupplierAccount
+from .forms import SupplierForm, CoffeePurchaseForm
+from sales.models import CoffeeSale
+from inventory.models import CoffeeInventory
+from sales.forms import CoffeeSaleForm
+from django.db.models import ExpressionWrapper, DecimalField
 
 # ========== UTILITY FUNCTIONS ==========
 def get_base_context(request, page_title='Default Page Title'):
@@ -25,64 +29,77 @@ def get_base_context(request, page_title='Default Page Title'):
 # ========== DASHBOARD ==============
 @login_required
 def store_dashboard(request):
-    # Get date ranges
+    # Date ranges
     today = timezone.now().date()
     thirty_days_ago = today - timedelta(days=30)
-    seven_days_ago = today - timedelta(days=7)
-    
-    # Purchase statistics
+
+    # Purchases (unchanged if CoffeePurchase has 'quantity' & 'bags')
     total_purchases = CoffeePurchase.objects.count()
     recent_purchases = CoffeePurchase.objects.filter(purchase_date__gte=thirty_days_ago)
     total_purchase_quantity = recent_purchases.aggregate(total=Sum('quantity'))['total'] or 0
     total_purchase_bags = recent_purchases.aggregate(total=Sum('bags'))['total'] or 0
-    
-    # Payment status breakdown
+
+    # Payment status breakdown (uses CoffeePurchase.quantity)
     payment_status = recent_purchases.values('payment_status').annotate(
         count=Count('id'),
-        total_quantity=Sum('quantity')
+        total_quantity=Sum('quantity'),
     )
-    
-    # Sale statistics
-    total_sales = CoffeeSale.objects.count()
+
+    # SALES — use quantity_kg & unit_price_ugx
     recent_sales = CoffeeSale.objects.filter(sale_date__gte=thirty_days_ago)
-    total_sale_quantity = recent_sales.aggregate(total=Sum('quantity'))['total'] or 0
-    total_revenue = recent_sales.aggregate(
-        total=Sum(F('quantity') * F('unit_price'))
-    )['total'] or Decimal('0.00')
-    
+
+    total_amount_expr = ExpressionWrapper(
+        F('quantity_kg') * F('unit_price_ugx'),
+        output_field=DecimalField(max_digits=20, decimal_places=2),
+    )
+
+    total_sales = CoffeeSale.objects.count()
+    total_sale_quantity = recent_sales.aggregate(total=Sum('quantity_kg'))['total'] or 0
+    total_revenue = recent_sales.aggregate(total=Sum(total_amount_expr))['total'] or Decimal('0.00')
+
     # Inventory overview
     inventory_items = CoffeeInventory.objects.all()
-    total_inventory_value = inventory_items.aggregate(
-        total=Sum('current_value')
-    )['total'] or Decimal('0.00')
-    total_inventory_quantity = inventory_items.aggregate(
-        total=Sum('quantity')
-    )['total'] or Decimal('0.00')
-    
-    # Low stock alerts (less than 100kg)
+    total_inventory_value = inventory_items.aggregate(total=Sum('current_value'))['total'] or Decimal('0.00')
+    total_inventory_quantity = inventory_items.aggregate(total=Sum('quantity'))['total'] or Decimal('0.00')
     low_stock_items = inventory_items.filter(quantity__lt=100)
-    
-    # Recent activities
-    recent_purchases_list = CoffeePurchase.objects.select_related('supplier').order_by('-purchase_date')[:5]
-    recent_sales_list = CoffeeSale.objects.order_by('-sale_date')[:5]
-    
+
+    # Recent activities (annotate total_amount so template {{ sale.total_amount }} works)
+    recent_purchases_list = (
+        CoffeePurchase.objects.select_related('supplier')
+        .order_by('-purchase_date')[:5]
+    )
+    recent_sales_list = (
+        CoffeeSale.objects.select_related('customer')
+        .annotate(total_amount=total_amount_expr)
+        .order_by('-sale_date', '-created_at')[:5]
+    )
+
     # Supplier statistics
-    active_suppliers = Supplier.objects.annotate(
-        purchase_count=Count('purchases'),
-        total_quantity=Sum('purchases__quantity')
-    ).filter(purchase_count__gt=0).order_by('-total_quantity')[:5]
-    
-    # Coffee type breakdown
-    coffee_type_purchases = recent_purchases.values('coffee_type').annotate(
-        total_quantity=Sum('quantity'),
-        count=Count('id')
+    active_suppliers = (
+        Supplier.objects.annotate(
+            purchase_count=Count('purchases'),
+            total_quantity=Sum('purchases__quantity'),
+        )
+        .filter(purchase_count__gt=0)
+        .order_by('-total_quantity')[:5]
     )
-    
-    coffee_type_sales = recent_sales.values('coffee_type').annotate(
-        total_quantity=Sum('quantity'),
-        total_revenue=Sum(F('quantity') * F('unit_price'))
+
+    # Coffee type breakdowns
+    coffee_type_purchases = (
+        recent_purchases.values('coffee_type')
+        .annotate(
+            total_quantity=Sum('quantity'),
+            count=Count('id'),
+        )
     )
-    
+    coffee_type_sales = (
+        recent_sales.values('coffee_type')
+        .annotate(
+            total_quantity=Sum('quantity_kg'),
+            total_revenue=Sum(total_amount_expr),
+        )
+    )
+
     context = {
         'today': today,
         'total_purchases': total_purchases,
@@ -102,9 +119,7 @@ def store_dashboard(request):
         'coffee_type_purchases': coffee_type_purchases,
         'coffee_type_sales': coffee_type_sales,
     }
-    
     return render(request, 'store_dashboard.html', context)
-
 
 
 # ========== SUPPLIER VIEWS ==========
@@ -451,108 +466,3 @@ def sale_detail(request, pk):
         'sale': sale
     })
     return render(request, 'sale_detail.html', context)
-
-
-# ========== INVENTORY VIEWS ==========
-@login_required
-def inventory_dashboard(request):
-    # Get all inventory items
-    all_items = CoffeeInventory.objects.select_related().all()
-    
-    # Basic aggregates
-    aggregates = all_items.aggregate(
-        total_quantity=Sum('quantity'),
-        total_value=Sum('current_value'),
-        avg_cost=Avg('average_unit_cost')
-    )
-    
-    # Inventory by category
-    inventory_by_category = all_items.values(
-        'coffee_category',
-        'coffee_type'
-    ).annotate(
-        total_quantity=Sum('quantity'),
-        total_value=Sum('current_value'),
-        average_cost=Avg('average_unit_cost'),
-        item_count=Count('id')
-    ).order_by('coffee_category', 'coffee_type')
-    
-    # Calculate percentages for each category
-    total_quantity = aggregates['total_quantity'] or 1  # Avoid division by zero
-    for category in inventory_by_category:
-        category['percentage'] = (category['total_quantity'] / total_quantity) * 100
-        category['coffee_category_display'] = dict(CoffeeInventory.COFFEE_CATEGORIES).get(
-            category['coffee_category'], 'Unknown'
-        )
-        category['coffee_type_display'] = dict(CoffeeInventory.COFFEE_TYPE_CHOICES).get(
-            category['coffee_type'], 'Unknown'
-        )
-    
-    # Quality assessment summary - modified to avoid using is_rejected as a filter
-    quality_summary = Assessment.objects.annotate(
-        is_rejected_case=Case(
-            When(
-                Q(moisture_content__gt=20) | 
-                Q(below_screen_12__gt=3) |
-                Q(outturn__isnull=True) |
-                Q(outturn=0),
-                then=Value(1)
-            ),
-            default=Value(0),
-            output_field=IntegerField()
-        )
-    ).values(
-        'coffee__coffee_category',
-        'coffee__coffee_type'
-    ).annotate(
-        total_assessed=Count('id'),
-        avg_moisture=Avg('moisture_content'),
-        avg_outturn=Avg('outturn'),
-        rejected_count=Sum('is_rejected_case')
-    ).order_by('coffee__coffee_category', 'coffee__coffee_type')
-    
-    # Stock status breakdown
-    stock_status = {
-        'low': all_items.filter(quantity__lt=10).count(),
-        'medium': all_items.filter(quantity__gte=10, quantity__lt=50).count(),
-        'high': all_items.filter(quantity__gte=50).count()
-    }
-    
-    # Recent purchases (last 30 days)
-    recent_purchases = CoffeePurchase.objects.filter(
-        purchase_date__gte=timezone.now() - timezone.timedelta(days=30)
-    ).select_related('supplier').order_by('-purchase_date')[:5]
-    
-    context = {
-        'page_title': 'Inventory Dashboard',
-        'inventory_items': all_items,
-        'total_items': all_items.count(),
-        'total_quantity': aggregates['total_quantity'] or 0,
-        'total_value': aggregates['total_value'] or 0,
-        'average_cost_per_kg': aggregates['avg_cost'] or 0,
-        'inventory_by_category': inventory_by_category,
-        'quality_summary': quality_summary,
-        'stock_status': stock_status,
-        'recent_purchases': recent_purchases,
-        'low_stock_items': all_items.filter(quantity__lt=10),
-    }
-    return render(request, 'inventory_dashboard.html', context)
-
-
-
-@login_required
-def inventory_detail(request, pk):
-    inventory = get_object_or_404(CoffeeInventory, pk=pk)
-    context = get_base_context(request, 'Inventory Details')
-    
-    context.update({
-        'inventory': inventory,
-        'purchases': CoffeePurchase.objects.filter(
-            coffee_type=inventory.coffee_type
-        ).order_by('-purchase_date')[:10],
-        'sales': CoffeeSale.objects.filter(
-            coffee_type=inventory.coffee_type
-        ).order_by('-sale_date')[:10]
-    })
-    return render(request, 'inventory_detail.html', context)
-

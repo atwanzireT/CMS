@@ -2,6 +2,7 @@ from django.urls import path
 from . import dashboard_views
 from .views import *
 
+app_name = 'store'
 
 urlpatterns = [
     path('', dashboard_views.dashboard, name="home"),
@@ -14,12 +15,5 @@ urlpatterns = [
     # Coffee Purchase URLs
     path('purchases/', purchase_list, name='purchase_list'),
     path('purchases/<int:pk>/', purchase_detail, name='purchase_detail'),
-    
-    # Coffee Sale URLs
-    path('sales/', sale_list, name='sale_list'),
-    path('sales/<int:pk>/', sale_detail, name='sale_detail'),
 
-    # Inventory URLs
-    path('inventory/', inventory_dashboard, name='inventory_list'),
-    path('inventory/<int:pk>/', inventory_detail, name='inventory_detail'),
 ]

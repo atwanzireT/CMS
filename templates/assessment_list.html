@@ -57,7 +57,7 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <a href="{% url 'assessment_list' %}?seed=1"
+          <a href="{% url 'assessment:assessment_list' %}?seed=1"
              class="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm font-medium shadow-md"
              title="Create assessments for all unassessed purchases">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8m12 0a8 8 0 11-16 0 8 8 0 0116 0z"/></svg>
@@ -131,7 +131,7 @@
           {{ unassessed_purchases|length }} pending
         </span>
       </div>
-      <a href="{% url 'assessment_list' %}?seed=1" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm shadow-md">
+      <a href="{% url 'assessment:assessment_list' %}?seed=1" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm shadow-md">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m4-4H8m12 0a8 8 0 11-16 0 8 8 0 0116 0z"/></svg>
         Add All
       </a>
@@ -276,13 +276,13 @@
               <!-- Actions -->
               <td class="px-4 py-4 text-right align-top">
                 <div class="inline-flex items-center gap-2 justify-end">
-                  <a href="{% url 'assessment_detail' assessment.id %}" class="px-3 py-1.5 text-xs rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  <a href="{% url 'assessment:assessment_detail' assessment.id %}" class="px-3 py-1.5 text-xs rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
                     View
                   </a>
-                  <a href="{% url 'assessment_create' assessment.coffee.id %}" class="px-3 py-1.5 text-xs rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white">
+                  <a href="{% url 'assessment:assessment_create' assessment.coffee.id %}" class="px-3 py-1.5 text-xs rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white">
                     Edit
                   </a>
-                  <a href="{% url 'assessment_pdf' assessment.id %}" target="_blank" class="px-3 py-1.5 text-xs rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  <a href="{% url 'assessment:assessment_pdf' assessment.id %}" target="_blank" class="px-3 py-1.5 text-xs rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
                     PDF
                   </a>
                 </div>

@@ -3,19 +3,31 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.db import models
 
 class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
 
-    # Fix related_name clashes
+    # Avoid related_name clashes with AbstractUser defaults
     groups = models.ManyToManyField(Group, related_name="customer_users", blank=True)
     user_permissions = models.ManyToManyField(Permission, related_name="customer_user_permissions", blank=True)
 
-    def __str__(self):
-        return self.username
-
+    class Meta(AbstractUser.Meta):
+        permissions = [
+            ("access_sales", "Can access sales app"),
+            ("access_inventory", "Can access inventory app"),
+            ("access_reports", "Can access reports app"),
+            ("access_assessment", "Can access assessment app"),
+            ("access_analysis", "Can access analysis app"),
+            ("access_accounts", "Can access accounts app"),
+            ("access_finance", "Can access finance app"),
+            ("access_milling", "Can access milling app"),
+            ("access_store", "Can access store app"),
+            ("access_expenses", "Can access expenses app"),
+        ]
 
 class UserActivity(models.Model):
     ACTION_CHOICES = [

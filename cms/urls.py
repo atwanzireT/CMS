@@ -26,9 +26,13 @@ urlpatterns = [
     path('assessment/', include('assessment.urls')),
     path('reports/', include('reports.urls')),
     path('accounts/', include('accounts.urls')),
+    path('analysis/', include('analysis.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('finance/', include('finance.urls')),
     path('milling/', include('milling.urls')),
+    path('sales/', include('sales.urls')),
+    path('inventory/', include('inventory.urls')),
+    path('expenses/', include('expenses.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,375 +1,329 @@
-{% extends 'base.html' %}
-{% block page_title %}{{ page_title }}{% endblock %}
+{% extends "base.html" %}
+{% load humanize %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+<div class="mx-auto max-w-7xl px-4 py-6">
 
-        <!-- Summary Cards - Improved Layout -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Total Items Card -->
-            <div class="bg-white rounded-lg shadow overflow-hidden border-l-4 border-emerald-500">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-emerald-100 text-emerald-600">
-                            <i class="fas fa-boxes"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Total Items</p>
-                            <p class="text-2xl font-semibold text-gray-900">{{ total_items }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Quantity Card -->
-            <div class="bg-white rounded-lg shadow overflow-hidden border-l-4 border-blue-500">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <i class="fas fa-weight"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Total Quantity</p>
-                            <div class="flex items-baseline">
-                                <p class="text-2xl font-semibold text-gray-900">{{ total_quantity|floatformat:1 }}</p>
-                                <span class="ml-2 text-sm font-medium text-gray-500">kg</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Value Card -->
-            <div class="bg-white rounded-lg shadow overflow-hidden border-l-4 border-purple-500">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Total Value</p>
-                            <div class="flex items-baseline">
-                                <p class="text-2xl font-semibold text-gray-900">UGX {{ total_value|floatformat:0 }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Average Cost Card -->
-            <div class="bg-white rounded-lg shadow overflow-hidden border-l-4 border-amber-500">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-amber-100 text-amber-600">
-                            <i class="fas fa-tag"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Avg Cost/kg</p>
-                            <div class="flex items-baseline">
-                                <p class="text-2xl font-semibold text-gray-900">UGX {{ average_cost_per_kg|floatformat:0 }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Stock Status Card -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="px-6 py-5 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-chart-pie mr-2 text-blue-500"></i>
-                        Stock Status
-                    </h3>
-                </div>
-                <div class="p-6">
-                    <div class="space-y-5">
-                        <!-- Good Stock -->
-                        <div>
-                            <div class="flex justify-between mb-1">
-                                <span class="text-sm font-medium text-green-700">Good (>50kg)</span>
-                                <span class="text-sm font-medium text-gray-700">{{ stock_status.high }} items</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-green-600 h-2.5 rounded-full" 
-                                     style="width: {% widthratio stock_status.high total_items 100 %}%"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Medium Stock -->
-                        <div>
-                            <div class="flex justify-between mb-1">
-                                <span class="text-sm font-medium text-yellow-600">Medium (10-50kg)</span>
-                                <span class="text-sm font-medium text-gray-700">{{ stock_status.medium }} items</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-yellow-400 h-2.5 rounded-full" 
-                                     style="width: {% widthratio stock_status.medium total_items 100 %}%"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Low Stock -->
-                        <div>
-                            <div class="flex justify-between mb-1">
-                                <span class="text-sm font-medium text-red-600">Low (<10kg)</span>
-                                <span class="text-sm font-medium text-gray-700">{{ stock_status.low }} items</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                <div class="bg-red-500 h-2.5 rounded-full" 
-                                     style="width: {% widthratio stock_status.low total_items 100 %}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rest of your template remains the same -->
-            <!-- Category Breakdown Card -->
-            <div class="bg-white rounded-lg shadow overflow-hidden lg:col-span-2">
-                <div class="px-6 py-5 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-layer-group mr-2 text-purple-500"></i>
-                        Category Breakdown
-                    </h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Cost</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            {% for category in inventory_by_category %}
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {{ category.coffee_category_display }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ category.coffee_type_display }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ category.total_quantity|floatformat:1 }} kg
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    UGX {{ category.total_value|floatformat:0 }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    UGX {{ category.average_cost|floatformat:0 }}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% if not inventory_by_category %}
-                <div class="p-6 text-center text-gray-500">
-                    No category data available
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Quality Assessment Card -->
-        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
-            <div class="px-6 py-5 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-clipboard-check mr-2 text-green-500"></i>
-                    Quality Assessment Summary
-                </h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assessed</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rejected</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Moisture</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Outturn</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for qa in quality_summary %}
-                        <tr class="{% if qa.rejected_count > 0 %}bg-red-50{% else %}hover:bg-gray-50{% endif %}">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ qa.coffee__coffee_category }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ qa.coffee__coffee_type }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ qa.total_assessed }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {% if qa.rejected_count > 0 %}text-red-600{% else %}text-gray-500{% endif %}">
-                                {{ qa.rejected_count }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ qa.avg_moisture|floatformat:1 }}%
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ qa.avg_outturn|floatformat:1 }}%
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
-                                No quality assessment data available
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Recent Activity Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Recent Purchases Card -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="px-6 py-5 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-shopping-cart mr-2 text-blue-500"></i>
-                        Recent Purchases (Last 30 Days)
-                    </h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty (kg)</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            {% for purchase in recent_purchases %}
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ purchase.purchase_date|date:"M d" }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {{ purchase.supplier.name|truncatechars:20 }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ purchase.get_coffee_type_display }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ purchase.quantity|floatformat:1 }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    UGX {{ purchase.total_cost|floatformat:0 }}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                                    No recent purchases
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Low Stock Warning Card -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="px-6 py-5 border-b border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
-                        Low Stock Alerts
-                    </h3>
-                </div>
-                {% if low_stock_items %}
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Qty</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            {% for item in low_stock_items %}
-                            <tr class="hover:bg-red-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {{ item.get_coffee_category_display }} {{ item.get_coffee_type_display }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ item.quantity|floatformat:1 }} kg
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                        Critical
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="p-6 text-center">
-                    <div class="flex flex-col items-center justify-center">
-                        <svg class="h-12 w-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">All items are well stocked</h3>
-                        <p class="mt-1 text-sm text-gray-500">No inventory items below threshold levels</p>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-bolt mr-2 text-yellow-500"></i>
-                    Quick Actions
-                </h3>
-            </div>
-            <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a href="#" class="group flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                    <div class="p-3 rounded-full bg-blue-100 text-blue-600 group-hover:bg-blue-200 mb-2">
-                        <i class="fas fa-cart-plus"></i>
-                    </div>
-                    <span class="text-sm font-medium text-gray-700 group-hover:text-blue-600">New Purchase</span>
-                </a>
-                <a href="#" class="group flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-200 transition-colors">
-                    <div class="p-3 rounded-full bg-green-100 text-green-600 group-hover:bg-green-200 mb-2">
-                        <i class="fas fa-cash-register"></i>
-                    </div>
-                    <span class="text-sm font-medium text-gray-700 group-hover:text-green-600">Record Sale</span>
-                </a>
-                <a href="#" class="group flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-colors">
-                    <div class="p-3 rounded-full bg-purple-100 text-purple-600 group-hover:bg-purple-200 mb-2">
-                        <i class="fas fa-clipboard-check"></i>
-                    </div>
-                    <span class="text-sm font-medium text-gray-700 group-hover:text-purple-600">Quality Check</span>
-                </a>
-                <a href="#" class="group flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:bg-amber-50 hover:border-amber-200 transition-colors">
-                    <div class="p-3 rounded-full bg-amber-100 text-amber-600 group-hover:bg-amber-200 mb-2">
-                        <i class="fas fa-file-export"></i>
-                    </div>
-                    <span class="text-sm font-medium text-gray-700 group-hover:text-amber-600">Generate Report</span>
-                </a>
-            </div>
-        </div>
+  <!-- Header -->
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Inventory Dashboard</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400">As of {{ today|date:"M j, Y" }}</p>
     </div>
+
+    <!-- Theme toggle -->
+    <button id="themeToggle"
+            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700">
+      <!-- Moon -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M21 12.79A9 9 0 1 1 11.21 3c.2 0 .4 0 .6.02A7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <!-- Sun -->
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M12 3v2m0 14v2m7.07-11.07-1.41 1.41M6.34 17.66l-1.41 1.41m14.14 0-1.41-1.41M6.34 6.34 4.93 4.93M21 12h-2M5 12H3m9-4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
+      </svg>
+      <span class="hidden sm:inline">Toggle theme</span>
+    </button>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total Available (kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            {{ inv_total_available_kg|default_if_none:0|floatformat:2|intcomma }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-blue-50 p-3 text-blue-600 ring-1 ring-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-900/40">
+          <!-- Boxes icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M3 7l9 4 9-4M3 7v10l9 4m9-14v10l-9 4M12 11v10"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total Received (kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            {{ inv_total_received_kg|default_if_none:0|floatformat:2|intcomma }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-emerald-50 p-3 text-emerald-600 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-900/40">
+          <!-- Arrow down tray -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M3 16v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2M7 10l5 5m0 0 5-5m-5 5V3"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Inventory Value (UGX)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            {{ inv_total_value|default_if_none:0|floatformat:2|intcomma }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-amber-50 p-3 text-amber-600 ring-1 ring-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-900/40">
+          <!-- Currency icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 8c-2.21 0-4 1.57-4 3.5S9.79 15 12 15s4-1.57 4-3.5M4 12h2m12 0h2M6 6l2 2m8-2-2 2M6 18l2-2m8 2-2-2"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Avg Final Price (UGX/kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            {{ avg_final_price|default_if_none:0|floatformat:2|intcomma }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-purple-50 p-3 text-purple-600 ring-1 ring-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:ring-purple-900/40">
+          <!-- Tag icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M7 7h4l7 7-4 4-7-7V7zM7 7l-2 2m9 1 3-3"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Movement -->
+  <div class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Inflow (30d, kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            {{ inflow_30_kg|default_if_none:0|floatformat:2|intcomma }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-emerald-50 p-3 text-emerald-600 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-900/40">
+          <!-- Trending up -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M3 17l6-6 4 4 7-7M14 5h7v7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Outflow (30d, kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            {{ outflow_approx_30_kg|default_if_none:0|floatformat:2|intcomma }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-rose-50 p-3 text-rose-600 ring-1 ring-rose-100 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-900/40">
+          <!-- Trending down -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M21 7l-6 6-4-4-7 7M10 19H3v-7"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Revenue (30d, UGX)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            {{ movement.revenue_30d|default_if_none:0|floatformat:2|intcomma }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-teal-50 p-3 text-teal-600 ring-1 ring-teal-100 dark:bg-teal-900/30 dark:text-teal-300 dark:ring-teal-900/40">
+          <!-- Receipt -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M7 7h10M7 11h10M7 15h6M6 3h12a1 1 0 0 1 1 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 0 1 1-1z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breakdowns -->
+  <div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        <h2 class="font-semibold text-slate-900 dark:text-slate-100">Inventory by Coffee Type</h2>
+        <span class="text-xs text-slate-500 dark:text-slate-400">kg &amp; lots</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-slate-50 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
+            <tr>
+              <th class="px-4 py-2 text-left">Type</th>
+              <th class="px-4 py-2 text-right">Received (kg)</th>
+              <th class="px-4 py-2 text-right">Available (kg)</th>
+              <th class="px-4 py-2 text-right">Lots</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+            {% if inv_by_type %}
+              {% for row in inv_by_type %}
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-900/30">
+                <td class="px-4 py-2 text-slate-900 dark:text-slate-100">
+                  {% if row.coffee_type == 'AR' %}Arabica
+                  {% elif row.coffee_type == 'RB' %}Robusta
+                  {% else %}{{ row.coffee_type|default:"—" }}{% endif %}
+                </td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.received_kg|default_if_none:0|floatformat:2|intcomma }}</td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.available_kg|default_if_none:0|floatformat:2|intcomma }}</td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.lots|intcomma }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="4" class="px-4 py-3 text-center text-slate-500 dark:text-slate-400">No inventory found.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        <h2 class="font-semibold text-slate-900 dark:text-slate-100">Inventory by Category</h2>
+        <span class="text-xs text-slate-500 dark:text-slate-400">kg &amp; lots</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-slate-50 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
+            <tr>
+              <th class="px-4 py-2 text-left">Category</th>
+              <th class="px-4 py-2 text-right">Received (kg)</th>
+              <th class="px-4 py-2 text-right">Available (kg)</th>
+              <th class="px-4 py-2 text-right">Lots</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+            {% if inv_by_category %}
+              {% for row in inv_by_category %}
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-900/30">
+                <td class="px-4 py-2 text-slate-900 dark:text-slate-100">
+                  {% if row.coffee_category == 'GR' %}Green Coffee
+                  {% elif row.coffee_category == 'PA' %}Parchment Coffee
+                  {% elif row.coffee_category == 'KB' %}Kiboko Coffee
+                  {% else %}{{ row.coffee_category|default:"—" }}{% endif %}
+                </td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.received_kg|default_if_none:0|floatformat:2|intcomma }}</td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.available_kg|default_if_none:0|floatformat:2|intcomma }}</td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.lots|intcomma }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr><td colspan="4" class="px-4 py-3 text-center text-slate-500 dark:text-slate-400">No inventory found.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- Purchasing windows & suppliers -->
+  <div class="mb-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        <h3 class="font-semibold text-slate-900 dark:text-slate-100">Accepted Purchases (7d)</h3>
+        <span class="text-xs text-slate-500 dark:text-slate-400">Recent</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 p-4 text-sm">
+        <div class="text-slate-500 dark:text-slate-400">Purchases</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_7.purchases|default:0|intcomma }}</div>
+        <div class="text-slate-500 dark:text-slate-400">Total kg</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_7.total_kg|default_if_none:0|floatformat:2|intcomma }}</div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        <h3 class="font-semibold text-slate-900 dark:text-slate-100">Accepted Purchases (30d)</h3>
+        <span class="text-xs text-slate-500 dark:text-slate-400">Month</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 p-4 text-sm">
+        <div class="text-slate-500 dark:text-slate-400">Purchases</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_30.purchases|default:0|intcomma }}</div>
+        <div class="text-slate-500 dark:text-slate-400">Total kg</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_30.total_kg|default_if_none:0|floatformat:2|intcomma }}</div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+        <h3 class="font-semibold text-slate-900 dark:text-slate-100">Accepted Purchases (365d)</h3>
+        <span class="text-xs text-slate-500 dark:text-slate-400">Year</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 p-4 text-sm">
+        <div class="text-slate-500 dark:text-slate-400">Purchases</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_365.purchases|default:0|intcomma }}</div>
+        <div class="text-slate-500 dark:text-slate-400">Total kg</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_365.total_kg|default_if_none:0|floatformat:2|intcomma }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+    <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+      <h2 class="font-semibold text-slate-900 dark:text-slate-100">Top Suppliers (last 90 days)</h2>
+      <span class="text-xs text-slate-500 dark:text-slate-400">by kg</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
+          <tr>
+            <th class="px-4 py-2 text-left">Supplier</th>
+            <th class="px-4 py-2 text-right">Total kg</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+          {% if top_suppliers_90 %}
+            {% for s in top_suppliers_90 %}
+            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-900/30">
+              <td class="px-4 py-2 text-slate-900 dark:text-slate-100">{{ s.supplier__name|default:"—" }}</td>
+              <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ s.total_kg|default_if_none:0|floatformat:2|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="2" class="px-4 py-3 text-center text-slate-500 dark:text-slate-400">No suppliers found.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
+
+<!-- Theme script: stores preference and toggles 'dark' on <html> -->
+<script>
+  (function initTheme() {
+    const stored = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const html = document.documentElement;
+
+    if (stored === 'dark' || (!stored && prefersDark)) {
+      html.classList.add('dark');
+    } else {
+      html.classList.remove('dark');
+    }
+
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const isDark = html.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+  })();
+</script>
 {% endblock %}

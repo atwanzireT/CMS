@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import *
 
+app_name = 'assessment'
+
 urlpatterns = [
     # Quality Assessment URLs
     path('assessments/', assessment_list, name='assessment_list'),

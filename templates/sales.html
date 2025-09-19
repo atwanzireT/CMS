@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://unpkg.com/alpinejs" defer></script>
+<style>[x-cloak]{display:none !important}</style>
+
+<script>
+  (function () {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldDark = saved ? saved === 'dark' : prefersDark;
+    if (shouldDark) document.documentElement.classList.add('dark');
+  })();
+</script>
+
+<div 
+  x-data="{
+    showModal: false,
+    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+    toggleTheme() {
+      this.theme = this.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.classList.toggle('dark', this.theme === 'dark');
+      localStorage.setItem('theme', this.theme);
+    }
+  }"
+  class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+>
+
+  <!-- Header -->
+  <div class="mb-4 flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Coffee Sales</h1>
+      <p class="text-sm text-gray-600 dark:text-gray-300">Create, filter and review sales records.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button 
+        type="button"
+        @click="showModal = true"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        title="Record a Sale"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/>
+        </svg>
+        New Sale
+      </button>
+
+      <button
+        type="button"
+        @click="toggleTheme()"
+        class="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+        :title="theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'"
+      >
+        <template x-if="theme === 'dark'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.45 14.32l1.79 1.79 1.41-1.41-1.79-1.79-1.41 1.41zM12 4V1h-1v3h1zm0 19v-3h-1v3h1zm8-8h3v-1h-3v1zM1 12H4v-1H1v1zm16.24-7.16l1.8-1.79-1.41-1.41-1.79 1.79 1.4 1.41zM4.22 19.78l1.79-1.8-1.41-1.41-1.79 1.79 1.41 1.42zM12 7a5 5 0 100 10A5 5 0 0012 7z"/>
+          </svg>
+        </template>
+        <template x-if="theme !== 'dark'">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+        </template>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    <div class="space-y-2 mb-4">
+      {% for message in messages %}
+        <div class="rounded-lg p-3 text-sm border
+          {% if message.tags == 'success' %}
+            bg-green-50 text-green-800 border-green-200
+          {% elif message.tags == 'error' %}
+            bg-red-50 text-red-800 border-red-200
+          {% else %}
+            bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
+          {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="my-2">
+    <!-- List + filters -->
+    <section class="lg:col-span-2 space-y-4">
+      <!-- Filters -->
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+        <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+          <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Sales</h2>
+        </div>
+        <div class="p-4">
+          <form method="get" class="grid grid-cols-1 md:grid-cols-6 gap-3">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Search</label>
+              <input type="text" name="q" value="{{ filters.q }}" placeholder="Customer / truck / driver / notes"
+                     class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Coffee Type</label>
+              <select name="coffee_type"
+                      class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm">
+                <option value="">All</option>
+                <option value="AR" {% if filters.coffee_type == 'AR' %}selected{% endif %}>Arabica</option>
+                <option value="RB" {% if filters.coffee_type == 'RB' %}selected{% endif %}>Robusta</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">From</label>
+              <input type="date" name="date_from" value="{{ filters.date_from }}"
+                     class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">To</label>
+              <input type="date" name="date_to" value="{{ filters.date_to }}"
+                     class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Per Page</label>
+              <select name="per_page"
+                      class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm">
+                {% for n in per_page_options %}
+                  <option value="{{ n }}" {% if current_per_page == n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-800 text-white text-sm hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                Apply
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Totals -->
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Total Weight (kg)</div>
+            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ totals.total_qty|default:"0.00" }}</div>
+          </div>
+          <div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Total Amount (UGX)</div>
+            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ totals.total_amount|default:"0.00" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-700 dark:text-gray-200 sticky top-0 z-10">
+            <tr>
+              <th class="px-3 py-2 text-left">Sale Date</th>
+              <th class="px-3 py-2 text-left">Customer</th>
+              <th class="px-3 py-2 text-left">Type</th>
+              <th class="px-3 py-2 text-right">Moisture %</th>
+              <th class="px-3 py-2 text-right">Weight (kg)</th>
+              <th class="px-3 py-2 text-right">Unit Price</th>
+              <th class="px-3 py-2 text-right">Total (UGX)</th>
+              <th class="px-3 py-2 text-left">Truck</th>
+              <th class="px-3 py-2 text-left">Driver</th>
+              <th class="px-3 py-2 text-left">GRN</th>
+              <th class="px-3 py-2 text-left">Recorded By</th>
+              <th class="px-3 py-2 text-left">Created</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {% for s in sales %}
+              <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40">
+                <td class="px-3 py-2 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ s.sale_date }}</td>
+                <td class="px-3 py-2 text-gray-900 dark:text-gray-100">{{ s.customer.name }}</td>
+                <td class="px-3 py-2 text-gray-900 dark:text-gray-100">{{ s.get_coffee_type_display }}</td>
+                <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">{{ s.moisture_pct|default:"—" }}</td>
+                <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">{{ s.quantity_kg }}</td>
+                <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">{{ s.unit_price_ugx }}</td>
+                <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">{{ s.total_amount_ugx }}</td>
+                <td class="px-3 py-2 text-gray-900 dark:text-gray-100">{{ s.truck_details }}</td>
+                <td class="px-3 py-2 text-gray-900 dark:text-gray-100">{{ s.driver_details }}</td>
+                <td class="px-3 py-2">
+                  {% if s.sales_grn %}
+                    <a href="{{ s.sales_grn.url }}" class="text-blue-600 dark:text-blue-400 hover:underline" target="_blank">View</a>
+                  {% else %} — {% endif %}
+                </td>
+                <td class="px-3 py-2 text-gray-900 dark:text-gray-100">
+                  {% if s.recorded_by %}{{ s.recorded_by.get_full_name|default:s.recorded_by.username }}{% else %}—{% endif %}
+                </td>
+                <td class="px-3 py-2 whitespace-nowrap text-gray-900 dark:text-gray-100">{{ s.created_at|date:"Y-m-d H:i" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="12" class="px-3 py-6 text-center text-gray-500 dark:text-gray-400">No sales found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj and page_obj.paginator.num_pages > 1 %}
+        {% with query_base="&q="|add:filters.q|urlencode|add:"&coffee_type="|add:filters.coffee_type|urlencode|add:"&date_from="|add:filters.date_from|urlencode|add:"&date_to="|add:filters.date_to|urlencode|add:"&per_page="|add:current_per_page|stringformat:"s" %}
+          <nav class="flex items-center justify-between">
+            <div class="text-sm text-gray-600 dark:text-gray-300">
+              Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </div>
+            <div class="flex items-center gap-1">
+              {% if page_obj.has_previous %}
+                <a class="px-3 py-1 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-100 dark:border-gray-700" href="?page=1{{ query_base }}">First</a>
+                <a class="px-3 py-1 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-100 dark:border-gray-700" href="?page={{ page_obj.previous_page_number }}{{ query_base }}">Prev</a>
+              {% else %}
+                <span class="px-3 py-1 rounded-lg border text-sm opacity-50 dark:text-gray-400 dark:border-gray-700">First</span>
+                <span class="px-3 py-1 rounded-lg border text-sm opacity-50 dark:text-gray-400 dark:border-gray-700">Prev</span>
+              {% endif %}
+
+              {% for num in page_obj.paginator.page_range %}
+                {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+                  {% if num == page_obj.number %}
+                    <span class="px-3 py-1 rounded-lg border bg-gray-800 text-white text-sm dark:border-gray-700">{{ num }}</span>
+                  {% else %}
+                    <a class="px-3 py-1 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-100 dark:border-gray-700" href="?page={{ num }}{{ query_base }}">{{ num }}</a>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <a class="px-3 py-1 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-100 dark:border-gray-700" href="?page={{ page_obj.next_page_number }}{{ query_base }}">Next</a>
+                <a class="px-3 py-1 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-100 dark:border-gray-700" href="?page={{ page_obj.paginator.num_pages }}{{ query_base }}">Last</a>
+              {% else %}
+                <span class="px-3 py-1 rounded-lg border text-sm opacity-50 dark:text-gray-400 dark:border-gray-700">Next</span>
+                <span class="px-3 py-1 rounded-lg border text-sm opacity-50 dark:text-gray-400 dark:border-gray-700">Last</span>
+              {% endif %}
+            </div>
+          </nav>
+        {% endwith %}
+      {% endif %}
+    </section>
+  </div>
+
+  <!-- Modal -->
+  <div
+    x-cloak
+    x-show="showModal"
+    @keydown.escape.window="showModal = false"
+    class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+    aria-modal="true"
+    role="dialog"
+  >
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showModal = false"></div>
+
+    <div
+      x-transition
+      @click.outside="showModal = false"
+      class="relative w-full sm:max-w-2xl bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4"
+    >
+      <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Record a Sale</h3>
+        <button @click="showModal = false" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-700 dark:text-gray-200" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 8.586l4.95-4.95 1.414 1.414L11.414 10l4.95 4.95-1.414 1.414L10 11.414l-4.95 4.95-1.414-1.414L8.586 10l-4.95-4.95L5.05 3.636 10 8.586z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="pt-3">
+        {% if form %}
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="mb-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Customer</label>
+                {{ form.customer }}
+                <div class="text-xs text-red-600">{{ form.customer.errors }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Sale Date</label>
+                {{ form.sale_date }}
+                <p class="text-xs text-gray-500">{{ form.fields.sale_date.help_text }}</p>
+                <div class="text-xs text-red-600">{{ form.sale_date.errors }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Coffee Type</label>
+                {{ form.coffee_type }}
+                <div class="text-xs text-red-600">{{ form.coffee_type.errors }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Moisture (%)</label>
+                {{ form.moisture_pct }}
+                <div class="text-xs text-red-600">{{ form.moisture_pct.errors }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Weight (kg)</label>
+                {{ form.quantity_kg }}
+                <div class="text-xs text-red-600">{{ form.quantity_kg.errors }}</div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Unit Price (UGX/kg)</label>
+                {{ form.unit_price_ugx }}
+                <div class="text-xs text-red-600">{{ form.unit_price_ugx.errors }}</div>
+              </div>
+              <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Truck Details</label>
+                  {{ form.truck_details }}
+                  <div class="text-xs text-red-600">{{ form.truck_details.errors }}</div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Driver Details</label>
+                  {{ form.driver_details }}
+                  <div class="text-xs text-red-600">{{ form.driver_details.errors }}</div>
+                </div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Sales GRN (Optional)</label>
+                {{ form.sales_grn }}
+                <div class="text-xs text-red-600">{{ form.sales_grn.errors }}</div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-200">Notes</label>
+                {{ form.notes }}
+                <div class="text-xs text-red-600">{{ form.notes.errors }}</div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-end gap-2">
+              <button type="button" @click="showModal = false" class="px-4 py-2 rounded-lg border text-sm text-gray-700 dark:text-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                Cancel
+              </button>
+              <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700">
+                Save Sale
+              </button>
+            </div>
+          </form>
+        {% else %}
+          <div class="text-sm text-gray-700 dark:text-gray-300">
+            Sales creation is currently unavailable. Ensure migrations are applied, then reload.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <!-- End Modal -->
+</div>
+{% endblock content %}

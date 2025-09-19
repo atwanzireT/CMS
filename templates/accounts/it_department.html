@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}IT Department{% endblock %}
+
+{# Ensure dark-mode class is on <html> ASAP (prevents flash) #}
+{% block extra_head %}
+<script>
+  (function () {
+    try {
+      const key = 'theme';
+      const saved = localStorage.getItem(key);
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = saved ? saved === 'dark' : prefersDark;
+      document.documentElement.classList.toggle('dark', isDark);
+    } catch (_) {}
+  })();
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">IT Department</h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+      Central hub for user, group, and audit management.
+    </p>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="{% url 'accounts:register' %}"
+       class="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-dark-800 transition">
+      <i class="fas fa-user-plus"></i>
+      <span>Create User</span>
+    </a>
+  </div>
+</div>
+
+<!-- Quick stats / context -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
+    <div class="flex items-center gap-3">
+      <div class="shrink-0 rounded-xl p-2 bg-primary-50 dark:bg-dark-700">
+        <i class="fas fa-users text-primary-600 dark:text-primary-400"></i>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Manage</p>
+        <p class="font-semibold text-gray-900 dark:text-gray-100">Users & Groups</p>
+      </div>
+    </div>
+  </div>
+  <div class="rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
+    <div class="flex items-center gap-3">
+      <div class="shrink-0 rounded-xl p-2 bg-emerald-50 dark:bg-dark-700">
+        <i class="fas fa-user-shield text-emerald-600"></i>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Permissions</p>
+        <p class="font-semibold text-gray-900 dark:text-gray-100">access_* gates</p>
+      </div>
+    </div>
+  </div>
+  <div class="rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
+    <div class="flex items-center gap-3">
+      <div class="shrink-0 rounded-xl p-2 bg-amber-50 dark:bg-dark-700">
+        <i class="fas fa-history text-amber-600"></i>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Auditing</p>
+        <p class="font-semibold text-gray-900 dark:text-gray-100">Activity Logs</p>
+      </div>
+    </div>
+  </div>
+  <div class="rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
+    <div class="flex items-center gap-3">
+      <div class="shrink-0 rounded-xl p-2 bg-sky-50 dark:bg-dark-700">
+        <i class="fas fa-user-cog text-sky-600"></i>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Self-service</p>
+        <p class="font-semibold text-gray-900 dark:text-gray-100">Profile Updates</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Actions grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+  <!-- Manage Users -->
+  <a href="{% url 'accounts:users' %}"
+     class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0 rounded-xl p-3 bg-primary-50 dark:bg-dark-700">
+        <i class="fas fa-users text-lg text-primary-600 dark:text-primary-400"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Manage Users</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Create accounts, edit details, and grant per-app access.
+        </p>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300 group-hover:text-primary-400 mt-1"></i>
+    </div>
+  </a>
+
+  <!-- Manage Groups -->
+  <a href="{% url 'accounts:groups' %}"
+     class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0 rounded-xl p-3 bg-emerald-50 dark:bg-dark-700">
+        <i class="fas fa-layer-group text-lg text-emerald-600"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Manage Groups</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Assign role-based permissions via groups.
+        </p>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300 group-hover:text-primary-400 mt-1"></i>
+    </div>
+  </a>
+
+  <!-- Activity Log -->
+  <a href="{% url 'accounts:activity' %}"
+     class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0 rounded-xl p-3 bg-amber-50 dark:bg-dark-700">
+        <i class="fas fa-history text-lg text-amber-600"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Activity Log</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Review recent user actions for accountability.
+        </p>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300 group-hover:text-primary-400 mt-1"></i>
+    </div>
+  </a>
+
+  <!-- My Profile -->
+  <a href="{% url 'accounts:my_profile_edit' %}"
+     class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0 rounded-xl p-3 bg-sky-50 dark:bg-dark-700">
+        <i class="fas fa-user-cog text-lg text-sky-600"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Edit My Profile</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Update your account details and profile picture.
+        </p>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300 group-hover:text-primary-400 mt-1"></i>
+    </div>
+  </a>
+
+  <!-- Register user -->
+  <a href="{% url 'accounts:register' %}"
+     class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0 rounded-xl p-3 bg-fuchsia-50 dark:bg-dark-700">
+        <i class="fas fa-user-plus text-lg text-fuchsia-600"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Create User</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Onboard new team members quickly.
+        </p>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300 group-hover:text-primary-400 mt-1"></i>
+    </div>
+  </a>
+
+  <!-- Admin (if superuser) -->
+  {% if request.user.is_superuser %}
+  <a href="{% url 'admin:index' %}"
+     class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
+    <div class="flex items-start gap-4">
+      <div class="shrink-0 rounded-xl p-3 bg-slate-100 dark:bg-dark-700">
+        <i class="fas fa-cog text-lg text-slate-600"></i>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Django Admin</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Full administrative control (superusers only).
+        </p>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300 group-hover:text-primary-400 mt-1"></i>
+    </div>
+  </a>
+  {% endif %}
+</div>
+{% endblock %}
+

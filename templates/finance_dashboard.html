@@ -20,7 +20,7 @@
       </p>
     </div>
     <div class="flex items-center gap-2">
-      <a href="{% url 'store_dashboard' %}"
+      <a href="{% url 'store:store_dashboard' %}"
          class="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
         Back to Store
       </a>
@@ -161,7 +161,7 @@
                 </span>
               </td>
               <td class="px-6 py-3 text-right">
-                <a href="{% url 'purchase_detail' row.id %}"
+                <a href="{% url 'store:purchase_detail' row.id %}"
                    class="inline-flex items-center px-3 py-1.5 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                   View
                 </a>

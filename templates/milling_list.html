@@ -13,7 +13,7 @@
     New Milling Process
   </button>
 
-  <a href="{% url 'customer_list' %}"
+  <a href="{% url 'milling:customer_list' %}"
      class="inline-flex items-center px-1 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
     <i class="fas fa-users mr-2"></i>
     Manage Customers
@@ -134,7 +134,7 @@
                                dark:border-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/20"
                         title="Record payment"
                         data-open-milling-payment
-                        data-action="{% url 'create_milling_payment' process.id %}"
+                        data-action="{% url 'milling:create_milling_payment' process.id %}"
                         data-customer="{{ process.customer.name|escape }}"
                         data-customer-id="{{ process.customer.id }}"
                         data-balance="{{ process.customer.account.balance|default:0 }}"

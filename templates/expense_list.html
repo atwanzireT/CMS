@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+
+  <!-- Header -->
+  <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Expense Requests</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">
+        Submit and track your expense requests with a dual approval system.
+      </p>
+    </div>
+
+    <!-- Theme toggle -->
+    <button id="themeToggle"
+      class="inline-flex items-center gap-2 rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm
+             text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+      aria-label="Toggle theme">
+      <!-- sun -->
+      <svg class="hidden h-5 w-5 dark:block" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 4a1 1 0 0 1-1-1v-1.2a1 1 0 1 1 2 0V21a1 1 0 0 1-1 1Zm0-18a1 1 0 0 1-1-1V1.2a1 1 0 1 1 2 0V3a1 1 0 0 1-1 1ZM3 13a1 1 0 0 1-1-1H.2a1 1 0 1 1 0-2H2a1 1 0 1 1 0 2Zm21 0a1 1 0 0 1-1-1 1 1 0 1 1 2 0 1 1 0 0 1-1 1ZM4.93 20.48a1 1 0 0 1-1.41 0 1 1 0 0 1 0-1.41l.85-.85a1 1 0 1 1 1.41 1.41l-.85.85Zm14.7-14.7a1 1 0 0 1-1.41 0l-.85-.85a1 1 0 1 1 1.41-1.41l.85.85a1 1 0 0 1 0 1.41ZM4.93 3.52a1 1 0 0 1 0-1.41 1 1 0 0 1 1.41 0l.85.85A1 1 0 0 1 5.78 4.37l-.85-.85Zm12.44 16.96a1 1 0 0 1 1.41 0l.85.85a1 1 0 1 1-1.41 1.41l-.85-.85a1 1 0 0 1 0-1.41Z"/>
+      </svg>
+      <!-- moon -->
+      <svg class="h-5 w-5 dark:hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79Z"/>
+      </svg>
+      <span class="hidden sm:inline dark:hidden">Switch to Dark</span>
+      <span class="hidden sm:inline dark:inline">Switch to Light</span>
+    </button>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+    <!-- LEFT: Submit Form -->
+    <section class="lg:col-span-5">
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm lg:sticky lg:top-6 overflow-hidden">
+        <header class="flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 px-6 py-5 bg-gray-50 dark:bg-gray-800">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
+            <span class="text-xl">📨</span>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Submit New Expense</h2>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Request reimbursement for work-related expenses</p>
+          </div>
+        </header>
+
+        <div class="px-6 pt-5 pb-7">
+          {% if messages %}
+            <div class="mb-5 space-y-3">
+              {% for message in messages %}
+                <div class="rounded-lg px-4 py-3 text-sm flex items-start
+                            {% if 'success' in message.tags %} bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-200 border border-green-200 dark:border-green-800/50
+                            {% elif 'error' in message.tags %} bg-rose-50 text-rose-800 dark:bg-rose-900/30 dark:text-rose-200 border border-rose-200 dark:border-rose-800/50
+                            {% else %} bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 {% endif %}">
+                  <svg class="h-5 w-5 mr-2 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    {% if 'success' in message.tags %}
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    {% elif 'error' in message.tags %}
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    {% else %}
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    {% endif %}
+                  </svg>
+                  <span>{{ message }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form method="post" class="space-y-5">
+            {% csrf_token %}
+
+            <!-- Expense Type -->
+            <div class="space-y-2">
+              <label for="{{ form.expense_type.id_for_label }}"
+                     class="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                {{ form.expense_type.label }}{% if form.expense_type.field.required %} <span class="text-rose-500">*</span>{% endif %}
+              </label>
+              <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
+                {{ form.expense_type }}
+              </div>
+              {% if form.expense_type.errors %}
+                <p class="text-sm text-rose-600 flex items-center mt-1">
+                  <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                  {{ form.expense_type.errors.0 }}
+                </p>
+              {% endif %}
+            </div>
+
+            <!-- Amount -->
+            <div class="space-y-2">
+              <label for="{{ form.amount.id_for_label }}"
+                     class="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                {{ form.amount.label }}{% if form.amount.field.required %} <span class="text-rose-500">*</span>{% endif %}
+              </label>
+              <div class="relative rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-gray-500 dark:text-gray-400">UGX</span>
+                </div>
+                {{ form.amount }}
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum: 2,000</p>
+              {% if form.amount.errors %}
+                <p class="text-sm text-rose-600 flex items-center mt-1">
+                  <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                  {{ form.amount.errors.0 }}
+                </p>
+              {% endif %}
+            </div>
+
+            <!-- Phone -->
+            <div class="space-y-2">
+              <label for="{{ form.phone_msisdn.id_for_label }}"
+                     class="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                {{ form.phone_msisdn.label }}{% if form.phone_msisdn.field.required %} <span class="text-rose-500">*</span>{% endif %}
+              </label>
+              <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
+                {{ form.phone_msisdn }}
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Mobile money number (e.g., 0700xxxxxx or +2567…)
+              </p>
+              {% if form.phone_msisdn.errors %}
+                <p class="text-sm text-rose-600 flex items-center mt-1">
+                  <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                  {{ form.phone_msisdn.errors.0 }}
+                </p>
+              {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="space-y-2">
+              <label for="{{ form.description.id_for_label }}"
+                     class="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                {{ form.description.label }}{% if form.description.field.required %} <span class="text-rose-500">*</span>{% endif %}
+              </label>
+              <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
+                {{ form.description }}
+              </div>
+              {% if form.description.errors %}
+                <p class="text-sm text-rose-600 flex items-center mt-1">
+                  <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                  {{ form.description.errors.0 }}
+                </p>
+              {% endif %}
+            </div>
+
+            <!-- Business Reason -->
+            <div class="space-y-2">
+              <label for="{{ form.business_reason.id_for_label }}"
+                     class="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                {{ form.business_reason.label }}{% if form.business_reason.field.required %} <span class="text-rose-500">*</span>{% endif %}
+              </label>
+              <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
+                {{ form.business_reason }}
+              </div>
+              {% if form.business_reason.errors %}
+                <p class="text-sm text-rose-600 flex items-center mt-1">
+                  <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                  {{ form.business_reason.errors.0 }}
+                </p>
+              {% endif %}
+            </div>
+
+            <button type="submit"
+              class="mt-2 w-full rounded-xl bg-green-600 px-4 py-3 text-white font-medium shadow
+                     hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+                     dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-500 transition-colors">
+              Submit Request
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: My Expense Requests -->
+    <section class="lg:col-span-7">
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 px-6 py-5 bg-gray-50 dark:bg-gray-800">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
+              <span class="text-xl">📄</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">My Expense Requests</h2>
+              <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Track the status of your submissions</p>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <form method="get" class="w-full sm:w-auto">
+            <div class="relative">
+              <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <input type="text" name="q" value="{{ request.GET.q|default_if_none:'' }}"
+                     placeholder="Search reference, description, type…"
+                     class="block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 py-2.5 pl-10 pr-3 text-sm
+                            text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+              {% if request.GET.q %}
+                <a href="?" class="absolute inset-y-0 right-2 inline-flex items-center px-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Clear</a>
+              {% endif %}
+            </div>
+          </form>
+        </header>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 px-6 py-5 border-b border-gray-200 dark:border-gray-800">
+          <div class="rounded-xl px-5 py-4 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-indigo-600 dark:text-indigo-400 truncate">Total Requests</dt>
+                  <dd class="flex items-baseline">
+                    <div class="text-2xl font-semibold text-indigo-900 dark:text-indigo-100">{{ total }}</div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl px-5 py-4 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800/50">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-emerald-600 dark:text-emerald-400 truncate">Approved</dt>
+                  <dd class="flex items-baseline">
+                    <div class="text-2xl font-semibold text-emerald-900 dark:text-emerald-100">{{ approved }}</div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl px-5 py-4 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-amber-600 dark:text-amber-400 truncate">Pending</dt>
+                  <dd class="flex items-baseline">
+                    <div class="text-2xl font-semibold text-amber-900 dark:text-amber-100">{{ pending }}</div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- List -->
+        <div class="px-6 pb-6">
+          {% if page_obj.object_list %}
+            <div class="space-y-5 mt-5 lg:max-h-[70vh] lg:overflow-y-auto pr-1">
+              {% for e in page_obj %}
+                <article class="rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-all hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-sm">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          {{ e.title }}
+                        </h3>
+                        <!-- Status chip -->
+                        {% with s=e.overall_status %}
+                          <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium
+                            {% if s == 'Fully Approved' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                            {% elif s == 'Rejected' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                            {% elif s == 'Partially Approved' %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200
+                            {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
+                            {{ s }}
+                          </span>
+                        {% endwith %}
+                      </div>
+                      
+                      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {{ e.description|default:"—" }}
+                      </p>
+
+                      <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
+                        <div class="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
+                          <svg class="h-4 w-4 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
+                          </svg>
+                          <span class="font-medium">UGX {{ e.amount|floatformat:0|intcomma }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
+                          <svg class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z"/><path d="M18 9H2v6a2 2 0 002 2h12a2 2 0 002-2V9z"/>
+                          </svg>
+                          <span>{{ e.created_at|date:"M j, Y" }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
+                          <svg class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-1h2v1zm0-3H9V5h2v5z"/>
+                          </svg>
+                          <span>{{ e.get_priority_display|default:"Normal" }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Approval progress -->
+                      <div class="mt-4 rounded-lg bg-gray-50 dark:bg-gray-800 px-4 py-3 border border-gray-200 dark:border-gray-700">
+                        <p class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Approval Progress</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-4 text-sm">
+                          <div class="flex items-center gap-2">
+                            <span class="h-2.5 w-2.5 rounded-full
+                              {% if e.finance_status == 'APPROVED' %} bg-emerald-500
+                              {% elif e.finance_status == 'REJECTED' %} bg-rose-500
+                              {% else %} bg-amber-500 {% endif %}">
+                            </span>
+                            <span class="text-gray-700 dark:text-gray-300">Finance:</span>
+                            <span class="font-medium text-gray-900 dark:text-gray-100">{{ e.get_finance_status_display }}</span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <span class="h-2.5 w-2.5 rounded-full
+                              {% if e.admin_status == 'APPROVED' %} bg-emerald-500
+                              {% elif e.admin_status == 'REJECTED' %} bg-rose-500
+                              {% else %} bg-amber-500 {% endif %}">
+                            </span>
+                            <span class="text-gray-700 dark:text-gray-300">Admin:</span>
+                            <span class="font-medium text-gray-900 dark:text-gray-100">{{ e.get_admin_status_display }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-6 flex items-center justify-between text-sm">
+              <div class="text-gray-600 dark:text-gray-400">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+              </div>
+              <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                  <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                     class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Previous
+                  </a>
+                {% else %}
+                  <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500 flex items-center gap-1 cursor-not-allowed">
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    Previous
+                  </span>
+                {% endif %}
+                {% if page_obj.has_next %}
+                  <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ page_obj.next_page_number }}"
+                     class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
+                    Next
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </a>
+                {% else %}
+                  <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500 flex items-center gap-1 cursor-not-allowed">
+                    Next
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-10 text-center my-6">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No expense requests</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by submitting a new expense request.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Theme toggle script -->
+<script>
+  (function () {
+    const key = 'theme';
+    const root = document.documentElement;
+    const saved = localStorage.getItem(key);
+    if (saved === 'dark') root.classList.add('dark');
+    if (saved === 'light') root.classList.remove('dark');
+
+    const btn = document.getElementById('themeToggle');
+    btn?.addEventListener('click', function () {
+      const isDark = root.classList.toggle('dark');
+      localStorage.setItem(key, isDark ? 'dark' : 'light');
+    });
+  })();
+</script>
+{% endblock %}

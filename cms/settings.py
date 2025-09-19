@@ -43,13 +43,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
+    # third-party
     'django_select2',
+
+    # project apps
+    'sales',
+    'inventory',
     'reports',
     'assessment',
     'accounts',
+    'analysis',
     'finance',
     'milling',
     'store',
+    'expenses',
 ]
 
 MIDDLEWARE = [
@@ -61,6 +69,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+# Optional overrides
+ACCESS_GATE_EXEMPT_NAMESPACES = {None, "admin", "auth", "static"}
+ACCESS_GATE_EXEMPT_ROUTE_NAMES = {"login", "logout", "password_reset", "password_reset_done"}
+ACCESS_GATE_EXEMPT_PATH_PREFIXES = ("/static/", "/media/", "/health", "/favicon.ico")
 
 ROOT_URLCONF = 'cms.urls'
 

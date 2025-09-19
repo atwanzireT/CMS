@@ -180,33 +180,3 @@ class CoffeePurchaseForm(EnhancedTailwindFormMixin, forms.ModelForm):
         self.fields['bags'].help_text = "Number of bags (if applicable)"
         self.fields['notes'].help_text = "Additional notes or remarks"
         self.fields['coffee_type'].initial = CoffeePurchase.ARABICA
-
-
-class CoffeeSaleForm(EnhancedTailwindFormMixin, forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None) 
-        super().__init__(*args, **kwargs)
-
-    class Meta:
-        model = CoffeeSale
-        fields = [
-            'customer', 'customer_address', 'customer_contact',
-            'coffee_category', 'coffee_type', 'quantity', 'unit_price',
-            'sale_date', 'notes'
-        ]
-        widgets = {
-            'customer': forms.TextInput(attrs={'maxlength': '255'}),
-            'customer_address': forms.TextInput(attrs={'maxlength': '150'}),
-            'customer_contact': forms.TextInput(attrs={'maxlength': '150'}),
-            'quantity': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
-            'unit_price': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
-            'sale_date': forms.DateInput(attrs={'type': 'date'}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
-        }
-    
-    def setup_fields(self):
-        self.fields['quantity'].help_text = "Weight in kilograms (min: 0.01kg)"
-        self.fields['unit_price'].help_text = "Price per kilogram in UGX"
-        self.fields['customer_contact'].help_text = "Phone or email for follow-up"
-        self.fields['coffee_type'].initial = CoffeeSale.ARABICA
-

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Users</h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage accounts and app access.</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="{% url 'accounts:register' %}"
+       class="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-offset-dark-800 transition">
+      <i class="fas fa-user-plus"></i>
+      <span>Create User</span>
+    </a>
+    <a href="{% url 'accounts:it_department' %}"
+       class="inline-flex items-center gap-2 rounded-xl px-4 py-2 border border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
+      <i class="fas fa-tools"></i>
+      <span class="hidden sm:inline">IT Dept</span>
+    </a>
+  </div>
+</div>
+
+<!-- Toolbar: search + quick filters -->
+<form method="get" class="mb-4">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="relative">
+      <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search username, name, email"
+             class="w-full rounded-xl border border-gray-300 dark:border-dark-700 bg-white dark:bg-dark-800 px-4 py-2.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+      <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+    </div>
+    <select name="active"
+            class="w-full rounded-xl border border-gray-300 dark:border-dark-700 bg-white dark:bg-dark-800 px-4 py-2.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <option value="">All statuses</option>
+      <option value="1" {% if request.GET.active == '1' %}selected{% endif %}>Active</option>
+      <option value="0" {% if request.GET.active == '0' %}selected{% endif %}>Inactive</option>
+    </select>
+    <select name="superuser"
+            class="w-full rounded-xl border border-gray-300 dark:border-dark-700 bg-white dark:bg-dark-800 px-4 py-2.5 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <option value="">All roles</option>
+      <option value="1" {% if request.GET.superuser == '1' %}selected{% endif %}>Superusers</option>
+      <option value="0" {% if request.GET.superuser == '0' %}selected{% endif %}>Regular users</option>
+    </select>
+  </div>
+  <div class="mt-3 flex items-center gap-2">
+    <button class="rounded-xl px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
+      Apply
+    </button>
+    <a href="{% url 'accounts:users' %}" class="rounded-xl px-4 py-2 border border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700">
+      Reset
+    </a>
+  </div>
+</form>
+
+<div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800">
+  <table class="min-w-full text-sm">
+    <thead class="bg-gray-50 dark:bg-dark-700 text-gray-600 dark:text-gray-300">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold">Username</th>
+        <th class="px-4 py-3 text-left font-semibold">Name</th>
+        <th class="px-4 py-3 text-left font-semibold">Email</th>
+        <th class="px-4 py-3 text-left font-semibold">Status</th>
+        <th class="px-4 py-3 text-left font-semibold">Role</th>
+        <th class="px-4 py-3 text-right font-semibold">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-dark-700">
+      {% for u in users %}
+      <tr class="hover:bg-gray-50 dark:hover:bg-dark-700">
+        <td class="px-4 py-3 text-gray-900 dark:text-gray-100">{{ u.username }}</td>
+        <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+          {{ u.first_name }} {{ u.last_name }}
+        </td>
+        <td class="px-4 py-3">
+          <a href="mailto:{{ u.email }}" class="text-primary-600 dark:text-primary-400 hover:underline">{{ u.email }}</a>
+        </td>
+        <td class="px-4 py-3">
+          {% if u.is_active %}
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+              <i class="fas fa-check-circle"></i> Active
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200">
+              <i class="fas fa-ban"></i> Inactive
+            </span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          {% if u.is_superuser %}
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
+              <i class="fas fa-crown"></i> Superuser
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 dark:bg-dark-700 dark:text-gray-200">
+              <i class="fas fa-user"></i> User
+            </span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-right">
+          <a href="{% url 'accounts:user_access_edit' u.pk %}"
+             class="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 border border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 transition">
+            <i class="fas fa-key"></i>
+            <span>Edit Access</span>
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+          No users found.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination (works if you pass a Django paginator in context as page_obj) #}
+{% if is_paginated %}
+  <div class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+    <div>
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </div>
+    <div class="flex items-center gap-2">
+      {% if page_obj.has_previous %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.active %}active={{ request.GET.active }}&{% endif %}{% if request.GET.superuser %}superuser={{ request.GET.superuser }}&{% endif %}page={{ page_obj.previous_page_number }}"
+           class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700">Previous</a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.active %}active={{ request.GET.active }}&{% endif %}{% if request.GET.superuser %}superuser={{ request.GET.superuser }}&{% endif %}page={{ page_obj.next_page_number }}"
+           class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700">Next</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

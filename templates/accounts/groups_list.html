@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Groups{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Groups</h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Role-like containers of permissions.</p>
+  </div>
+  <div class="flex items-center gap-2">
+    {% if request.user.is_superuser %}
+      <!-- Quick link to Django Admin to create groups -->
+      <a href="{% url 'admin:auth_group_add' %}"
+         class="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+        <i class="fas fa-plus-circle"></i>
+        <span>New Group</span>
+      </a>
+    {% endif %}
+    <a href="{% url 'accounts:it_department' %}"
+       class="inline-flex items-center gap-2 rounded-xl px-4 py-2 border border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <i class="fas fa-tools"></i>
+      <span class="hidden sm:inline">IT Dept</span>
+    </a>
+  </div>
+</div>
+
+<!-- Search (GET) -->
+<form method="get" class="mb-4">
+  <div class="relative max-w-md">
+    <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+           placeholder="Search group name"
+           class="w-full rounded-xl border border-gray-300 dark:border-dark-700 bg-white dark:bg-dark-800 px-4 py-2.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+  </div>
+  <div class="mt-3 flex items-center gap-2">
+    <button class="rounded-xl px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">Apply</button>
+    <a href="{% url 'accounts:groups' %}"
+       class="rounded-xl px-4 py-2 border border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700">
+      Reset
+    </a>
+  </div>
+</form>
+
+<div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800">
+  <table class="min-w-full text-sm">
+    <thead class="bg-gray-50 dark:bg-dark-700 text-gray-600 dark:text-gray-300">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold">Name</th>
+        <th class="px-4 py-3 text-left font-semibold">Members</th>
+        <th class="px-4 py-3 text-left font-semibold">Access Gates</th>
+        <th class="px-4 py-3 text-right font-semibold">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-dark-700">
+      {% for g in groups %}
+      <tr class="hover:bg-gray-50 dark:hover:bg-dark-700">
+        <td class="px-4 py-3 text-gray-900 dark:text-gray-100">
+          {{ g.name }}
+        </td>
+        <td class="px-4 py-3 text-gray-700 dark:text-gray-200">
+          {{ g.customer_users.count }} <!-- uses your CustomUser related_name -->
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex flex-wrap gap-1.5">
+            {# Show chips for permissions that start with 'access_' #}
+            {% with perms=g.permissions.all %}
+              {% for p in perms %}
+                {% if p.codename|slice:":7" == "access_" %}
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
+                    <i class="fas fa-key"></i> {{ p.codename|cut:"access_"|capfirst }}
+                  </span>
+                {% endif %}
+              {% empty %}
+                <span class="text-xs text-gray-500 dark:text-gray-400">No access gates</span>
+              {% endfor %}
+            {% endwith %}
+          </div>
+        </td>
+        <td class="px-4 py-3 text-right">
+          <a href="{% url 'accounts:group_access_edit' g.pk %}"
+             class="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 border border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700 transition">
+            <i class="fas fa-sliders-h"></i>
+            <span>Edit permissions</span>
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+          No groups found.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination (optional) #}
+{% if is_paginated %}
+  <div class="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
+    <div>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+    <div class="flex items-center gap-2">
+      {% if page_obj.has_previous %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ page_obj.previous_page_number }}"
+           class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700">
+          Previous
+        </a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ page_obj.next_page_number }}"
+           class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-dark-600 hover:bg-gray-50 dark:hover:bg-dark-700">
+          Next
+        </a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
