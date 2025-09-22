@@ -1,0 +1,99 @@
+  <nav class="fixed top-0 left-0 right-0 h-16 glass border-b border-gray-200 dark:border-dark-700 z-50">
+    <div class="flex items-center justify-between h-full px-4 lg:px-6">
+      <!-- Left -->
+      <div class="flex items-center gap-3">
+        <!-- Mobile open/close -->
+        <button id="sidebarToggleMobile"
+          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors lg:hidden"
+          aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
+          <i class="fas fa-bars text-gray-600 dark:text-gray-300"></i>
+        </button>
+
+        <!-- Desktop collapse/expand -->
+        <button id="sidebarCollapseDesktop"
+          class="hidden lg:inline-flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors"
+          aria-label="Collapse or expand sidebar" title="Collapse/Expand sidebar">
+          <i class="fa-solid fa-bars text-gray-600 dark:text-gray-300"></i>
+        </button>
+
+        <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center w-10 h-10 accent-gradient rounded-xl shadow-md">
+            <i class="fas fa-coffee text-white text-lg"></i>
+          </div>
+          <div class="brand-text">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+              Great<span class="text-primary-600 dark:text-primary-400 font-display">Pearl</span>
+              <span class="text-accent-500">Coffee</span>
+            </h1>
+            <p class="text-xs text-gray-500 dark:text-gray-400 -mt-1">Management System</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="flex items-center gap-3">
+        <button class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors"
+          title="Notifications">
+          <i class="fas fa-bell text-gray-600 dark:text-gray-300"></i>
+          <span
+            class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+        </button>
+        <button class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors"
+          title="Messages">
+          <i class="fas fa-envelope text-gray-600 dark:text-gray-300"></i>
+          <span
+            class="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">1</span>
+        </button>
+
+        {% if user.is_authenticated %}
+        <div x-data="{ open: false }" class="relative">
+          <button @click="open = !open"
+            class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors">
+            <div class="w-8 h-8 accent-gradient rounded-full flex items-center justify-center shadow-md">
+              <span class="text-sm font-semibold text-white">{{ user.username|first|upper }}</span>
+            </div>
+            <div class="hidden md:block text-left collapse-hide">
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.username }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
+            </div>
+            <i class="fas fa-chevron-down text-gray-400 text-sm transition-transform duration-200"
+              :class="{ 'rotate-180': open }"></i>
+          </button>
+
+          <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-1"
+            class="absolute right-0 mt-2 w-56 glass rounded-xl shadow-lg border border-gray-200 dark:border-dark-700 overflow-hidden z-50">
+            <div class="py-2">
+              <div class="px-4 py-2 border-b border-gray-100 dark:border-dark-700">
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.username }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {{ user.email|default:"admin@example.com"}}
+                </p>
+              </div>
+              <a href="#"
+                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">
+                <i class="fas fa-user w-4 mr-3 text-gray-400"></i> Profile
+              </a>
+              <a href="#"
+                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">
+                <i class="fas fa-cog w-4 mr-3 text-gray-400"></i> Settings
+              </a>
+              <hr class="my-2 border-gray-200 dark:border-dark-700">
+              <a href="{% url 'logout' %}"
+                class="flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <a href="{% url 'login' %}"
+          class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-md">
+          <i class="fas fa-sign-in-alt mr-2"></i> Login
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>

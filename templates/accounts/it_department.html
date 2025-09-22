@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}IT Department{% endblock %}
 
-{# Ensure dark-mode class is on <html> ASAP (prevents flash) #}
 {% block extra_head %}
 <script>
   (function () {
@@ -24,8 +23,9 @@
       Central hub for user, group, and audit management.
     </p>
   </div>
+
   <div class="flex items-center gap-2">
-    <a href="{% url 'accounts:register' %}"
+    <a href="{% url 'accounts:user_create' %}"
        class="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-dark-800 transition">
       <i class="fas fa-user-plus"></i>
       <span>Create User</span>
@@ -41,33 +41,38 @@
         <i class="fas fa-users text-primary-600 dark:text-primary-400"></i>
       </div>
       <div>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Manage</p>
-        <p class="font-semibold text-gray-900 dark:text-gray-100">Users & Groups</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Users</p>
+        <p class="font-semibold text-gray-900 dark:text-gray-100">{{ user_count }}</p>
       </div>
     </div>
   </div>
+
   <div class="rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
     <div class="flex items-center gap-3">
       <div class="shrink-0 rounded-xl p-2 bg-emerald-50 dark:bg-dark-700">
-        <i class="fas fa-user-shield text-emerald-600"></i>
+        <i class="fas fa-layer-group text-emerald-600"></i>
       </div>
       <div>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Permissions</p>
-        <p class="font-semibold text-gray-900 dark:text-gray-100">access_* gates</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Groups</p>
+        <p class="font-semibold text-gray-900 dark:text-gray-100">{{ group_count }}</p>
       </div>
     </div>
   </div>
+
   <div class="rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
     <div class="flex items-center gap-3">
       <div class="shrink-0 rounded-xl p-2 bg-amber-50 dark:bg-dark-700">
         <i class="fas fa-history text-amber-600"></i>
       </div>
       <div>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Auditing</p>
-        <p class="font-semibold text-gray-900 dark:text-gray-100">Activity Logs</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Recent Activity</p>
+        <p class="font-semibold text-gray-900 dark:text-gray-100">
+          {% if recent_activities %}{{ recent_activities|length }} shown{% else %}No events{% endif %}
+        </p>
       </div>
     </div>
   </div>
+
   <div class="rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
     <div class="flex items-center gap-3">
       <div class="shrink-0 rounded-xl p-2 bg-sky-50 dark:bg-dark-700">
@@ -84,7 +89,7 @@
 <!-- Actions grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
   <!-- Manage Users -->
-  <a href="{% url 'accounts:users' %}"
+  <a href="{% url 'accounts:users_list' %}"
      class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
     <div class="flex items-start gap-4">
       <div class="shrink-0 rounded-xl p-3 bg-primary-50 dark:bg-dark-700">
@@ -101,7 +106,7 @@
   </a>
 
   <!-- Manage Groups -->
-  <a href="{% url 'accounts:groups' %}"
+  <a href="{% url 'accounts:groups_list' %}"
      class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
     <div class="flex items-start gap-4">
       <div class="shrink-0 rounded-xl p-3 bg-emerald-50 dark:bg-dark-700">
@@ -118,7 +123,7 @@
   </a>
 
   <!-- Activity Log -->
-  <a href="{% url 'accounts:activity' %}"
+  <a href="{% url 'accounts:activity_log' %}"
      class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
     <div class="flex items-start gap-4">
       <div class="shrink-0 rounded-xl p-3 bg-amber-50 dark:bg-dark-700">
@@ -135,7 +140,7 @@
   </a>
 
   <!-- My Profile -->
-  <a href="{% url 'accounts:my_profile_edit' %}"
+  <a href="{% url 'accounts:my_profile' %}"
      class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
     <div class="flex items-start gap-4">
       <div class="shrink-0 rounded-xl p-3 bg-sky-50 dark:bg-dark-700">
@@ -152,7 +157,7 @@
   </a>
 
   <!-- Register user -->
-  <a href="{% url 'accounts:register' %}"
+  <a href="{% url 'accounts:user_create' %}"
      class="group rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
     <div class="flex items-start gap-4">
       <div class="shrink-0 rounded-xl p-3 bg-fuchsia-50 dark:bg-dark-700">
@@ -187,5 +192,23 @@
   </a>
   {% endif %}
 </div>
-{% endblock %}
 
+<!-- Optional: small recent list -->
+{% if recent_activities %}
+  <div class="mt-8 rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-800 p-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Recent activity</h2>
+    <ul class="divide-y divide-gray-100 dark:divide-dark-700">
+      {% for ev in recent_activities %}
+        <li class="py-2 text-sm text-gray-700 dark:text-gray-300">
+          <span class="font-medium">{{ ev.user }}</span>
+          &middot; {{ ev.get_action_display }} {{ ev.model_name }} {{ ev.object_id }}
+          <span class="text-gray-500 dark:text-gray-400">— {{ ev.timestamp }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+    <div class="mt-3">
+      <a class="text-sm text-primary-600 hover:underline" href="{% url 'accounts:activity_log' %}">View all activity</a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

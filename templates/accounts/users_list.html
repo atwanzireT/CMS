@@ -7,7 +7,7 @@
     <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Manage accounts and app access.</p>
   </div>
   <div class="flex items-center gap-2">
-    <a href="{% url 'accounts:register' %}"
+    <a href="{% url 'accounts:user_create' %}"
        class="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-offset-dark-800 transition">
       <i class="fas fa-user-plus"></i>
       <span>Create User</span>
@@ -45,7 +45,7 @@
     <button class="rounded-xl px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 transition">
       Apply
     </button>
-    <a href="{% url 'accounts:users' %}" class="rounded-xl px-4 py-2 border border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700">
+    <a href="{% url 'accounts:users_list' %}" class="rounded-xl px-4 py-2 border border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-dark-800 hover:bg-gray-50 dark:hover:bg-dark-700">
       Reset
     </a>
   </div>

@@ -70,12 +70,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
-# Optional overrides
-ACCESS_GATE_EXEMPT_NAMESPACES = {None, "admin", "auth", "static"}
-ACCESS_GATE_EXEMPT_ROUTE_NAMES = {"login", "logout", "password_reset", "password_reset_done"}
-ACCESS_GATE_EXEMPT_PATH_PREFIXES = ("/static/", "/media/", "/health", "/favicon.ico")
-
 ROOT_URLCONF = 'cms.urls'
 
 TEMPLATES = [
@@ -173,6 +167,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+TEMPLATES[0]["OPTIONS"]["context_processors"] += [
+    "accounts.context_processors.module_access",
+]
+
+
 # Login/Logout URLs
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'

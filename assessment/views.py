@@ -19,6 +19,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, KeepInFrame
 )
 from .forms import AssessmentForm
+from accounts.permissions import module_required
 from .models import Assessment
 from store.models import CoffeePurchase
 
@@ -51,7 +52,7 @@ def q2(x) -> Decimal:
 
 # -------------------- Views --------------------
 
-@login_required
+@module_required("access_assessment")
 def assessment_list(request):
     """
     Dashboard list:

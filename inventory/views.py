@@ -1,6 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
-
+from accounts.permissions import module_required
 from django.contrib.auth.decorators import login_required
 from django.db.models import (
     Sum, Avg, Count, Q, F, Value, DecimalField
@@ -9,14 +9,13 @@ from django.db.models.functions import Coalesce, Cast
 from django.db.models.expressions import ExpressionWrapper
 from django.shortcuts import render
 from django.utils import timezone
-
 from assessment.models import Assessment
 from inventory.models import CoffeeInventory
 from store.models import CoffeePurchase
 from sales.models import CoffeeSale  # adjust import if CoffeeSale lives elsewhere
 
 
-@login_required
+@module_required("access_inventory")
 def inventory_dashboard(request):
     """
     Dashboard using CoffeeInventory(quantity, average_unit_cost, current_value, coffee_type, coffee_category, unit).

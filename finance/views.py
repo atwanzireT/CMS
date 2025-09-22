@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.contrib.humanize.templatetags.humanize import intcomma  # ✅ needed for balance_html
-
+from accounts.permissions import module_required
 from store.models import CoffeePurchase, SupplierAccount, SupplierTransaction
 from assessment.models import Assessment
 from sales.models import CoffeeSale
@@ -54,8 +54,7 @@ def _q2(x):
 
 
 # ---- views ----
-
-@login_required
+@module_required("access_finance")
 def finance_dashboard(request):
     """
     Finance overview:
@@ -164,7 +163,7 @@ def finance_dashboard(request):
     return render(request, "finance_dashboard.html", context)
 
 
-@login_required
+@module_required("access_finance")
 @require_POST
 def create_supplier_payment(request, pk: int):
     """

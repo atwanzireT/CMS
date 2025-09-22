@@ -1,11 +1,13 @@
-# accounts/views.py
 from __future__ import annotations
+
+from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
@@ -20,8 +22,26 @@ from .forms import (
     TailwindAuthenticationForm,
     UserAccessForm,
 )
+from .models import UserActivity
 
 User = get_user_model()
+
+
+# ---------- Helpers / Guards ----------
+
+def superuser_required(view_func):
+    """
+    Guard a view so only authenticated superusers can access it.
+    Non-superusers receive a 403 (PermissionDenied).
+    """
+    @wraps(view_func)
+    @login_required
+    def _wrapped(request: HttpRequest, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied("Superuser access required.")
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
 
 # ---------- Auth ----------
 
@@ -37,10 +57,10 @@ class MyLoginView(LoginView):
 
 # ---------- USERS ----------
 
-@login_required
+@superuser_required
 def users_list(request: HttpRequest) -> HttpResponse:
     """Simple user directory with search + pagination."""
-    q = request.GET.get("q", "").strip()
+    q = (request.GET.get("q") or "").strip()
     qs = User.objects.all().order_by("-id")
     if q:
         qs = qs.filter(
@@ -51,12 +71,11 @@ def users_list(request: HttpRequest) -> HttpResponse:
         )
 
     paginator = Paginator(qs, 20)
-    page = request.GET.get("page")
-    users = paginator.get_page(page)
+    users = paginator.get_page(request.GET.get("page"))
     return render(request, "accounts/users_list.html", {"users": users, "q": q})
 
 
-@login_required
+@superuser_required
 def user_access_edit(request: HttpRequest, user_id: int) -> HttpResponse:
     """
     Toggle per-user access_* permissions via checkboxes discovered by the form.
@@ -73,7 +92,7 @@ def user_access_edit(request: HttpRequest, user_id: int) -> HttpResponse:
     return render(request, "accounts/user_access_edit.html", {"form": form, "target": target})
 
 
-@login_required
+@superuser_required
 def user_create(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST, request.FILES)
@@ -86,7 +105,7 @@ def user_create(request: HttpRequest) -> HttpResponse:
     return render(request, "accounts/user_form.html", {"form": form, "mode": "create"})
 
 
-@login_required
+@superuser_required
 def user_edit(request: HttpRequest, user_id: int) -> HttpResponse:
     target = get_object_or_404(User, pk=user_id)
     if request.method == "POST":
@@ -100,31 +119,30 @@ def user_edit(request: HttpRequest, user_id: int) -> HttpResponse:
     return render(request, "accounts/user_form.html", {"form": form, "mode": "edit", "target": target})
 
 
-@login_required
+@superuser_required
 def user_edit_me(request: HttpRequest) -> HttpResponse:
     """
-    No-arg route to edit your own profile; useful for nav link { % url 'accounts:my_profile' % }.
+    Superuser-only self-edit shortcut.
     """
     return user_edit(request, request.user.id)
 
 
 # ---------- GROUPS ----------
 
-@login_required
+@superuser_required
 def groups_list(request: HttpRequest) -> HttpResponse:
     """List groups with quick search."""
-    q = request.GET.get("q", "").strip()
+    q = (request.GET.get("q") or "").strip()
     qs = Group.objects.all().order_by("name")
     if q:
         qs = qs.filter(name__icontains=q)
 
     paginator = Paginator(qs, 30)
-    page = request.GET.get("page")
-    groups = paginator.get_page(page)
+    groups = paginator.get_page(request.GET.get("page"))
     return render(request, "accounts/groups_list.html", {"groups": groups, "q": q})
 
 
-@login_required
+@superuser_required
 def group_create(request: HttpRequest) -> HttpResponse:
     """
     Create a group and assign any selected access_* permissions.
@@ -140,7 +158,7 @@ def group_create(request: HttpRequest) -> HttpResponse:
     return render(request, "accounts/group_create.html", {"form": form})
 
 
-@login_required
+@superuser_required
 def group_access_edit(request: HttpRequest, group_id: int) -> HttpResponse:
     """
     Toggle access_* permissions for an existing group.
@@ -155,3 +173,48 @@ def group_access_edit(request: HttpRequest, group_id: int) -> HttpResponse:
     else:
         form = GroupAccessForm(group_instance=group)
     return render(request, "accounts/group_access_edit.html", {"form": form, "group": group})
+
+
+# ---------- IT DEPARTMENT ----------
+
+@superuser_required
+def it_department(request: HttpRequest) -> HttpResponse:
+    """
+    Landing page for IT: show quick links and some context (counts, recent activity).
+    """
+    user_count = User.objects.count()
+    group_count = Group.objects.count()
+    recent_activities = (
+        UserActivity.objects.select_related("user").order_by("-timestamp")[:8]
+    )
+    return render(
+        request,
+        "accounts/it_department.html",
+        {
+            "user_count": user_count,
+            "group_count": group_count,
+            "recent_activities": recent_activities,
+        },
+    )
+
+
+@superuser_required
+def activity_log(request: HttpRequest) -> HttpResponse:
+    """
+    Paginated activity log with optional search by user, action, model, IP, or details.
+    Template: templates/accounts/activity_log.html
+    """
+    q = (request.GET.get("q") or "").strip()
+    qs = UserActivity.objects.select_related("user").order_by("-timestamp")
+    if q:
+        qs = qs.filter(
+            Q(user__username__icontains=q)
+            | Q(action__icontains=q)
+            | Q(model_name__icontains=q)
+            | Q(ip_address__icontains=q)
+            | Q(details__icontains=q)
+        )
+
+    paginator = Paginator(qs, 30)
+    activities = paginator.get_page(request.GET.get("page"))
+    return render(request, "accounts/activity_log.html", {"activities": activities, "q": q})

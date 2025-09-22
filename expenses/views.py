@@ -8,9 +8,10 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from .forms import ExpenseRequestForm
 from .models import ExpenseRequest
+from accounts.permissions import module_required
 
 
-@login_required
+@module_required("access_expenses")
 def expense_list(request):
     # Create
     if request.method == "POST":

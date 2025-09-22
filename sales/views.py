@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 from typing import Optional
-
+from accounts.permissions import module_required
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -12,7 +12,6 @@ from django.db import connection, transaction
 from django.db.models import F, Sum, ExpressionWrapper, DecimalField, Q
 from django.shortcuts import redirect, render
 from django.utils.dateparse import parse_date
-
 from .forms import CoffeeSaleForm
 from .models import CoffeeSale, SaleCustomer
 
@@ -29,7 +28,7 @@ def _parse_date(s: Optional[str]) -> Optional[date]:
         return None
 
 
-@login_required
+@module_required("access_sales")
 def sales_list_create(request):
     """
     Safe view:

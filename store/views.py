@@ -17,6 +17,7 @@ from .forms import SupplierForm, CoffeePurchaseForm
 from sales.models import CoffeeSale
 from inventory.models import CoffeeInventory
 from sales.forms import CoffeeSaleForm
+from accounts.permissions import module_required
 from django.db.models import ExpressionWrapper, DecimalField
 
 # ========== UTILITY FUNCTIONS ==========
@@ -27,7 +28,7 @@ def get_base_context(request, page_title='Default Page Title'):
     }
 
 # ========== DASHBOARD ==============
-@login_required
+@module_required("access_store")
 def store_dashboard(request):
     # Date ranges
     today = timezone.now().date()
@@ -126,7 +127,7 @@ def store_dashboard(request):
 PER_PAGE_OPTIONS = [10, 20, 50, 100]
 
 
-@login_required
+@module_required("access_store")
 def supplier_list(request):
     """
     Supplier list with:
@@ -229,7 +230,7 @@ def supplier_list(request):
     })
 
 
-@login_required
+@module_required("access_store")
 def supplier_detail(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)
     context = get_base_context(request, f'Supplier Details - {supplier.name}')
@@ -245,7 +246,7 @@ def supplier_detail(request, pk):
     return render(request, 'supplier_detail.html', context)
 
 # ========== COFFEE PURCHASE VIEWS ==========
-@login_required
+@module_required("access_store")
 def purchase_list(request):
     purchases = CoffeePurchase.objects.select_related('supplier')
     instance = None
@@ -294,7 +295,7 @@ STATUS_BADGES = {
 }
 
 
-@login_required
+@module_required("access_store")
 def purchase_detail(request, pk: int):
     # Base queryset (NO slice here)
     tx_base = (
@@ -418,7 +419,7 @@ def purchase_detail(request, pk: int):
 
 
 # ========== COFFEE SALE VIEWS ==========
-@login_required
+@module_required("access_store")
 def sale_list(request):
     sales = CoffeeSale.objects.select_related('recorded_by').order_by('-sale_date')
     instance = None
@@ -457,7 +458,7 @@ def sale_list(request):
     return render(request, 'sale_list.html', context)
 
 
-@login_required
+@module_required("access_store")
 def sale_detail(request, pk):
     sale = get_object_or_404(CoffeeSale, pk=pk)
     context = get_base_context(request, 'Sale Details')

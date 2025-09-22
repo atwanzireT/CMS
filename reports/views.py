@@ -1,17 +1,16 @@
-# app/views.py
 from decimal import Decimal
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import DetailView
-from django.shortcuts import get_object_or_404
 from .forms import GeneralReportFilterForm, DailyStoreReportForm
 from .models import DailyStoreReport
+from accounts.permissions import module_required
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 
-@login_required
+@module_required("access_reports")
 def general_reports(request):
     """
     List + filter + summarize DailyStoreReport (General Reports).
@@ -73,7 +72,7 @@ def general_reports(request):
     return render(request, "general_reports.html", context)
 
 
-@login_required
+@module_required("access_reports")
 def create_report(request):
     """
     Create a DailyStoreReport. Sets input_by to current user.
@@ -92,12 +91,16 @@ def create_report(request):
     return render(request, "report_form.html", {"form": form})
 
 
-class ReportDetailView(DetailView):
+
+class ReportDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = DailyStoreReport
     template_name = "report_detail.html"
     context_object_name = "report"
     pk_url_kwarg = "pk"
 
+    # permission lives on the "accounts" app (CustomUser.Meta.permissions)
+    permission_required = "accounts.access_reports"
+    raise_exception = True  # 403 instead of redirect if authenticated but unauthorized
+
     def get_queryset(self):
-        # Ensure related user is prefetched for efficiency
         return DailyStoreReport.objects.select_related("input_by")

@@ -3,6 +3,7 @@ from django.contrib.auth.views import LogoutView
 from .views import (
     MyLoginView, users_list, user_create, user_edit, user_edit_me,
     user_access_edit, groups_list, group_create, group_access_edit,
+    it_department, activity_log,  # ⬅️ add activity_log
 )
 
 app_name = "accounts"
@@ -23,4 +24,8 @@ urlpatterns = [
     path("groups/", groups_list, name="groups_list"),
     path("groups/create/", group_create, name="group_create"),
     path("groups/<int:group_id>/access/", group_access_edit, name="group_access_edit"),
+
+    # IT
+    path("it-department/", it_department, name="it_department"),
+    path("activity/", activity_log, name="activity_log"),  # ⬅️ new
 ]

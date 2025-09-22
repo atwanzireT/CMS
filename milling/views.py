@@ -14,6 +14,7 @@ from .models import Customer, MillingProcess, MillingTransaction, CustomerAccoun
 from .forms import CustomerForm, MillingProcessForm
 from assessment.models import Assessment
 from assessment.forms import AssessmentForm
+from accounts.permissions import module_required
 
 
 # ========== UTILITY FUNCTIONS ==========
@@ -30,7 +31,7 @@ def milling_dashboard(request):
     return render(request, 'milling_dashboard.html', {})
 
 # ========== CUSTOMER VIEWS ==========
-@login_required
+@module_required("access_milling")
 def customer_list(request):
     customers = Customer.objects.all().order_by('-created_at')
     
@@ -64,7 +65,7 @@ def customer_list(request):
     return render(request, 'customer_list.html', context)
 
 
-@login_required
+@module_required("access_milling")
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     context = get_base_context(request, f'Customer Details - {customer.name}')
@@ -79,7 +80,7 @@ def customer_detail(request, pk):
     return render(request, 'customer_detail.html', context)
 
 # ========== MILLING PROCESS VIEWS ==========
-@login_required
+@module_required("access_milling")
 def milling_list(request):
     milling_processes = MillingProcess.objects.select_related('customer').order_by('-created_at')
     form = MillingProcessForm()
@@ -112,7 +113,7 @@ def milling_list(request):
         'milling_processes': milling_processes
     })
 
-@login_required
+@module_required("access_milling")
 def milling_detail(request, pk):
     milling = get_object_or_404(MillingProcess, pk=pk)
     context = get_base_context(request, 'Milling Process Details')
@@ -124,7 +125,7 @@ def milling_detail(request, pk):
     return render(request, 'milling_detail.html', context)
 
 
-@login_required
+@module_required("access_milling")
 def customer_search(request):
     search_term = request.GET.get('q', '').strip()
     if not search_term:
@@ -151,7 +152,7 @@ def _q2(x):
         x = Decimal(str(x))
     return x.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-@login_required
+@module_required("access_milling")
 @require_POST
 def create_milling_payment(request, pk: int):
     """
