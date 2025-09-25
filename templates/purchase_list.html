@@ -6,7 +6,7 @@
 
 {% block header_actions %}
 <div class="flex space-x-3">
-  <a href="{% url 'supplier_list' %}"
+  <a href="{% url 'store:supplier_list' %}"
      class="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
     <i class="fas fa-truck mr-2"></i> Suppliers
   </a>
@@ -113,7 +113,7 @@
                         title="Edit">
                   <i class="fas fa-edit"></i>
                 </button>
-                <a href="{% url 'purchase_detail' purchase.id %}"
+                <a href="{% url 'store:purchase_detail' purchase.id %}"
                    class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-3 py-1 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                    title="View">
                   <i class="fas fa-eye"></i>
@@ -191,7 +191,7 @@
                 <div class="col-span-2">
                   <div class="flex justify-between items-center mb-1">
                     <label for="id_supplier" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier</label>
-                    <a href="{% url 'supplier_list' %}"
+                    <a href="{% url 'store:supplier_list' %}"
                        class="text-xs text-gray-100 bg-green-600 hover:bg-green-800 px-2 py-2 rounded-lg inline-flex items-center">
                       <i class="fas fa-plus mr-1"></i> Add New Supplier
                     </a>

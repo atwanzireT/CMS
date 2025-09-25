@@ -1,0 +1,321 @@
+{# templates/dashboard/partials/weather_widget.html #}
+{% load humanize %}
+
+<!-- Top: Welcome, Role, Date/Time, Quick Actions -->
+<div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200/70 dark:border-slate-800/70">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{{ welcome_title|default:"Dashboard" }}</h1>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-2">
+          <span>Welcome, {{ request.user.get_full_name|default:request.user.username }}</span>
+          <span class="text-slate-300 dark:text-slate-600">•</span>
+          <span>Role: <span class="font-medium text-slate-900 dark:text-slate-200">{{ user_role|default:"user"|title }}</span></span>
+          <span class="text-slate-300 dark:text-slate-600">•</span>
+          <time id="dashNow" class="tabular-nums font-medium text-slate-900 dark:text-slate-200" data-tz="Africa/Kampala">
+            {% now "D, M j, Y · H:i" %} EAT
+          </time>
+        </p>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-primary-500/15 to-indigo-500/15 text-primary-700 dark:text-primary-200 ring-1 ring-primary-500/20">
+          {{ user_role|default:"user"|title }}
+        </span>
+        <a href="{% url 'store:home' %}"
+           class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 shadow-lg shadow-primary-600/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+          Quick Actions
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Weather Widget - Full Width -->
+<div class="mb-8 mt-6">
+  <section
+    id="weatherWidget"
+    class="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 shadow-[0_10px_30px_-12px_rgba(2,6,23,0.25)] mx-auto max-w-7xl"
+    data-api-key="{{ api_key|default:'' }}"
+    data-location="{{ weather_location|default:'Kasese,Uganda' }}"
+  >
+    <!-- Soft aurora background effects -->
+    <div class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary-400/20 blur-3xl dark:bg-primary-500/15"></div>
+    <div class="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-indigo-400/20 blur-3xl dark:bg-indigo-500/15"></div>
+
+    <div class="p-6 relative">
+      <div class="flex items-start justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Current Weather
+            <span class="ml-2 align-middle text-[10px] uppercase tracking-wider rounded-full px-2 py-1 border border-slate-200/70 dark:border-slate-700 text-slate-600 dark:text-slate-300" data-w-badge>—</span>
+          </h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400">
+            Location: <span class="font-medium text-slate-800 dark:text-slate-200" data-w-place>—</span>
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button"
+                  class="rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50/70 dark:hover:bg-slate-800/60"
+                  data-w-unit-toggle>°C / °F</button>
+          <button type="button"
+                  class="rounded-lg px-3 py-1.5 text-sm text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:opacity-90 shadow-md"
+                  data-w-refresh>Refresh</button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="mt-5" data-w-loading>
+        <div class="h-6 w-40 rounded-md bg-slate-200/70 dark:bg-slate-800/70 animate-pulse"></div>
+        <div class="mt-3 h-10 w-28 rounded-md bg-slate-200/70 dark:bg-slate-800/70 animate-pulse"></div>
+        <div class="mt-3 h-24 rounded-xl bg-slate-200/70 dark:bg-slate-800/70 animate-pulse"></div>
+      </div>
+
+      <!-- Error State -->
+      <div class="mt-4 hidden text-sm text-rose-600 dark:text-rose-400 font-medium" data-w-error></div>
+
+      <!-- Loaded State -->
+      <div class="hidden mt-5 space-y-6" data-w-ok>
+        <!-- Primary Weather Information -->
+        <div class="flex items-center gap-5">
+          <img alt="Weather icon" class="h-16 w-16 select-none" data-w-icon />
+          <div class="min-w-0">
+            <div class="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100" data-w-temp>—</div>
+            <div class="text-sm text-slate-600 dark:text-slate-300" data-w-feels>—</div>
+            <div class="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200" data-w-text>—</div>
+          </div>
+        </div>
+
+        <!-- Wind Information -->
+        <div class="grid grid-cols-1 gap-3 text-sm">
+          <div class="rounded-xl px-4 py-3 border border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/60 backdrop-blur">
+            <div class="text-slate-500 dark:text-slate-400">Wind</div>
+            <div class="font-semibold text-slate-900 dark:text-slate-100" data-w-wind>—</div>
+          </div>
+        </div>
+
+        <!-- 3-Day Forecast -->
+        <div>
+          <div class="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">3-Day Forecast</div>
+          <div class="grid grid-cols-3 gap-3" data-w-forecast></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Scripts scoped to this partial -->
+<script>
+/* ====== Live date/time (Africa/Kampala) ====== */
+(function () {
+  'use strict';
+  
+  const el = document.getElementById('dashNow');
+  if (!el) return;
+  
+  const tz = el.dataset.tz || 'Africa/Kampala';
+  const fmt = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric',
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit', 
+    hour12: false, 
+    timeZone: tz,
+  });
+  
+  const tick = () => {
+    try {
+      const now = new Date();
+      el.textContent = fmt.format(now) + ' EAT';
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      el.textContent = 'Error loading time';
+    }
+  };
+  
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* ====== Weather widget ====== */
+(function () {
+  'use strict';
+  
+  const BASE_URL = 'https://api.weatherapi.com/v1';
+  
+  // Utility functions
+  const iconUrl = (path) => {
+    if (!path) return '';
+    return path.startsWith('http') ? path : `https:${path}`;
+  };
+  
+  const windDirection = (deg) => {
+    const directions = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    return directions[Math.round(deg / 22.5) % 16] || '';
+  };
+  
+  const fetchData = async (url) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
+  function initWeatherWidget(root) {
+    const state = { 
+      unitC: true, 
+      current: null, 
+      forecast: null,
+      isLoading: false
+    };
+    
+    // DOM elements
+    const els = {
+      loading: root.querySelector('[data-w-loading]'),
+      error: root.querySelector('[data-w-error]'),
+      ok: root.querySelector('[data-w-ok]'),
+      badge: root.querySelector('[data-w-badge]'),
+      place: root.querySelector('[data-w-place]'),
+      icon: root.querySelector('[data-w-icon]'),
+      temp: root.querySelector('[data-w-temp]'),
+      feels: root.querySelector('[data-w-feels]'),
+      text: root.querySelector('[data-w-text]'),
+      wind: root.querySelector('[data-w-wind]'),
+      forecast: root.querySelector('[data-w-forecast]'),
+      unitToggle: root.querySelector('[data-w-unit-toggle]'),
+      refreshBtn: root.querySelector('[data-w-refresh]'),
+    };
+    
+    const API_KEY = root.dataset.apiKey || '41e63358947f461f94485541252309';
+    const LOCATION = root.dataset.location || 'Kasese,Uganda';
+    
+    if (!API_KEY) {
+      showError('Weather API key missing. Add WEATHER_API_KEY in settings or pass api_key in context.');
+      return;
+    }
+    
+    // Temperature rendering
+    function renderTemperatures(currentData) {
+      if (state.unitC) {
+        els.temp.textContent = `${Math.round(currentData.temp_c)}°C`;
+        els.feels.textContent = `Feels like ${Math.round(currentData.feelslike_c)}°`;
+      } else {
+        els.temp.textContent = `${Math.round(currentData.temp_f)}°F`;
+        els.feels.textContent = `Feels like ${Math.round(currentData.feelslike_f)}°`;
+      }
+    }
+    
+    // Current weather rendering
+    function renderCurrentWeather() {
+      const current = state.current?.current;
+      const location = state.current?.location;
+      
+      if (!current || !location) return;
+      
+      els.place.textContent = `${location.name}, ${location.country}`;
+      els.badge.textContent = current.is_day ? 'Day' : 'Night';
+      els.icon.src = iconUrl(current.condition.icon);
+      els.icon.alt = current.condition.text;
+      
+      renderTemperatures(current);
+      els.text.textContent = current.condition.text;
+      els.wind.textContent = `${Math.round(current.wind_kph)} km/h ${windDirection(current.wind_degree)}`;
+    }
+    
+    // Forecast rendering
+    function renderForecast() {
+      const days = state.forecast?.forecast?.forecastday?.slice(0, 3) || [];
+      els.forecast.innerHTML = '';
+      
+      days.forEach(day => {
+        const maxTemp = state.unitC ? Math.round(day.day.maxtemp_c) : Math.round(day.day.maxtemp_f);
+        const minTemp = state.unitC ? Math.round(day.day.mintemp_c) : Math.round(day.day.mintemp_f);
+        const weekday = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' });
+        
+        const card = document.createElement('div');
+        card.className = 'rounded-xl border border-slate-200/70 dark:border-slate-800/70 p-3 text-center bg-white/70 dark:bg-slate-900/60 backdrop-blur';
+        card.innerHTML = `
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">${weekday}</div>
+          <img src="${iconUrl(day.day.condition.icon)}" alt="${day.day.condition.text}" class="h-10 w-10 mx-auto" />
+          <div class="text-sm text-slate-700 dark:text-slate-200 mt-1">${day.day.condition.text}</div>
+          <div class="text-sm font-semibold text-slate-900 dark:text-slate-100 mt-1">
+            <span>${maxTemp}°</span> / <span class="text-slate-500 dark:text-slate-400">${minTemp}°</span>
+          </div>`;
+        
+        els.forecast.appendChild(card);
+      });
+    }
+    
+    // State management
+    function showLoading() {
+      els.loading.classList.remove('hidden');
+      els.error.classList.add('hidden');
+      els.ok.classList.add('hidden');
+      state.isLoading = true;
+    }
+    
+    function showError(message) {
+      els.loading.classList.add('hidden');
+      els.error.textContent = message;
+      els.error.classList.remove('hidden');
+      els.ok.classList.add('hidden');
+      state.isLoading = false;
+    }
+    
+    function showContent() {
+      els.loading.classList.add('hidden');
+      els.error.classList.add('hidden');
+      els.ok.classList.remove('hidden');
+      state.isLoading = false;
+    }
+    
+    // Data loading
+    async function loadWeatherData() {
+      if (state.isLoading) return;
+      
+      showLoading();
+      
+      try {
+        const encodedKey = encodeURIComponent(API_KEY);
+        const encodedLocation = encodeURIComponent(LOCATION);
+        
+        const [currentData, forecastData] = await Promise.all([
+          fetchData(`${BASE_URL}/current.json?key=${encodedKey}&q=${encodedLocation}&aqi=no`),
+          fetchData(`${BASE_URL}/forecast.json?key=${encodedKey}&q=${encodedLocation}&days=3&aqi=no&alerts=no`)
+        ]);
+        
+        state.current = currentData;
+        state.forecast = forecastData;
+        
+        renderCurrentWeather();
+        renderForecast();
+        showContent();
+        
+      } catch (error) {
+        console.error('Weather data loading error:', error);
+        showError(`Unable to load weather data: ${error.message}`);
+      }
+    }
+    
+    // Event listeners
+    els.unitToggle?.addEventListener('click', () => {
+      state.unitC = !state.unitC;
+      if (state.current) renderCurrentWeather();
+      if (state.forecast) renderForecast();
+    });
+    
+    els.refreshBtn?.addEventListener('click', loadWeatherData);
+    
+    // Initialize
+    loadWeatherData();
+  }
+  
+  // Initialize all weather widgets on the page
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#weatherWidget').forEach(initWeatherWidget);
+  });
+})();
+</script>

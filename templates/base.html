@@ -1,7 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="h-full">
-
+<html lang="en" class="h-full" x-data="appShell()" x-init="init()" :class="{ 'dark': theme==='dark' }">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,437 +14,159 @@
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'], display: ['Playfair Display','serif'] },
           colors: {
-            primary: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' },
-            accent: { 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309' },
-            dark: { 50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db', 400: '#9ca3af', 500: '#6b7280', 600: '#4b5563', 700: '#374151', 800: '#1f2937', 900: '#111827' }
+            primary: {50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},
+            accent: {100:'#fef3c7',200:'#fde68a',300:'#fcd34d',400:'#fbbf24',500:'#f59e0b',600:'#d97706',700:'#b45309'},
+            dark:   {50:'#f9fafb',100:'#f3f4f6',200:'#e5e7eb',300:'#d1d5db',400:'#9ca3af',500:'#6b7280',600:'#4b5563',700:'#374151',800:'#1f2937',900:'#0f172a'}
           },
-          fontFamily: {
-            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
-            display: ['Playfair Display', 'serif'],
+          boxShadow: {
+            soft: '0 10px 30px rgba(2, 6, 23, 0.06)',
+            glow: '0 0 0 3px rgba(20,184,166,.12)'
           },
-          animation: { 'fade-in': 'fadeIn .4s ease-out', 'slide-in': 'slideIn .25s ease-out' },
+          backdropBlur: { xs: '2px' },
+          animation: { 'fade-in': 'fadeIn .35s ease-out','slide-up': 'slideUp .35s ease-out','float':'float 5s ease-in-out infinite' },
           keyframes: {
-            fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
-            slideIn: { '0%': { transform: 'translateY(-6px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } }
+            fadeIn:{'0%':{opacity:0},'100%':{opacity:1}},
+            slideUp:{'0%':{transform:'translateY(8px)',opacity:0},'100%':{transform:'translateY(0)',opacity:1}},
+            float:{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-6px)'}},
           }
         }
       }
     }
   </script>
 
-  <!-- Alpine (optional for micro interactivity already used) -->
-  <script src="https://unpkg.com/alpinejs" defer></script>
+  <!-- Alpine -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <!-- Icons / Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f9fafb;
-    }
-
-    /* Glass */
-    .glass {
-      background: rgba(255, 255, 255, .85);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, .2);
-    }
-
-    .dark .glass {
-      background: rgba(15, 23, 42, .85);
-      border-color: rgba(255, 255, 255, .1);
-    }
-
-    /* Scrollbars */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 4px
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8
-    }
-
-    .dark ::-webkit-scrollbar-track {
-      background: #1e293b
-    }
-
-    .dark ::-webkit-scrollbar-thumb {
-      background: #475569
-    }
-
-    .dark ::-webkit-scrollbar-thumb:hover {
-      background: #64748b
-    }
-
-    /* Active nav */
-    .nav-active {
-      position: relative;
-      background: rgba(20, 184, 166, .12);
-    }
-
-    .nav-active::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 4px;
-      height: 24px;
-      background: #14b8a6;
-      border-radius: 0 2px 2px 0;
-    }
-
-    /* Gradients */
-    .accent-gradient {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    }
-
-    /* Coffee pattern bg */
-    .coffee-pattern {
-      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230f766e' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
-
-    .dark .coffee-pattern {
-      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a8a29e' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
-
-    /* ------- Sidebar collapse system (desktop) ------- */
-    /* Default widths (expanded) */
-    #sidebar {
-      width: 16rem;
-    }
-
-    /* 64 */
-    @media (min-width: 1024px) {
-
-      /* lg */
-      .main-shell {
-        margin-left: 16rem;
-      }
-
-      /* lg:ml-64 equivalent */
-    }
-
-    /* Collapsed state */
-    .sidebar-collapsed #sidebar {
-      width: 5rem;
-    }
-
-    /* 20 */
-    .sidebar-collapsed .main-shell {
-      margin-left: 5rem;
-    }
-
-    .sidebar-collapsed .nav-label {
-      display: none;
-    }
-
-    .sidebar-collapsed .nav-icon {
-      margin-right: 0 !important;
-    }
-
-    .sidebar-collapsed .brand-text {
-      display: none;
-    }
-
-    .sidebar-collapsed .collapse-hide {
-      display: none;
-    }
-
-    /* Tooltips for collapsed links */
-    .nav-item[title] {
-      position: relative;
-    }
-
-    .sidebar-collapsed .nav-item:hover::after {
-      content: attr(title);
-      position: absolute;
-      left: 4.5rem;
-      top: 50%;
-      transform: translateY(-50%);
-      white-space: nowrap;
-      background: rgba(15, 23, 42, .95);
-      color: #fff;
-      font-size: .75rem;
-      padding: .25rem .5rem;
-      border-radius: .375rem;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, .15);
-      pointer-events: none;
-      z-index: 60;
-    }
-
-    /* Mobile slide panel sizing */
-    @media (max-width: 1023px) {
-
-      /* < lg */
-      #sidebar {
-        width: 18rem;
-      }
-
-      /* a tad wider on mobile */
-    }
+    /* Premium scrollbars */
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-thumb{background:linear-gradient(135deg,#14b8a6,#0f766e);border-radius:10px}
+    ::-webkit-scrollbar-track{background:rgba(148,163,184,.2)}
+    .glass{background:rgba(255,255,255,.7);backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(148,163,184,.25)}
+    .dark .glass{background:rgba(2,6,23,.6);border-color:rgba(51,65,85,.5)}
+    .navlink{display:flex;align-items:center;gap:.7rem;padding:.65rem .8rem;border-radius:.8rem;color:#334155}
+    .dark .navlink{color:#cbd5e1}
+    .navlink:hover{background:rgba(20,184,166,.10)}
+    .dark .navlink:hover{background:rgba(20,184,166,.15)}
+    .navlink.is-active{background:linear-gradient(90deg,rgba(20,184,166,.18),rgba(20,184,166,0));color:#0f766e}
+    .dark .navlink.is-active{color:#5eead4}
+    .coffee-pattern{background-image:radial-gradient(circle at 20% 15%,rgba(20,184,166,.10)0%,transparent 35%),radial-gradient(circle at 85% 80%,rgba(245,158,11,.10)0%,transparent 40%)}
   </style>
+  {% block extra_head %}{% endblock %}
 </head>
 
-<body class="h-full bg-gray-50 dark:bg-dark-900 coffee-pattern transition-colors duration-300">
-  <!-- Dark mode toggle (floating) -->
-  <button id="darkModeToggle"
-    class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full glass shadow-lg flex items-center justify-center focus:outline-none"
-    aria-label="Toggle dark mode">
-    <i class="fas fa-moon text-gray-600 dark:text-yellow-300"></i>
+<body class="h-full bg-slate-50 dark:bg-dark-900 text-slate-900 dark:text-slate-100 coffee-pattern">
+  <!-- Floating dark mode toggle -->
+  <button @click="toggleTheme" class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-2xl glass shadow-soft flex items-center justify-center hover:shadow-glow transition-all animate-float" title="Toggle theme">
+    <i :class="theme==='dark' ? 'fa-solid fa-sun text-amber-300' : 'fa-solid fa-moon text-slate-600'"></i>
   </button>
 
   <!-- Topbar -->
-   {% include 'partials/topbar.html' %}
+  {% include 'partials/topbar.html' %}
 
-  <!-- Sidebar -->
-  <aside id="sidebar"
-    class="fixed left-0 top-16 h-[calc(100vh-4rem)] glass border-r border-gray-200 dark:border-dark-700
-                -translate-x-full lg:translate-x-0 transition-[transform,width] duration-300 ease-out z-40 overflow-y-auto">
-                {% include 'partials/sidenavigation.html' %}
+  <!-- Sidebar (desktop) / Drawer (mobile) -->
+  <aside id="sidebar" class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 -translate-x-full lg:translate-x-0 transition-all duration-300 z-40 overflow-y-auto">
+    <div class="glass h-full border-r">
+      {% include 'partials/sidenavigation.html' %}
+    </div>
   </aside>
+
+  <!-- Overlay for mobile sidebar -->
+  <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 lg:hidden" @click="sidebarOpen=false"></div>
+
   <!-- Main -->
-  <main class="main-shell pt-16 min-h-screen bg-transparent transition-[margin] duration-300">
+  <main class="pt-16 lg:pl-72 min-h-screen">
     <!-- Messages -->
     {% if messages %}
-    <div class="p-4 lg:p-6">
-      {% for message in messages %}
-      <div
-        class="mb-4 p-4 rounded-lg border-l-4 glass shadow-sm animate-slide-in
-                  {% if message.tags == 'success' %}bg-green-50 dark:bg-green-900/30 border-green-400 text-green-700 dark:text-green-300
-                  {% elif message.tags == 'error' %}bg-red-50 dark:bg-red-900/30 border-red-400 text-red-700 dark:text-red-300
-                  {% else %}bg-blue-50 dark:bg-blue-900/30 border-blue-400 text-blue-700 dark:text-blue-300{% endif %}">
-        <div class="flex items-center">
-          <i
-            class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} mr-2"></i>
-          <span>{{ message }}</span>
-          <button type="button"
-            class="ml-auto text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            onclick="this.closest('div.mb-4').remove()" aria-label="Dismiss">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
+    <div class="p-4 sm:p-6">
+      <div class="max-w-7xl mx-auto space-y-3">
+        {% for message in messages %}
+          <div class="glass border rounded-2xl p-4 shadow-soft animate-slide-up flex items-start gap-3"
+               {% if message.tags == 'success' %}style="--accent: #16a34a"{% elif message.tags == 'error' %}style="--accent:#dc2626"{% else %}style="--accent:#0284c7"{% endif %}>
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: color-mix(in oklab, var(--accent) 12%, transparent); color: var(--accent);">
+              <i class="fa-solid {% if message.tags == 'success' %}fa-check{% elif message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+            </div>
+            <p class="flex-1 text-sm">{{ message }}</p>
+            <button class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" onclick="this.closest('div').remove()"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Content -->
-    <div class="p-4 lg:p-6">
-      <!-- Header / Breadcrumb -->
-      <div class="mb-8">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            {% block breadcrumb %}
-            <div class="glass border border-gray-200 dark:border-dark-700 rounded-xl px-4 py-3 mb-4 shadow-sm">
-              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <nav class="flex items-center flex-wrap gap-1 md:gap-2 text-sm">
-                  <a href="{% url 'store:home' %}"
-                    class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    Home
-                  </a>
-                  <span class="text-gray-400 dark:text-gray-500">/</span>
-                  <span class="text-gray-700 dark:text-gray-300 font-medium">Dashboard</span>
-
-                  <div class="ml-2 flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-2">
-                    <button
-                      class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg"
-                      title="Refresh" onclick="location.reload()">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                    </button>
-                    <button id="darkModeToggleInline"
-                      class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg"
-                      title="Toggle Dark Mode">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 dark:hidden" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                      </svg>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden dark:block" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                    </button>
+    <!-- Header / Breadcrumb + user pill -->
+    <section class="px-4 sm:px-6">
+      <div class="max-w-7xl mx-auto">
+        <div class="glass border rounded-2xl p-5 sm:p-6 shadow-soft animate-fade-in">
+          <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 justify-between">
+            <nav class="flex items-center gap-2 text-sm">
+              <a href="{% url 'store:home' %}" class="inline-flex items-center gap-2 text-primary-700 dark:text-primary-300 hover:underline">
+                <span class="w-7 h-7 rounded-lg bg-primary-500 text-white inline-flex items-center justify-center"><i class="fa-solid fa-house"></i></span>
+                <span>Dashboard</span>
+              </a>
+              {% block breadcrumb %}{% endblock %}
+            </nav>
+            <div class="flex items-center gap-3">
+              <div class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800">
+                <div class="flex items-center gap-2">
+                  <img src="https://ui-avatars.com/api/?name={{ request.user.get_username }}&background=0d9488&color=fff&size=128&font-size=0.5&bold=true" alt="avatar" class="w-8 h-8 rounded-full border-2 border-white dark:border-slate-700"/>
+                  <div class="leading-tight">
+                    <div class="text-sm font-semibold">{{ request.user.get_full_name|default:request.user.username }}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 capitalize">{{ user_role|default:"user" }}</div>
                   </div>
-                </nav>
-
-                <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                  <span class="hidden sm:inline">Logged in as</span>
-                  <span class="font-semibold text-gray-800 dark:text-gray-200">{{ request.user.get_username }}</span>
-                  <img
-                    src="https://ui-avatars.com/api/?name={{ request.user.get_username }}&background=0d9488&color=fff"
-                    alt="avatar" class="w-6 h-6 rounded-full border border-gray-300 dark:border-dark-600 shadow-sm" />
                 </div>
               </div>
+              <div class="hidden sm:flex gap-2">
+                <button @click="reload()" class="px-3 py-2 rounded-xl border hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"><i class="fa-solid fa-rotate"></i></button>
+                <button @click="toggleTheme" class="px-3 py-2 rounded-xl border hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"><i :class="theme==='dark'?'fa-solid fa-sun':'fa-solid fa-moon'"></i></button>
+              </div>
             </div>
-            {% endblock %}
           </div>
-          <div class="mt-4 sm:mt-0">
-            {% block header_actions %}{% endblock %}
-          </div>
+          {% block header_actions %}{% endblock %}
         </div>
+      </div>
+    </section>
 
+    <!-- Page Content -->
+    <section class="px-4 sm:px-6 py-6">
+      <div class="max-w-7xl mx-auto">
         {% block content %}{% endblock %}
       </div>
-    </div>
-  </main>
+    </section>
 
-  <!-- Mobile Sidebar Overlay -->
-  <div id="sidebarOverlay"
-    class="fixed inset-0 bg-black/50 z-30 lg:hidden opacity-0 invisible transition-all duration-300"></div>
+    <footer class="px-4 sm:px-6 pb-8">
+      <div class="max-w-7xl mx-auto text-xs text-slate-500 dark:text-slate-400">© {{ now|date:"Y" }} Great Pearl Coffee Factory · All rights reserved</div>
+    </footer>
+  </main>
 
   {% block extra_js %}{% endblock %}
 
-  <!-- Scripts -->
-  <script>
-    // ----------------- Helpers -----------------
-    const qs = (s, el = document) => el.querySelector(s);
-    const qsa = (s, el = document) => [...el.querySelectorAll(s)];
-    const html = document.documentElement;
-    const body = document.body;
-
-    // ----------------- Sidebar elements -----------------
-    const sidebar = qs('#sidebar');
-    const sidebarOverlay = qs('#sidebarOverlay');
-    const toggleMobileBtn = qs('#sidebarToggleMobile');
-    const toggleDesktopBtn = qs('#sidebarCollapseDesktop');
-
-    // Persisted states
-    const LS_DARK = 'darkMode';
-    const LS_SIDEBAR_COLLAPSED = 'sidebarCollapsed';
-
-    // ----------------- Mobile open/close -----------------
-    function openSidebarMobile() {
-      sidebar.classList.remove('-translate-x-full');
-      sidebarOverlay.classList.remove('opacity-0', 'invisible');
-      toggleMobileBtn?.setAttribute('aria-expanded', 'true');
-    }
-    function closeSidebarMobile() {
-      sidebar.classList.add('-translate-x-full');
-      sidebarOverlay.classList.add('opacity-0', 'invisible');
-      toggleMobileBtn?.setAttribute('aria-expanded', 'false');
-    }
-    toggleMobileBtn?.addEventListener('click', () => {
-      const isHidden = sidebar.classList.contains('-translate-x-full');
-      isHidden ? openSidebarMobile() : closeSidebarMobile();
-    });
-    sidebarOverlay?.addEventListener('click', closeSidebarMobile);
-
-    // Close on ESC (mobile)
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && window.innerWidth < 1024) closeSidebarMobile();
-    });
-
-    // Close on resize up
-    window.addEventListener('resize', () => {
-      if (window.innerWidth >= 1024) {
-        closeSidebarMobile();
-      }
-    });
-
-    // ----------------- Desktop collapse/expand -----------------
-    function applySidebarCollapsedState(collapsed) {
-      if (collapsed) {
-        body.classList.add('sidebar-collapsed');
-        localStorage.setItem(LS_SIDEBAR_COLLAPSED, 'true');
-      } else {
-        body.classList.remove('sidebar-collapsed');
-        localStorage.setItem(LS_SIDEBAR_COLLAPSED, 'false');
-      }
-    }
-    // Initial load
-    const initialCollapsed = localStorage.getItem(LS_SIDEBAR_COLLAPSED) === 'true';
-    applySidebarCollapsedState(initialCollapsed);
-
-    // Toggle on button
-    toggleDesktopBtn?.addEventListener('click', () => {
-      const willCollapse = !body.classList.contains('sidebar-collapsed');
-      applySidebarCollapsedState(willCollapse);
-    });
-
-    // ----------------- Active nav highlighting -----------------
-    const currentPath = window.location.pathname.replace(/\/+$/, '');
-    qsa('aside nav a').forEach(link => {
-      const href = (link.getAttribute('href') || '').replace(/\/+$/, '');
-      if (href && href === currentPath) {
-        link.classList.add('nav-active');
-      }
-    });
-
-    // ----------------- Dark mode -----------------
-    function setDarkMode(enabled) {
-      if (enabled) html.classList.add('dark'); else html.classList.remove('dark');
-      localStorage.setItem(LS_DARK, String(enabled));
-    }
-    const darkModeToggle = qs('#darkModeToggle');
-    const darkModeToggleInline = qs('#darkModeToggleInline');
-
-    function toggleDarkMode() {
-      setDarkMode(!html.classList.contains('dark'));
-    }
-    darkModeToggle?.addEventListener('click', toggleDarkMode);
-    darkModeToggleInline?.addEventListener('click', toggleDarkMode);
-
-    // Respect stored / system preference
-    const storedDark = localStorage.getItem(LS_DARK);
-    if (storedDark === 'true' || (!storedDark && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      html.classList.add('dark');
-    }
-
-    // ----------------- Improve keyboard nav -----------------
-    // Focus trap when mobile sidebar is open
-    let lastFocusedEl = null;
-    function trapFocusInSidebar(enable) {
-      const focusables = qsa('a, button, [tabindex]:not([tabindex="-1"])', sidebar);
-      if (!enable || focusables.length === 0) return;
-      let first = focusables[0], last = focusables[focusables.length - 1];
-      sidebar.addEventListener('keydown', function (e) {
-        if (e.key !== 'Tab') return;
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      });
-    }
-    toggleMobileBtn?.addEventListener('click', () => {
-      const opening = sidebar.classList.contains('-translate-x-full');
-      if (opening) {
-        lastFocusedEl = document.activeElement;
-        setTimeout(() => trapFocusInSidebar(true), 50);
-      } else if (lastFocusedEl) {
-        setTimeout(() => lastFocusedEl.focus(), 50);
-      }
-    });
-  </script>
-
-  <!-- jQuery (if you use Select2 elsewhere) -->
+  <!-- jQuery (optional for form widgets that need it) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   {{ form.media.js }}
-</body>
 
+  <script>
+    function appShell(){
+      return {
+        theme: 'light',
+        sidebarOpen: false,
+        init(){
+          const stored = localStorage.getItem('theme');
+          this.theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.classList.toggle('dark', this.theme==='dark');
+          // highlight nav
+          try{ document.querySelectorAll('aside nav a').forEach(a=>{ const p = location.pathname.replace(/\/+$/,''); const h=(a.getAttribute('href')||'').replace(/\/+$/,''); if(h && (h===p || p.startsWith(h+'/'))) a.classList.add('is-active'); }); }catch{}
+        },
+        toggleTheme(){ this.theme = this.theme==='dark'?'light':'dark'; localStorage.setItem('theme', this.theme); document.documentElement.classList.toggle('dark', this.theme==='dark'); },
+        reload(){ location.reload() },
+      }
+    }
+  </script>
+</body>
 </html>

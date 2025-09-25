@@ -1,99 +1,123 @@
-  <nav class="fixed top-0 left-0 right-0 h-16 glass border-b border-gray-200 dark:border-dark-700 z-50">
-    <div class="flex items-center justify-between h-full px-4 lg:px-6">
-      <!-- Left -->
-      <div class="flex items-center gap-3">
-        <!-- Mobile open/close -->
-        <button id="sidebarToggleMobile"
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors lg:hidden"
-          aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
-          <i class="fas fa-bars text-gray-600 dark:text-gray-300"></i>
-        </button>
+<nav class="fixed top-0 left-0 right-0 h-16 glass border-b border-slate-200/60 dark:border-slate-800/80 z-50">
+  <div class="flex items-center justify-between h-full px-4 lg:px-6">
+    <!-- Left -->
+    <div class="flex items-center gap-3">
+      <!-- Mobile open/close -->
+      <button id="sidebarToggleMobile"
+              class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors lg:hidden"
+              aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
+        <i class="fa-solid fa-bars text-slate-600 dark:text-slate-300"></i>
+      </button>
 
-        <!-- Desktop collapse/expand -->
-        <button id="sidebarCollapseDesktop"
-          class="hidden lg:inline-flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors"
-          aria-label="Collapse or expand sidebar" title="Collapse/Expand sidebar">
-          <i class="fa-solid fa-bars text-gray-600 dark:text-gray-300"></i>
-        </button>
+      <!-- Desktop collapse/expand -->
+      <button id="sidebarCollapseDesktop"
+              class="hidden lg:inline-flex p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Collapse or expand sidebar" title="Collapse/Expand sidebar">
+        <i class="fa-solid fa-bars text-slate-600 dark:text-slate-300"></i>
+      </button>
 
-        <div class="flex items-center gap-3">
-          <div class="flex items-center justify-center w-10 h-10 accent-gradient rounded-xl shadow-md">
-            <i class="fas fa-coffee text-white text-lg"></i>
-          </div>
-          <div class="brand-text">
-            <h1 class="text-xl font-bold text-gray-900 dark:text-white">
-              Great<span class="text-primary-600 dark:text-primary-400 font-display">Pearl</span>
-              <span class="text-accent-500">Coffee</span>
-            </h1>
-            <p class="text-xs text-gray-500 dark:text-gray-400 -mt-1">Management System</p>
-          </div>
+      <!-- Brand -->
+      <a href="{% url 'store:home' %}" class="flex items-center gap-3 group">
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl shadow-soft bg-gradient-to-br from-primary-500 to-primary-600 text-white">
+          <i class="fa-solid fa-mug-hot text-lg"></i>
         </div>
-      </div>
-
-      <!-- Right -->
-      <div class="flex items-center gap-3">
-        <button class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors"
-          title="Notifications">
-          <i class="fas fa-bell text-gray-600 dark:text-gray-300"></i>
-          <span
-            class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
-        </button>
-        <button class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors"
-          title="Messages">
-          <i class="fas fa-envelope text-gray-600 dark:text-gray-300"></i>
-          <span
-            class="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">1</span>
-        </button>
-
-        {% if user.is_authenticated %}
-        <div x-data="{ open: false }" class="relative">
-          <button @click="open = !open"
-            class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors">
-            <div class="w-8 h-8 accent-gradient rounded-full flex items-center justify-center shadow-md">
-              <span class="text-sm font-semibold text-white">{{ user.username|first|upper }}</span>
-            </div>
-            <div class="hidden md:block text-left collapse-hide">
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.username }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
-            </div>
-            <i class="fas fa-chevron-down text-gray-400 text-sm transition-transform duration-200"
-              :class="{ 'rotate-180': open }"></i>
-          </button>
-
-          <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-1"
-            class="absolute right-0 mt-2 w-56 glass rounded-xl shadow-lg border border-gray-200 dark:border-dark-700 overflow-hidden z-50">
-            <div class="py-2">
-              <div class="px-4 py-2 border-b border-gray-100 dark:border-dark-700">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.username }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {{ user.email|default:"admin@example.com"}}
-                </p>
-              </div>
-              <a href="#"
-                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">
-                <i class="fas fa-user w-4 mr-3 text-gray-400"></i> Profile
-              </a>
-              <a href="#"
-                class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">
-                <i class="fas fa-cog w-4 mr-3 text-gray-400"></i> Settings
-              </a>
-              <hr class="my-2 border-gray-200 dark:border-dark-700">
-              <a href="{% url 'logout' %}"
-                class="flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                <i class="fas fa-sign-out-alt w-4 mr-3 text-red-400"></i> Logout
-              </a>
-            </div>
-          </div>
+        <div class="leading-tight">
+          <h1 class="text-lg font-bold text-slate-900 dark:text-white">
+            Great<span class="text-primary-600 dark:text-primary-300 font-display">Pearl</span>
+            <span class="text-amber-500">Coffee</span>
+          </h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 -mt-0.5">Management System</p>
         </div>
-        {% else %}
-        <a href="{% url 'login' %}"
-          class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 shadow-md">
-          <i class="fas fa-sign-in-alt mr-2"></i> Login
-        </a>
-        {% endif %}
-      </div>
+      </a>
     </div>
-  </nav>
+
+    <!-- Center: Search (optional) -->
+    <div class="hidden md:flex flex-1 max-w-xl mx-4">
+      <form method="get" action="#" class="w-full">
+        <label class="relative w-full">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" name="q" placeholder="Search…"
+                 class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/70 backdrop-blur
+                        text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-400" />
+        </label>
+      </form>
+    </div>
+
+    <!-- Right -->
+    <div class="flex items-center gap-2">
+      <!-- Quick actions -->
+      <button class="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              title="Notifications">
+        <i class="fa-solid fa-bell text-slate-600 dark:text-slate-300"></i>
+        <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] leading-5 text-center shadow-soft">3</span>
+      </button>
+
+      <button class="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              title="Messages">
+        <i class="fa-solid fa-envelope text-slate-600 dark:text-slate-300"></i>
+        <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-sky-500 text-white text-[10px] leading-5 text-center shadow-soft">1</span>
+      </button>
+
+      <!-- Theme toggle (mirrors floating button if you use it) -->
+      <button @click="$root.toggleTheme()"
+              class="hidden sm:inline-flex p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              title="Toggle theme">
+        <i class="fa-solid" :class="$root.theme==='dark' ? 'fa-sun text-amber-300' : 'fa-moon text-slate-600'"></i>
+      </button>
+
+      {% if user.is_authenticated %}
+      <!-- User menu -->
+      <div x-data="{ open:false }" class="relative">
+        <button @click="open = !open"
+                class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <div class="w-9 h-9 rounded-xl shadow-soft bg-gradient-to-br from-primary-500 to-primary-600 text-white grid place-items-center">
+            <span class="text-sm font-semibold">{{ user.username|first|upper }}</span>
+          </div>
+          <div class="hidden md:block text-left">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">
+              {{ user.get_full_name|default:user.username }}
+            </p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 capitalize">{{ user_role|default:"user" }}</p>
+          </div>
+          <i class="fa-solid fa-chevron-down text-slate-400 text-[12px] transition-transform duration-200"
+             :class="{ 'rotate-180': open }"></i>
+        </button>
+
+        <div x-show="open" @click.away="open=false"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-1"
+             class="absolute right-0 mt-2 w-60 glass rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800/80 overflow-hidden z-50">
+          <div class="px-4 py-3 border-b border-slate-200/60 dark:border-slate-800/80">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ user.get_full_name|default:user.username }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ user.email|default:"admin@example.com" }}</p>
+          </div>
+          <a href="{% url 'accounts:my_profile' %}"
+             class="flex items-center px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i class="fa-solid fa-user w-4 mr-3 text-slate-400"></i> Profile
+          </a>
+          <a href="{% url 'accounts:it_department' %}"
+             class="flex items-center px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i class="fa-solid fa-gear w-4 mr-3 text-slate-400"></i> Settings
+          </a>
+          <div class="my-1 border-t border-slate-200/60 dark:border-slate-800/80"></div>
+          <a href="{% url 'accounts:logout' %}"
+             class="flex items-center px-4 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+            <i class="fa-solid fa-right-from-bracket w-4 mr-3"></i> Logout
+          </a>
+        </div>
+      </div>
+      {% else %}
+      <a href="{% url 'accounts:login' %}"
+         class="inline-flex items-center px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 shadow-soft">
+        <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</nav>

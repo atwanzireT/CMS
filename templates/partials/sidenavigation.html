@@ -1,214 +1,178 @@
 <div class="p-4">
-    <!-- Nav -->
-    <nav class="space-y-2" aria-label="Sidebar">
-        <!-- MAIN -->
-        <div class="mb-6">
-            <h3
-                class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-3 collapse-hide">
-                Main
-            </h3>
-            <ul class="space-y-1">
-                <li>
-                    {% url 'store:home' as store_home_url %}
-                    <a href="{{ store_home_url }}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 transition group"
-                        title="Dashboard"
-                        aria-current="{% if request.path == store_home_url %}page{% else %}false{% endif %}">
-                        <i
-                            class="fas fa-chart-pie w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
-                        <span class="font-medium nav-label">Dashboard</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+  <nav class="space-y-5" aria-label="Sidebar">
+    <!-- MAIN -->
+    <section>
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+        Main
+      </h3>
+      <ul class="space-y-1">
+        {% url 'store:home' as store_home_url %}
+        <li>
+          <a href="{{ store_home_url }}"
+             class="navlink {% if request.path == store_home_url %}is-active{% endif %}">
+            <i class="fa-solid fa-chart-pie w-4"></i>
+            <span class="font-medium">Dashboard</span>
+          </a>
+        </li>
+      </ul>
+    </section>
 
-        {# ---------- OPERATIONS (only if user can access any) ---------- #}
-        {% if can_access.milling or can_access.assessment or can_access.store or can_access.finance %}
-        <div class="mb-6">
-            <h3
-                class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-3 collapse-hide">
-                Operations
-            </h3>
-            <ul class="space-y-1">
-                {% if can_access.milling %}
-                <li>
-                    <a href="{% url 'milling:milling_list' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Milling">
-                        <i class="fas fa-cogs w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Milling</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if can_access.assessment %}
-                <li>
-                    <a href="{% url 'assessment:assessment_list' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Quality Control">
-                        <i
-                            class="fas fa-clipboard-check w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Quality Control</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if can_access.store %}
-                <li>
-                    <a href="{% url 'store:store_dashboard' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Store Management">
-                        <i
-                            class="fas fa-shopping-cart w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Store Management</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if can_access.finance %}
-                <li>
-                    <a href="{% url 'finance:finance_dashboard' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Finance">
-                        <i class="fas fa-coins w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Finance</span>
-                        <span
-                            class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-dark-700 dark:text-primary-300 collapse-hide">
-                            Secure
-                        </span>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
+    {# ---------- OPERATIONS (only if user can access any) ---------- #}
+    {% if can_access.milling or can_access.assessment or can_access.store or can_access.finance %}
+    <section>
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+        Operations
+      </h3>
+      <ul class="space-y-1">
+        {% if can_access.milling %}
+        <li>
+          <a href="{% url 'milling:milling_list' %}"
+             class="navlink {% if request.resolver_match.app_name == 'milling' and request.resolver_match.url_name == 'milling_list' %}is-active{% endif %}">
+            <i class="fa-solid fa-gears w-4"></i>
+            <span class="font-medium">Milling</span>
+          </a>
+        </li>
         {% endif %}
 
-        {# ---------- MANAGEMENT (only if user can access any) ---------- #}
-        {% if can_access.sales or can_access.expenses or can_access.inventory %}
-        <div class="mb-6">
-            <h3
-                class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-3 collapse-hide">
-                Management
-            </h3>
-            <ul class="space-y-1">
-                {% if can_access.sales %}
-                <li>
-                    <a href="{% url 'sales:sales_list_create' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Sales">
-                        <i class="fas fa-clipboard w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Sales</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if can_access.expenses %}
-                <li>
-                    <a href="{% url 'expenses:expense_list' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Expenses">
-                        <i class="fas fa-money-bill w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Expenses</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if can_access.inventory %}
-                <li>
-                    <a href="{% url 'inventory:inventory_home' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Inventory">
-                        <i class="fas fa-boxes w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Inventory</span>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
+        {% if can_access.assessment %}
+        <li>
+          <a href="{% url 'assessment:assessment_list' %}"
+             class="navlink {% if request.resolver_match.app_name == 'assessment' %}is-active{% endif %}">
+            <i class="fa-solid fa-clipboard-check w-4"></i>
+            <span class="font-medium">Quality Control</span>
+          </a>
+        </li>
         {% endif %}
 
-        {# ---------- SYSTEM (only if user can access any or is superuser) ---------- #}
-        {% if can_access.reports or request.user.is_superuser %}
-        <div class="mb-6">
-            <h3
-                class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-3 collapse-hide">
-                System
-            </h3>
-            <ul class="space-y-1">
-                {% if can_access.reports %}
-                <li>
-                    <a href="{% url 'reports:general_reports' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Reports">
-                        <i class="fas fa-clipboard w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Reports</span>
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if request.user.is_superuser %}
-                <li>
-                    <a href="{% url 'accounts:it_department' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="IT Department">
-                        <i class="fas fa-desktop w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">IT Department</span>
-                        <span
-                            class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-dark-700 dark:text-amber-300 collapse-hide">
-                            Admin
-                        </span>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
+        {% if can_access.store %}
+        <li>
+          <a href="{% url 'store:store_dashboard' %}"
+             class="navlink {% if request.resolver_match.app_name == 'store' and request.resolver_match.url_name == 'store_dashboard' %}is-active{% endif %}">
+            <i class="fa-solid fa-store w-4"></i>
+            <span class="font-medium">Store Management</span>
+          </a>
+        </li>
         {% endif %}
 
-        <!-- ACCOUNT -->
-        <div class="mb-6">
-            <h3
-                class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-3 collapse-hide">
-                Account
-            </h3>
-            <ul class="space-y-1">
-                {% if request.user.is_authenticated %}
-                <li>
-                    <a href="{% url 'accounts:user_edit' request.user.id %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="My Profile">
-                        <i class="fas fa-user w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">My Profile</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'accounts:logout' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Logout">
-                        <i class="fas fa-sign-out-alt w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Logout</span>
-                    </a>
-                </li>
-                {% else %}
-                <li>
-                    <a href="{% url 'accounts:login' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Login">
-                        <i class="fas fa-sign-in-alt w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Login</span>
-                    </a>
-                </li>
-                {# If/when you add public registration:
-                <li>
-                    <a href="{% url 'accounts:register' %}"
-                        class="nav-item flex items-center px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 group"
-                        title="Register">
-                        <i class="fas fa-user-plus w-5 mr-3 nav-icon text-gray-400 group-hover:text-primary-600"></i>
-                        <span class="font-medium nav-label">Register</span>
-                    </a>
-                </li>
-                #}
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
+        {% if can_access.finance %}
+        <li>
+          <a href="{% url 'finance:finance_dashboard' %}"
+             class="navlink {% if request.resolver_match.app_name == 'finance' %}is-active{% endif %}">
+            <i class="fa-solid fa-coins w-4"></i>
+            <span class="font-medium">Finance</span>
+            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-slate-800 dark:text-primary-300">
+              Secure
+            </span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {# ---------- MANAGEMENT (only if user can access any) ---------- #}
+    {% if can_access.sales or can_access.expenses or can_access.inventory %}
+    <section>
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+        Management
+      </h3>
+      <ul class="space-y-1">
+        {% if can_access.sales %}
+        <li>
+          <a href="{% url 'sales:sales_list_create' %}"
+             class="navlink {% if request.resolver_match.app_name == 'sales' %}is-active{% endif %}">
+            <i class="fa-solid fa-receipt w-4"></i>
+            <span class="font-medium">Sales</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if can_access.expenses %}
+        <li>
+          <a href="{% url 'expenses:expense_list' %}"
+             class="navlink {% if request.resolver_match.app_name == 'expenses' %}is-active{% endif %}">
+            <i class="fa-solid fa-wallet w-4"></i>
+            <span class="font-medium">Expenses</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if can_access.inventory %}
+        <li>
+          <a href="{% url 'inventory:inventory_home' %}"
+             class="navlink {% if request.resolver_match.app_name == 'inventory' %}is-active{% endif %}">
+            <i class="fa-solid fa-warehouse w-4"></i>
+            <span class="font-medium">Inventory</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {# ---------- SYSTEM (only if user can access any or is superuser) ---------- #}
+    {% if can_access.reports or request.user.is_superuser %}
+    <section>
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+        System
+      </h3>
+      <ul class="space-y-1">
+        {% if can_access.reports %}
+        <li>
+          <a href="{% url 'reports:general_reports' %}"
+             class="navlink {% if request.resolver_match.app_name == 'reports' %}is-active{% endif %}">
+            <i class="fa-solid fa-chart-line w-4"></i>
+            <span class="font-medium">Reports</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if request.user.is_superuser %}
+        <li>
+          <a href="{% url 'accounts:it_department' %}"
+             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'it_department' %}is-active{% endif %}">
+            <i class="fa-solid fa-desktop w-4"></i>
+            <span class="font-medium">IT Department</span>
+            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-slate-800 dark:text-amber-300">
+              Admin
+            </span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <!-- ACCOUNT -->
+    <section>
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+        Account
+      </h3>
+      <ul class="space-y-1">
+        {% if request.user.is_authenticated %}
+        <li>
+          <a href="{% url 'accounts:user_edit' request.user.id %}"
+             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'user_edit' %}is-active{% endif %}">
+            <i class="fa-solid fa-user w-4"></i>
+            <span class="font-medium">My Profile</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'accounts:logout' %}" class="navlink">
+            <i class="fa-solid fa-right-from-bracket w-4"></i>
+            <span class="font-medium">Logout</span>
+          </a>
+        </li>
+        {% else %}
+        <li>
+          <a href="{% url 'accounts:login' %}"
+             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'login' %}is-active{% endif %}">
+            <i class="fa-solid fa-right-to-bracket w-4"></i>
+            <span class="font-medium">Login</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </section>
+  </nav>
 </div>

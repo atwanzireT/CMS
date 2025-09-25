@@ -30,52 +30,53 @@ def get_base_context(request, page_title='Default Page Title'):
 # ========== DASHBOARD ==============
 @module_required("access_store")
 def store_dashboard(request):
-    # Date ranges
     today = timezone.now().date()
     thirty_days_ago = today - timedelta(days=30)
 
-    # Purchases (unchanged if CoffeePurchase has 'quantity' & 'bags')
-    total_purchases = CoffeePurchase.objects.count()
-    recent_purchases = CoffeePurchase.objects.filter(purchase_date__gte=thirty_days_ago)
-    total_purchase_quantity = recent_purchases.aggregate(total=Sum('quantity'))['total'] or 0
-    total_purchase_bags = recent_purchases.aggregate(total=Sum('bags'))['total'] or 0
+    # ---------- Purchases ----------
+    recent_purchases_qs = CoffeePurchase.objects.filter(purchase_date__gte=thirty_days_ago)
 
-    # Payment status breakdown (uses CoffeePurchase.quantity)
-    payment_status = recent_purchases.values('payment_status').annotate(
-        count=Count('id'),
-        total_quantity=Sum('quantity'),
+    total_purchase_quantity = recent_purchases_qs.aggregate(total=Sum('quantity'))['total'] or 0
+    total_purchase_bags = recent_purchases_qs.aggregate(total=Sum('bags'))['total'] or 0
+
+    # Breakdowns as dicts
+    raw_payment_status = list(
+        recent_purchases_qs.values('payment_status').annotate(
+            count=Count('id'),
+            total_quantity=Sum('quantity'),
+        )
     )
 
-    # SALES — use quantity_kg & unit_price_ugx
-    recent_sales = CoffeeSale.objects.filter(sale_date__gte=thirty_days_ago)
+    # ---------- Sales ----------
+    recent_sales_qs = CoffeeSale.objects.filter(sale_date__gte=thirty_days_ago)
 
     total_amount_expr = ExpressionWrapper(
         F('quantity_kg') * F('unit_price_ugx'),
         output_field=DecimalField(max_digits=20, decimal_places=2),
     )
 
-    total_sales = CoffeeSale.objects.count()
-    total_sale_quantity = recent_sales.aggregate(total=Sum('quantity_kg'))['total'] or 0
-    total_revenue = recent_sales.aggregate(total=Sum(total_amount_expr))['total'] or Decimal('0.00')
+    total_sale_quantity = recent_sales_qs.aggregate(total=Sum('quantity_kg'))['total'] or 0
+    total_revenue = recent_sales_qs.aggregate(total=Sum(total_amount_expr))['total'] or Decimal('0.00')
 
-    # Inventory overview
+    # ---------- Inventory ----------
     inventory_items = CoffeeInventory.objects.all()
     total_inventory_value = inventory_items.aggregate(total=Sum('current_value'))['total'] or Decimal('0.00')
     total_inventory_quantity = inventory_items.aggregate(total=Sum('quantity'))['total'] or Decimal('0.00')
     low_stock_items = inventory_items.filter(quantity__lt=100)
 
-    # Recent activities (annotate total_amount so template {{ sale.total_amount }} works)
+    # ---------- Recent lists ----------
     recent_purchases_list = (
         CoffeePurchase.objects.select_related('supplier')
         .order_by('-purchase_date')[:5]
     )
-    recent_sales_list = (
+
+    recent_sales_list = list(
         CoffeeSale.objects.select_related('customer')
         .annotate(total_amount=total_amount_expr)
         .order_by('-sale_date', '-created_at')[:5]
     )
 
-    # Supplier statistics
+    # ---------- Supplier stats ----------
     active_suppliers = (
         Supplier.objects.annotate(
             purchase_count=Count('purchases'),
@@ -85,43 +86,75 @@ def store_dashboard(request):
         .order_by('-total_quantity')[:5]
     )
 
-    # Coffee type breakdowns
-    coffee_type_purchases = (
-        recent_purchases.values('coffee_type')
-        .annotate(
+    # ---------- Coffee type breakdowns ----------
+    raw_coffee_type_purchases = list(
+        recent_purchases_qs.values('coffee_type').annotate(
             total_quantity=Sum('quantity'),
             count=Count('id'),
-        )
+        ).order_by('-total_quantity')
     )
-    coffee_type_sales = (
-        recent_sales.values('coffee_type')
-        .annotate(
+    raw_coffee_type_sales = list(
+        recent_sales_qs.values('coffee_type').annotate(
             total_quantity=Sum('quantity_kg'),
             total_revenue=Sum(total_amount_expr),
-        )
+        ).order_by('-total_quantity')
     )
+
+    # ---------- Build label maps ----------
+    coffee_type_labels = dict(CoffeePurchase.COFFEE_TYPES)
+    payment_status_labels = dict(CoffeePurchase.PAYMENT_STATUS_CHOICES)
+
+    # Attach labels so the template only does dot lookups (no dict indexing)
+    payment_status = []
+    for row in raw_payment_status:
+        payment_status.append({
+            **row,
+            'status_label': payment_status_labels.get(row['payment_status'], 'Unknown')
+        })
+
+    coffee_type_purchases = []
+    for row in raw_coffee_type_purchases:
+        coffee_type_purchases.append({
+            **row,
+            'label': coffee_type_labels.get(row['coffee_type'], row['coffee_type']),
+        })
+
+    coffee_type_sales = []
+    for row in raw_coffee_type_sales:
+        coffee_type_sales.append({
+            **row,
+            'label': coffee_type_labels.get(row['coffee_type'], row['coffee_type']),
+        })
+
+    # For recent sales (model instances), add a convenient label attribute
+    for s in recent_sales_list:
+        if hasattr(s, 'get_coffee_type_display'):
+            s.coffee_type_label = s.get_coffee_type_display()
+        else:
+            s.coffee_type_label = coffee_type_labels.get(getattr(s, 'coffee_type', None), '—')
 
     context = {
         'today': today,
-        'total_purchases': total_purchases,
+        'total_purchases': CoffeePurchase.objects.count(),
         'total_purchase_quantity': total_purchase_quantity,
         'total_purchase_bags': total_purchase_bags,
-        'total_sales': total_sales,
+        'total_sales': CoffeeSale.objects.count(),
         'total_sale_quantity': total_sale_quantity,
         'total_revenue': total_revenue,
         'total_inventory_value': total_inventory_value,
         'total_inventory_quantity': total_inventory_quantity,
-        'payment_status': payment_status,
+
+        'payment_status': payment_status,                # now has .status_label
         'inventory_items': inventory_items,
         'low_stock_items': low_stock_items,
         'recent_purchases': recent_purchases_list,
-        'recent_sales': recent_sales_list,
+        'recent_sales': recent_sales_list,               # each has .coffee_type_label
         'active_suppliers': active_suppliers,
-        'coffee_type_purchases': coffee_type_purchases,
-        'coffee_type_sales': coffee_type_sales,
+
+        'coffee_type_purchases': coffee_type_purchases,  # each has .label
+        'coffee_type_sales': coffee_type_sales,          # each has .label
     }
     return render(request, 'store_dashboard.html', context)
-
 
 # ========== SUPPLIER VIEWS ==========
 PER_PAGE_OPTIONS = [10, 20, 50, 100]

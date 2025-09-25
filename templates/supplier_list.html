@@ -188,7 +188,7 @@
             <i class="fas fa-times text-lg"></i>
           </button>
         </div>
-        <form method="post" id="supplierForm" class="space-y-4" action="{% url 'supplier_list' %}?q={{ q|urlencode }}&per_page={{ per_page }}">
+        <form method="post" id="supplierForm" class="space-y-4" action="{% url 'store:supplier_list' %}?q={{ q|urlencode }}&per_page={{ per_page }}">
           {% csrf_token %}
           <input type="hidden" name="supplier_id" id="supplier_id" value="">
           <div>
@@ -228,7 +228,7 @@
             <i class="fas fa-times text-lg"></i>
           </button>
         </div>
-        <form method="post" id="purchaseForm" action="{% url 'supplier_list' %}?q={{ q|urlencode }}&per_page={{ per_page }}" class="space-y-4">
+        <form method="post" id="purchaseForm" action="{% url 'store:supplier_list' %}?q={{ q|urlencode }}&per_page={{ per_page }}" class="space-y-4">
           {% csrf_token %}
           <input type="hidden" name="supplier_id" id="purchase_supplier_id" value="">
           <div>

@@ -206,7 +206,7 @@ def inventory_dashboard(request):
         # Breakdowns
         "inv_by_type": list(inv_by_type),
         "inv_by_category": list(inv_by_category),
-        "inv_status_counts": list(inv_status_counts),  # empty -> "No lots."
+        "inv_status_counts": list(inv_status_counts),
         "avg_open_age_days": avg_open_age_days,
 
         # Quality snapshot

@@ -4,325 +4,336 @@
 {% block content %}
 <div class="mx-auto max-w-7xl px-4 py-6">
 
-  <!-- Header -->
-  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <!-- ===== Header ===== -->
+  <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div>
-      <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Inventory Dashboard</h1>
+      <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Inventory Dashboard</h1>
       <p class="text-sm text-slate-500 dark:text-slate-400">As of {{ today|date:"M j, Y" }}</p>
     </div>
 
     <!-- Theme toggle -->
     <button id="themeToggle"
-            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700">
-      <!-- Moon -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50
+                   dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700">
+      <!-- Sun (light) -->
+      <svg class="h-5 w-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M21 12.79A9 9 0 1 1 11.21 3c.2 0 .4 0 .6.02A7 7 0 0 0 21 12.79z"/>
+              d="M12 3v2m0 14v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M3 12h2m14 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41M12 8a4 4 0 100 8 4 4 0 000-8z"/>
       </svg>
-      <!-- Sun -->
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <!-- Moon (dark) -->
+      <svg class="hidden h-5 w-5 dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M12 3v2m0 14v2m7.07-11.07-1.41 1.41M6.34 17.66l-1.41 1.41m14.14 0-1.41-1.41M6.34 6.34 4.93 4.93M21 12h-2M5 12H3m9-4a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
+              d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
       </svg>
       <span class="hidden sm:inline">Toggle theme</span>
     </button>
-  </div>
+  </header>
 
-  <!-- Summary cards -->
-  <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between">
+  <!-- ===== Summary Cards ===== -->
+  <section class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <!-- Total Available -->
+    <article class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-transparent transition hover:shadow-md hover:ring-slate-100
+                    dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-slate-700/40">
+      <div class="flex items-start justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total Available (kg)</p>
-          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <p class="text-2xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total Available (kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
             {{ inv_total_available_kg|default_if_none:0|floatformat:2|intcomma }}
           </p>
         </div>
         <div class="rounded-xl bg-blue-50 p-3 text-blue-600 ring-1 ring-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-900/40">
-          <!-- Boxes icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M3 7l9 4 9-4M3 7v10l9 4m9-14v10l-9 4M12 11v10"/>
-          </svg>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7l9 4 9-4M3 7v10l9 4m9-14v10l-9 4M12 11v10"/></svg>
         </div>
       </div>
-    </div>
+      <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+        {% with pct=100 %}
+          {% if inv_total_received_kg %}
+            {% widthratio inv_total_available_kg inv_total_received_kg 100 as pct %}
+          {% endif %}
+          <div class="h-full rounded-full bg-blue-500/70 dark:bg-blue-400" style="width: {{ pct }}%"></div>
+        {% endwith %}
+      </div>
+    </article>
 
-    <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between">
+    <!-- Total Received -->
+    <article class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-transparent transition hover:shadow-md hover:ring-slate-100
+                    dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-slate-700/40">
+      <div class="flex items-start justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total Received (kg)</p>
-          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <p class="text-2xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total Received (kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
             {{ inv_total_received_kg|default_if_none:0|floatformat:2|intcomma }}
           </p>
         </div>
         <div class="rounded-xl bg-emerald-50 p-3 text-emerald-600 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-900/40">
-          <!-- Arrow down tray -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M3 16v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2M7 10l5 5m0 0 5-5m-5 5V3"/>
-          </svg>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16v2a2 2 0 002 2h14a2 2 0 002-2v-2M7 10l5 5m0 0 5-5m-5 5V3"/></svg>
         </div>
       </div>
-    </div>
+    </article>
 
-    <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between">
+    <!-- Inventory Value -->
+    <article class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-transparent transition hover:shadow-md hover:ring-slate-100
+                    dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-slate-700/40">
+      <div class="flex items-start justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Inventory Value (UGX)</p>
-          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <p class="text-2xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Inventory Value (UGX)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
             {{ inv_total_value|default_if_none:0|floatformat:2|intcomma }}
           </p>
         </div>
         <div class="rounded-xl bg-amber-50 p-3 text-amber-600 ring-1 ring-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-900/40">
-          <!-- Currency icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M12 8c-2.21 0-4 1.57-4 3.5S9.79 15 12 15s4-1.57 4-3.5M4 12h2m12 0h2M6 6l2 2m8-2-2 2M6 18l2-2m8 2-2-2"/>
-          </svg>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-2.21 0-4 1.57-4 3.5S9.79 15 12 15s4-1.57 4-3.5M4 12h2m12 0h2M6 6l2 2m8-2-2 2M6 18l2-2m8 2-2-2"/></svg>
         </div>
       </div>
-    </div>
+    </article>
 
-    <div class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between">
+    <!-- Avg Final Price -->
+    <article class="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-transparent transition hover:shadow-md hover:ring-slate-100
+                    dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-slate-700/40">
+      <div class="flex items-start justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Avg Final Price (UGX/kg)</p>
-          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <p class="text-2xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Avg Final Price (UGX/kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
             {{ avg_final_price|default_if_none:0|floatformat:2|intcomma }}
           </p>
         </div>
         <div class="rounded-xl bg-purple-50 p-3 text-purple-600 ring-1 ring-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:ring-purple-900/40">
-          <!-- Tag icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M7 7h4l7 7-4 4-7-7V7zM7 7l-2 2m9 1 3-3"/>
-          </svg>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h4l7 7-4 4-7-7V7zM7 7l-2 2m9 1 3-3"/></svg>
         </div>
       </div>
-    </div>
-  </div>
+    </article>
+  </section>
 
-  <!-- Movement -->
-  <div class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between">
+  <!-- ===== Movement (30d) ===== -->
+  <section class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+    <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-start justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Inflow (30d, kg)</p>
-          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <p class="text-2xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Inflow (30d, kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
             {{ inflow_30_kg|default_if_none:0|floatformat:2|intcomma }}
           </p>
         </div>
         <div class="rounded-xl bg-emerald-50 p-3 text-emerald-600 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-900/40">
-          <!-- Trending up -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M3 17l6-6 4 4 7-7M14 5h7v7"/>
-          </svg>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 17l6-6 4 4 7-7M14 5h7v7"/></svg>
         </div>
       </div>
-    </div>
+    </article>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between">
+    <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-start justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Outflow (30d, kg)</p>
-          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <p class="text-2xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Outflow (30d, kg)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
             {{ outflow_approx_30_kg|default_if_none:0|floatformat:2|intcomma }}
           </p>
         </div>
         <div class="rounded-xl bg-rose-50 p-3 text-rose-600 ring-1 ring-rose-100 dark:bg-rose-900/30 dark:text-rose-300 dark:ring-rose-900/40">
-          <!-- Trending down -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M21 7l-6 6-4-4-7 7M10 19H3v-7"/>
-          </svg>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 7l-6 6-4-4-7 7M10 19H3v-7"/></svg>
         </div>
       </div>
-    </div>
+    </article>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between">
+    <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex items-start justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Revenue (30d, UGX)</p>
-          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <p class="text-2xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Revenue (30d, UGX)</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
             {{ movement.revenue_30d|default_if_none:0|floatformat:2|intcomma }}
           </p>
         </div>
         <div class="rounded-xl bg-teal-50 p-3 text-teal-600 ring-1 ring-teal-100 dark:bg-teal-900/30 dark:text-teal-300 dark:ring-teal-900/40">
-          <!-- Receipt -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M7 7h10M7 11h10M7 15h6M6 3h12a1 1 0 0 1 1 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 0 1 1-1z"/>
-          </svg>
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h10M7 11h10M7 15h6M6 3h12a1 1 0 011 1v16l-3-2-3 2-3-2-3 2-3-2-3 2V4a1 1 0 011-1z"/></svg>
         </div>
       </div>
-    </div>
-  </div>
+    </article>
+  </section>
 
-  <!-- Breakdowns -->
-  <div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+  <!-- ===== Breakdowns ===== -->
+  <section class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+    <!-- === Inventory by Coffee Type === -->
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
       <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <h2 class="font-semibold text-slate-900 dark:text-slate-100">Inventory by Coffee Type</h2>
         <span class="text-xs text-slate-500 dark:text-slate-400">kg &amp; lots</span>
       </div>
+
       <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
+          <caption class="sr-only">Breakdown of inventory by coffee type: received kg, available kg, and lots.</caption>
           <thead class="bg-slate-50 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
             <tr>
-              <th class="px-4 py-2 text-left">Type</th>
-              <th class="px-4 py-2 text-right">Received (kg)</th>
-              <th class="px-4 py-2 text-right">Available (kg)</th>
-              <th class="px-4 py-2 text-right">Lots</th>
+              <th scope="col" class="px-4 py-2 text-left font-semibold">Type</th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">Received (kg)</th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">Available (kg)</th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">Lots</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
             {% if inv_by_type %}
               {% for row in inv_by_type %}
-              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-900/30">
-                <td class="px-4 py-2 text-slate-900 dark:text-slate-100">
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors">
+                <th scope="row" class="px-4 py-2 text-slate-900 dark:text-slate-100 font-medium">
                   {% if row.coffee_type == 'AR' %}Arabica
                   {% elif row.coffee_type == 'RB' %}Robusta
                   {% else %}{{ row.coffee_type|default:"—" }}{% endif %}
+                </th>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">
+                  {{ row.received_kg|default_if_none:0|floatformat:2|intcomma }}
                 </td>
-                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.received_kg|default_if_none:0|floatformat:2|intcomma }}</td>
-                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.available_kg|default_if_none:0|floatformat:2|intcomma }}</td>
-                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.lots|intcomma }}</td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">
+                  {{ row.available_kg|default_if_none:0|floatformat:2|intcomma }}
+                </td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">
+                  {{ row.lots|default:0|intcomma }}
+                </td>
               </tr>
               {% endfor %}
             {% else %}
-              <tr><td colspan="4" class="px-4 py-3 text-center text-slate-500 dark:text-slate-400">No inventory found.</td></tr>
+              <tr>
+                <td colspan="4" class="px-4 py-6 text-center text-slate-500 dark:text-slate-400">No inventory found.</td>
+              </tr>
             {% endif %}
           </tbody>
         </table>
       </div>
     </div>
 
+    <!-- === Inventory by Category === -->
     <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
       <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <h2 class="font-semibold text-slate-900 dark:text-slate-100">Inventory by Category</h2>
         <span class="text-xs text-slate-500 dark:text-slate-400">kg &amp; lots</span>
       </div>
+
       <div class="overflow-x-auto">
         <table class="min-w-full text-sm">
+          <caption class="sr-only">Breakdown of inventory by category: received kg, available kg, and lots.</caption>
           <thead class="bg-slate-50 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
             <tr>
-              <th class="px-4 py-2 text-left">Category</th>
-              <th class="px-4 py-2 text-right">Received (kg)</th>
-              <th class="px-4 py-2 text-right">Available (kg)</th>
-              <th class="px-4 py-2 text-right">Lots</th>
+              <th scope="col" class="px-4 py-2 text-left font-semibold">Category</th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">Received (kg)</th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">Available (kg)</th>
+              <th scope="col" class="px-4 py-2 text-right font-semibold">Lots</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
             {% if inv_by_category %}
               {% for row in inv_by_category %}
-              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-900/30">
-                <td class="px-4 py-2 text-slate-900 dark:text-slate-100">
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors">
+                <th scope="row" class="px-4 py-2 text-slate-900 dark:text-slate-100 font-medium">
                   {% if row.coffee_category == 'GR' %}Green Coffee
                   {% elif row.coffee_category == 'PA' %}Parchment Coffee
                   {% elif row.coffee_category == 'KB' %}Kiboko Coffee
                   {% else %}{{ row.coffee_category|default:"—" }}{% endif %}
+                </th>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">
+                  {{ row.received_kg|default_if_none:0|floatformat:2|intcomma }}
                 </td>
-                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.received_kg|default_if_none:0|floatformat:2|intcomma }}</td>
-                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.available_kg|default_if_none:0|floatformat:2|intcomma }}</td>
-                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ row.lots|intcomma }}</td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">
+                  {{ row.available_kg|default_if_none:0|floatformat:2|intcomma }}
+                </td>
+                <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">
+                  {{ row.lots|default:0|intcomma }}
+                </td>
               </tr>
               {% endfor %}
             {% else %}
-              <tr><td colspan="4" class="px-4 py-3 text-center text-slate-500 dark:text-slate-400">No inventory found.</td></tr>
+              <tr>
+                <td colspan="4" class="px-4 py-6 text-center text-slate-500 dark:text-slate-400">No inventory found.</td>
+              </tr>
             {% endif %}
           </tbody>
         </table>
       </div>
     </div>
-  </div>
-  <!-- Purchasing windows & suppliers -->
-  <div class="mb-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+
+  </section>
+
+  <!-- ===== Purchasing windows & suppliers ===== -->
+  <section class="mb-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Accepted 7d -->
+    <article class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <header class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <h3 class="font-semibold text-slate-900 dark:text-slate-100">Accepted Purchases (7d)</h3>
-        <span class="text-xs text-slate-500 dark:text-slate-400">Recent</span>
-      </div>
+        <span class="text-2xs text-slate-500 dark:text-slate-400">Recent</span>
+      </header>
       <div class="grid grid-cols-2 gap-2 p-4 text-sm">
         <div class="text-slate-500 dark:text-slate-400">Purchases</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_7.purchases|default:0|intcomma }}</div>
         <div class="text-slate-500 dark:text-slate-400">Total kg</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_7.total_kg|default_if_none:0|floatformat:2|intcomma }}</div>
       </div>
-    </div>
+    </article>
 
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+    <!-- Accepted 30d -->
+    <article class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <header class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <h3 class="font-semibold text-slate-900 dark:text-slate-100">Accepted Purchases (30d)</h3>
-        <span class="text-xs text-slate-500 dark:text-slate-400">Month</span>
-      </div>
+        <span class="text-2xs text-slate-500 dark:text-slate-400">Month</span>
+      </header>
       <div class="grid grid-cols-2 gap-2 p-4 text-sm">
         <div class="text-slate-500 dark:text-slate-400">Purchases</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_30.purchases|default:0|intcomma }}</div>
         <div class="text-slate-500 dark:text-slate-400">Total kg</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_30.total_kg|default_if_none:0|floatformat:2|intcomma }}</div>
       </div>
-    </div>
+    </article>
 
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+    <!-- Accepted 365d -->
+    <article class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <header class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <h3 class="font-semibold text-slate-900 dark:text-slate-100">Accepted Purchases (365d)</h3>
-        <span class="text-xs text-slate-500 dark:text-slate-400">Year</span>
-      </div>
+        <span class="text-2xs text-slate-500 dark:text-slate-400">Year</span>
+      </header>
       <div class="grid grid-cols-2 gap-2 p-4 text-sm">
         <div class="text-slate-500 dark:text-slate-400">Purchases</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_365.purchases|default:0|intcomma }}</div>
         <div class="text-slate-500 dark:text-slate-400">Total kg</div><div class="text-right font-medium text-slate-900 dark:text-slate-100">{{ accepted_last_365.total_kg|default_if_none:0|floatformat:2|intcomma }}</div>
       </div>
-    </div>
-  </div>
+    </article>
+  </section>
 
-  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+  <!-- ===== Top Suppliers (90d) ===== -->
+  <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
     <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
       <h2 class="font-semibold text-slate-900 dark:text-slate-100">Top Suppliers (last 90 days)</h2>
-      <span class="text-xs text-slate-500 dark:text-slate-400">by kg</span>
+      <span class="text-2xs text-slate-500 dark:text-slate-400">by kg</span>
     </div>
     <div class="overflow-x-auto">
       <table class="min-w-full text-sm">
+        <caption class="sr-only">Top suppliers by kilograms delivered in the last 90 days.</caption>
         <thead class="bg-slate-50 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
           <tr>
-            <th class="px-4 py-2 text-left">Supplier</th>
-            <th class="px-4 py-2 text-right">Total kg</th>
+            <th class="px-4 py-2 text-left font-semibold">Supplier</th>
+            <th class="px-4 py-2 text-right font-semibold">Total kg</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
           {% if top_suppliers_90 %}
             {% for s in top_suppliers_90 %}
-            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-900/30">
-              <td class="px-4 py-2 text-slate-900 dark:text-slate-100">{{ s.supplier__name|default:"—" }}</td>
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors">
+              <th scope="row" class="px-4 py-2 text-slate-900 dark:text-slate-100 font-medium">{{ s.supplier__name|default:"—" }}</th>
               <td class="px-4 py-2 text-right text-slate-700 dark:text-slate-200">{{ s.total_kg|default_if_none:0|floatformat:2|intcomma }}</td>
             </tr>
             {% endfor %}
           {% else %}
-            <tr><td colspan="2" class="px-4 py-3 text-center text-slate-500 dark:text-slate-400">No suppliers found.</td></tr>
+            <tr><td colspan="2" class="px-4 py-6 text-center text-slate-500 dark:text-slate-400">No suppliers found.</td></tr>
           {% endif %}
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
 
 </div>
 
-<!-- Theme script: stores preference and toggles 'dark' on <html> -->
+<!-- Theme script: store preference & toggle 'dark' on <html> -->
 <script>
-  (function initTheme() {
+  (function () {
+    const html = document.documentElement;
     const stored = localStorage.getItem('theme');
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const html = document.documentElement;
-
-    if (stored === 'dark' || (!stored && prefersDark)) {
-      html.classList.add('dark');
-    } else {
-      html.classList.remove('dark');
-    }
-
+    if (stored === 'dark' || (!stored && prefersDark)) html.classList.add('dark');
     const btn = document.getElementById('themeToggle');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
+    if (btn) btn.addEventListener('click', () => {
       html.classList.toggle('dark');
-      const isDark = html.classList.contains('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
     });
   })();
 </script>
