@@ -47,7 +47,7 @@
                 </div>
                 <div class="ml-4">
                   <div class="text-sm font-medium text-gray-900 dark:text-white">
-                    <a href="/suppliers/{{ purchase.supplier.id }}/"
+                    <a href="{% url 'store:supplier_detail' purchase.supplier.id %}"
                        class="hover:text-green-600 dark:hover:text-green-400 hover:underline">
                       {{ purchase.supplier.name }}
                     </a>
@@ -129,7 +129,7 @@
                 <i class="fas fa-coffee text-4xl mb-3"></i>
                 <p class="text-sm font-medium mb-4">No purchases found</p>
                 <div class="flex space-x-4">
-                  <a href="{% url 'supplier_list' %}" class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-sm font-medium inline-flex items-center">
+                  <a href="{% url 'store:supplier_list' %}" class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-sm font-medium inline-flex items-center">
                     <i class="fas fa-truck mr-1"></i> Add suppliers
                   </a>
                   <button onclick="showPurchaseForm()" class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 text-sm font-medium inline-flex items-center">
@@ -145,17 +145,18 @@
     </div>
   </div>
 
-  {% if is_paginated %}
+  <!-- Pagination (uses 'purchases' as the page object) -->
+  {% if purchases.paginator.num_pages > 1 %}
   <div class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
     <div class="text-sm text-gray-500 dark:text-gray-400">
-      Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      Showing page {{ purchases.number }} of {{ purchases.paginator.num_pages }}
     </div>
     <div class="flex space-x-2">
-      {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
+      {% if purchases.has_previous %}
+      <a href="?page={{ purchases.previous_page_number }}" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
       {% endif %}
-      {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
+      {% if purchases.has_next %}
+      <a href="?page={{ purchases.next_page_number }}" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
       {% endif %}
     </div>
   </div>
@@ -217,13 +218,6 @@
                   {{ form.bags }}
                 </div>
 
-                {# Only include if your form actually has this field. Otherwise remove. #}
-                {% if form.reference_price %}
-                <div>
-                  <label for="id_reference_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price/kg (UGX)</label>
-                  {{ form.reference_price }}
-                </div>
-                {% endif %}
                 <div>
                   <label for="id_purchase_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Purchase Date</label>
                   {{ form.purchase_date }}
@@ -231,13 +225,6 @@
                 <div>
                   <label for="id_delivery_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Delivery Date</label>
                   {{ form.delivery_date }}
-                </div>
-
-                <div class="flex items-center col-span-2">
-                  {{ form.assessment_needed }}
-                  <label for="id_assessment_needed" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                    Quality Assessment Needed
-                  </label>
                 </div>
 
                 <div class="col-span-2">

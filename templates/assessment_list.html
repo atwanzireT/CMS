@@ -21,7 +21,7 @@
 
       <div class="flex items-center gap-2">
         {% if unassessed_purchases %}
-        <a href="{% url 'assessment_list' %}#unassessed"
+        <a href="{% url 'assessment:assessment_list' %}#unassessed"
            class="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-medium shadow-md">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           New Assessment
@@ -162,7 +162,7 @@
           </div>
         </div>
 
-        <a href="{% url 'assessment_create' purchase.id %}"
+        <a href="{% url 'assessment:assessment_create' purchase.id %}"
            class="block text-center px-3 py-2 rounded-lg text-xs bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-sm">
           Assess
         </a>

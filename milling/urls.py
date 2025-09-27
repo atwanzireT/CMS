@@ -9,6 +9,7 @@ urlpatterns = [
     path('customers/<int:pk>/', customer_detail, name='customer_detail'),
     
     # Milling Process URLs
+    path('milling-dashboard/', milling_dashboard, name='milling_dashboard'),
     path('milling/', milling_list, name='milling_list'),
     path('milling/<int:pk>/', milling_detail, name='milling_detail'),
     path("<int:pk>/payments/create/", create_milling_payment, name="create_milling_payment"),

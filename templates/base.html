@@ -57,6 +57,37 @@
     .navlink.is-active{background:linear-gradient(90deg,rgba(20,184,166,.18),rgba(20,184,166,0));color:#0f766e}
     .dark .navlink.is-active{color:#5eead4}
     .coffee-pattern{background-image:radial-gradient(circle at 20% 15%,rgba(20,184,166,.10)0%,transparent 35%),radial-gradient(circle at 85% 80%,rgba(245,158,11,.10)0%,transparent 40%)}
+
+    /* Visible Select2 control */
+    .tw-s2-container .select2-selection--single {
+      @apply !min-h-[40px] !border !border-gray-300 !rounded-lg !bg-white !text-gray-900
+            dark:!bg-gray-900 dark:!text-gray-100 dark:!border-gray-700;
+    }
+    .tw-s2-container .select2-selection__rendered { @apply !px-3 !leading-10; }
+    .tw-s2-container .select2-selection__arrow { @apply !h-10 !right-2; }
+
+    /* Focus */
+    .tw-s2-container .select2-selection--single:focus,
+    .tw-s2-container .select2-selection--single:has(:focus) {
+      @apply !ring-2 !ring-emerald-500 !border-emerald-500;
+    }
+
+    /* Dropdown */
+    .tw-s2-dropdown {
+      @apply !border !border-gray-200 !rounded-lg !shadow-lg !bg-white;
+    }
+    .dark .tw-s2-dropdown { @apply !border-gray-800 !bg-gray-900; }
+
+    .tw-s2-dropdown .select2-results__option {
+      @apply !px-3 !py-2 !text-sm !text-gray-900 dark:!text-gray-100;
+    }
+    .tw-s2-dropdown .select2-results__option--highlighted {
+      @apply !bg-emerald-600 !text-white;
+    }
+    .tw-s2-dropdown .select2-search__field {
+      @apply !px-3 !py-2 !rounded-md !border !border-gray-300 !w-full !bg-white !text-gray-900
+            dark:!bg-gray-900 dark:!text-gray-100 dark:!border-gray-700;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -81,7 +112,7 @@
   <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 lg:hidden" @click="sidebarOpen=false"></div>
 
   <!-- Main -->
-  <main class="pt-16 lg:pl-72 min-h-screen">
+  <main class="pt-16 mt-5 lg:pl-72 min-h-screen">
     <!-- Messages -->
     {% if messages %}
     <div class="p-4 sm:p-6">

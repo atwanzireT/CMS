@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Finance Inbox</h1>
+      <p class="mt-1 text-gray-600 dark:text-gray-400">
+        Review and record Finance decisions for pending expense requests.
+      </p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+      <span class="font-medium">{{ page_obj.paginator.count|default:0 }}</span> pending
+    </div>
+  </div>
+
+  <!-- Flash messages -->
+  {% if messages %}
+    <div class="mb-5 space-y-3">
+      {% for message in messages %}
+        <div class="rounded-lg px-4 py-3 text-sm flex items-start
+                    {% if 'success' in message.tags %} bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-200 border border-green-200 dark:border-green-800/50
+                    {% elif 'error' in message.tags %} bg-rose-50 text-rose-800 dark:bg-rose-900/30 dark:text-rose-200 border border-rose-200 dark:border-rose-800/50
+                    {% else %} bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 {% endif %}">
+          <svg class="h-5 w-5 mr-2 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            {% if 'success' in message.tags %}
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            {% elif 'error' in message.tags %}
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            {% else %}
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            {% endif %}
+          </svg>
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Empty state -->
+  {% if not page_obj.object_list %}
+    <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No pending requests</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">All caught up! Newly submitted expenses will appear here.</p>
+    </div>
+  {% else %}
+
+    <!-- List -->
+    <div class="space-y-5">
+      {% for e in page_obj %}
+        <article class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow-sm transition-all hover:border-indigo-300 dark:hover:border-indigo-500">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0 flex-1">
+              <!-- Top row -->
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {{ e.reference }}
+                  </h2>
+                  <span class="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2.5 py-0.5 text-xs font-medium">
+                    {{ e.get_expense_type_display }}
+                  </span>
+                </div>
+                <div class="text-right">
+                  <div class="text-sm text-gray-600 dark:text-gray-300">Requested</div>
+                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ e.created_at|date:"M j, Y" }}</div>
+                </div>
+              </div>
+
+              <!-- Key facts -->
+              <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2">
+                  <div class="text-gray-600 dark:text-gray-400">Amount</div>
+                  <div class="font-semibold text-gray-900 dark:text-gray-100">UGX {{ e.amount|floatformat:0|intcomma }}</div>
+                </div>
+                <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2">
+                  <div class="text-gray-600 dark:text-gray-400">Requester</div>
+                  <div class="font-medium text-gray-900 dark:text-gray-100">{{ e.requested_by.get_full_name|default:e.requested_by.username }}</div>
+                </div>
+                <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2">
+                  <div class="text-gray-600 dark:text-gray-400">Priority</div>
+                  <div class="font-medium text-gray-900 dark:text-gray-100">{{ e.get_priority_display|default:"Normal" }}</div>
+                </div>
+              </div>
+
+              <!-- Reason -->
+              <div class="mt-3">
+                <div class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Business Reason</div>
+                <p class="text-sm text-gray-800 dark:text-gray-200">
+                  {{ e.business_reason|default:"—" }}
+                </p>
+              </div>
+
+              <!-- Status chips -->
+              <div class="mt-4 flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
+                             {% if e.finance_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                             {% elif e.finance_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                             {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
+                  Finance: {{ e.get_finance_status_display }}
+                </span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
+                             {% if e.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                             {% elif e.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                             {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
+                  Admin: {{ e.get_admin_status_display }}
+                </span>
+                {% if e.payment_method %}
+                  <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2.5 py-1 text-xs font-medium">
+                    Method: {{ e.get_payment_method_display }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Decision form -->
+          <div class="mt-5 border-t border-gray-200 dark:border-gray-800 pt-4">
+            <form method="post" action="{% url 'expenses:finance_decide' e.pk %}" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'expenses:finance_inbox' %}">
+
+              <!-- Note -->
+              <div class="lg:col-span-9">
+                <label for="note-{{ e.pk }}" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Decision Note (optional)</label>
+                <div class="mt-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500">
+                  <textarea id="note-{{ e.pk }}" name="note" rows="2"
+                            class="block w-full rounded-lg bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none resize-y"></textarea>
+                </div>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Add context for your decision (visible in the approval log).</p>
+              </div>
+
+              <!-- Actions -->
+              <div class="lg:col-span-3">
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="submit" name="status" value="REJECTED"
+                          class="inline-flex items-center justify-center rounded-lg border border-rose-300 dark:border-rose-700 bg-rose-600/90 hover:bg-rose-600 text-white px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500"
+                          onclick="return confirm('Reject this request?');">
+                    Reject
+                  </button>
+                  <button type="submit" name="status" value="APPROVED"
+                          class="inline-flex items-center justify-center rounded-lg border border-emerald-300 dark:border-emerald-700 bg-emerald-600/90 hover:bg-emerald-600 text-white px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                    Approve
+                  </button>
+                </div>
+                <a href="{% url 'expenses:expense_detail' e.pk %}"
+                   class="mt-2 inline-flex w-full items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  View details
+                </a>
+              </div>
+            </form>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-6 flex items-center justify-between text-sm">
+      <div class="text-gray-600 dark:text-gray-400">
+        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+      </div>
+      <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}"
+             class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
+            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            Previous
+          </a>
+        {% else %}
+          <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500 flex items-center gap-1 cursor-not-allowed">
+            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            Previous
+          </span>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}"
+             class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
+            Next
+            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </a>
+        {% else %}
+          <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500 flex items-center gap-1 cursor-not-allowed">
+            Next
+            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </span>
+        {% endif %}
+      </div>
+    </div>
+
+  {% endif %}
+</div>
+{% endblock %}

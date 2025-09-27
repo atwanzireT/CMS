@@ -74,7 +74,7 @@
             {% csrf_token %}
 
             <!-- Expense Type -->
-            <div class="space-y-2">
+            <div class="space-y-1.5">
               <label for="{{ form.expense_type.id_for_label }}"
                      class="block text-sm font-medium text-gray-800 dark:text-gray-200">
                 {{ form.expense_type.label }}{% if form.expense_type.field.required %} <span class="text-rose-500">*</span>{% endif %}
@@ -82,6 +82,7 @@
               <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
                 {{ form.expense_type }}
               </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Choose the category that best fits this request.</p>
               {% if form.expense_type.errors %}
                 <p class="text-sm text-rose-600 flex items-center mt-1">
                   <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -93,18 +94,15 @@
             </div>
 
             <!-- Amount -->
-            <div class="space-y-2">
+            <div class="space-y-1.5">
               <label for="{{ form.amount.id_for_label }}"
                      class="block text-sm font-medium text-gray-800 dark:text-gray-200">
                 {{ form.amount.label }}{% if form.amount.field.required %} <span class="text-rose-500">*</span>{% endif %}
               </label>
               <div class="relative rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span class="text-gray-500 dark:text-gray-400">UGX</span>
-                </div>
                 {{ form.amount }}
               </div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum: 2,000</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Enter the amount in Uganda Shillings (minimum 2,000).</p>
               {% if form.amount.errors %}
                 <p class="text-sm text-rose-600 flex items-center mt-1">
                   <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -116,7 +114,7 @@
             </div>
 
             <!-- Phone -->
-            <div class="space-y-2">
+            <div class="space-y-1.5">
               <label for="{{ form.phone_msisdn.id_for_label }}"
                      class="block text-sm font-medium text-gray-800 dark:text-gray-200">
                 {{ form.phone_msisdn.label }}{% if form.phone_msisdn.field.required %} <span class="text-rose-500">*</span>{% endif %}
@@ -124,8 +122,8 @@
               <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
                 {{ form.phone_msisdn }}
               </div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Mobile money number (e.g., 0700xxxxxx or +2567…)
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Enter a mobile money number (local 07…/08…/09… or +256…).
               </p>
               {% if form.phone_msisdn.errors %}
                 <p class="text-sm text-rose-600 flex items-center mt-1">
@@ -137,33 +135,20 @@
               {% endif %}
             </div>
 
-            <!-- Description -->
-            <div class="space-y-2">
-              <label for="{{ form.description.id_for_label }}"
-                     class="block text-sm font-medium text-gray-800 dark:text-gray-200">
-                {{ form.description.label }}{% if form.description.field.required %} <span class="text-rose-500">*</span>{% endif %}
-              </label>
-              <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
-                {{ form.description }}
-              </div>
-              {% if form.description.errors %}
-                <p class="text-sm text-rose-600 flex items-center mt-1">
-                  <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                  </svg>
-                  {{ form.description.errors.0 }}
-                </p>
-              {% endif %}
-            </div>
-
             <!-- Business Reason -->
-            <div class="space-y-2">
+            <div class="space-y-1.5">
               <label for="{{ form.business_reason.id_for_label }}"
                      class="block text-sm font-medium text-gray-800 dark:text-gray-200">
                 {{ form.business_reason.label }}{% if form.business_reason.field.required %} <span class="text-rose-500">*</span>{% endif %}
               </label>
               <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
                 {{ form.business_reason }}
+              </div>
+              <div class="flex items-center justify-between">
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  Be specific: purpose, location, people involved, time frame, expected outcome.
+                </p>
+                <p id="reasonCount" class="text-xs text-gray-400"></p>
               </div>
               {% if form.business_reason.errors %}
                 <p class="text-sm text-rose-600 flex items-center mt-1">
@@ -173,6 +158,28 @@
                   {{ form.business_reason.errors.0 }}
                 </p>
               {% endif %}
+            </div>
+
+            <!-- Priority & Payment Method (side-by-side on sm+) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label for="{{ form.priority.id_for_label }}"
+                       class="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                  {{ form.priority.label }}
+                </label>
+                <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
+                  {{ form.priority }}
+                </div>
+              </div>
+              <div class="space-y-1.5">
+                <label for="{{ form.payment_method.id_for_label }}"
+                       class="block text-sm font-medium text-gray-800 dark:text-gray-200">
+                  {{ form.payment_method.label }}
+                </label>
+                <div class="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all">
+                  {{ form.payment_method }}
+                </div>
+              </div>
             </div>
 
             <button type="submit"
@@ -200,18 +207,19 @@
             </div>
           </div>
 
-          <!-- Search -->
+          <!-- Search (no placeholder; uses hidden label) -->
           <form method="get" class="w-full sm:w-auto">
+            <label for="q" class="sr-only">Search expenses</label>
             <div class="relative">
               <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
                 </svg>
               </div>
-              <input type="text" name="q" value="{{ request.GET.q|default_if_none:'' }}"
-                     placeholder="Search reference, description, type…"
+              <input id="q" type="text" name="q" value="{{ request.GET.q|default_if_none:'' }}"
                      class="block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 py-2.5 pl-10 pr-3 text-sm
-                            text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                     aria-label="Search by reference, type, or reason">
               {% if request.GET.q %}
                 <a href="?" class="absolute inset-y-0 right-2 inline-flex items-center px-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Clear</a>
               {% endif %}
@@ -297,9 +305,10 @@
                           </span>
                         {% endwith %}
                       </div>
-                      
+
+                      <!-- Use business_reason instead of removed description -->
                       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                        {{ e.description|default:"—" }}
+                        {{ e.business_reason|default:"—" }}
                       </p>
 
                       <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
@@ -409,9 +418,10 @@
   </div>
 </div>
 
-<!-- Theme toggle script -->
+<!-- Theme toggle + business reason counter -->
 <script>
   (function () {
+    // Theme
     const key = 'theme';
     const root = document.documentElement;
     const saved = localStorage.getItem(key);
@@ -423,6 +433,15 @@
       const isDark = root.classList.toggle('dark');
       localStorage.setItem(key, isDark ? 'dark' : 'light');
     });
+
+    // Light character counter for business reason
+    const textarea = document.getElementById('{{ form.business_reason.id_for_label }}');
+    const counter = document.getElementById('reasonCount');
+    if (textarea && counter) {
+      const update = () => counter.textContent = (textarea.value || '').length + ' chars';
+      textarea.addEventListener('input', update);
+      update();
+    }
   })();
 </script>
 {% endblock %}

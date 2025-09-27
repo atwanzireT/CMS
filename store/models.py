@@ -1,3 +1,5 @@
+# store/models.py
+
 import re
 import uuid
 from decimal import Decimal

@@ -1,172 +1,212 @@
+# forms.py
 from django import forms
 from django_select2 import forms as s2forms
-from .models import (
-    Customer, MillingProcess, CustomerAccount, MillingTransaction
-)
-from assessment.models import Assessment
-from django.core.exceptions import ValidationError
+from .models import Customer, MillingProcess, CustomerAccount
+# from assessment.models import Assessment  # (keep if you need it)
 
-# ========== CUSTOM WIDGETS ==========
+# ──────────────────────────────────────────────────────────────────────────────
+# Helpers
+# ──────────────────────────────────────────────────────────────────────────────
+def _merge_class(widget, extra):
+    base = widget.attrs.get("class", "").strip()
+    widget.attrs["class"] = (base + " " + extra).strip()
+
+def _set(widget, **attrs):
+    for k, v in attrs.items():
+        widget.attrs[k] = v
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Select2 widgets (styled for light/dark)
+# ──────────────────────────────────────────────────────────────────────────────
 class BaseSelect2Widget(s2forms.ModelSelect2Widget):
-    """Base Select2 widget with consistent styling"""
+    """Select2 with Tailwind-friendly classes and dark-mode support."""
+    search_fields: list[str] = []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.attrs.update({
-            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out bg-white shadow-sm hover:shadow-md',
-            'data-placeholder': self.get_placeholder(),
-            'data-allow-clear': 'true'
-        })
+        _set(
+            self,
+            **{
+                # Select2 picks width from style unless configured.
+                "style": "width:100%;",
+                "data-placeholder": self.get_placeholder(),
+                "data-allow-clear": "true",
+                "data-width": "style",
+            }
+        )
+        # Base input look – rely on Select2’s generated container; this still
+        # improves the underlying <select> so SSR looks fine before JS loads.
+        _merge_class(
+            self,
+            "w-full px-3 py-2 rounded-lg border transition "
+            "bg-white text-slate-900 border-slate-300 "
+            "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 "
+            "dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 "
+            "dark:focus:ring-primary-400 dark:focus:border-primary-400"
+        )
 
     def get_placeholder(self):
         return "Search or select..."
 
 class CustomerWidget(BaseSelect2Widget):
     search_fields = ["name__icontains", "phone__icontains", "id__icontains"]
-    def get_placeholder(self):
-        return "Search customer by name, phone or ID..."
+    def get_placeholder(self): return "Search customer by name, phone, or ID…"
 
 class SupplierWidget(BaseSelect2Widget):
     search_fields = ["name__icontains", "phone__icontains", "id__icontains"]
-    def get_placeholder(self):
-        return "Search supplier by name, phone or ID..."
+    def get_placeholder(self): return "Search supplier by name, phone, or ID…"
 
 class CustomerAccountWidget(BaseSelect2Widget):
     search_fields = ["customer__name__icontains", "customer__phone__icontains"]
-    def get_placeholder(self):
-        return "Search by customer name or phone..."
+    def get_placeholder(self): return "Search by customer name or phone…"
 
 class MillingProcessWidget(BaseSelect2Widget):
     search_fields = ["customer__name__icontains", "id__icontains"]
-    def get_placeholder(self):
-        return "Search milling process by customer or ID..."
+    def get_placeholder(self): return "Search milling process…"
 
 class CoffeeInventoryWidget(BaseSelect2Widget):
     search_fields = ["coffee_type__icontains", "coffee_category__icontains"]
-    def get_placeholder(self):
-        return "Search inventory by coffee type or category..."
+    def get_placeholder(self): return "Search inventory by type or category…"
 
-# ========== FORM MIXINS ==========
+# ──────────────────────────────────────────────────────────────────────────────
+# Tailwind form mixin (dark/light aware)
+# ──────────────────────────────────────────────────────────────────────────────
 class EnhancedTailwindFormMixin:
-    """Enhanced form mixin with modern Tailwind CSS styling"""
-    
+    """
+    Adds consistent Tailwind styling (light + dark) to all widgets,
+    with accessible error states and better focus/hovers.
+    """
+
+    base_input = (
+        "w-full px-3 py-2 rounded-lg border transition "
+        "bg-white text-slate-900 placeholder-slate-400 border-slate-300 "
+        "hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 "
+        "disabled:opacity-60 disabled:cursor-not-allowed "
+        "dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 dark:border-slate-700 "
+        "dark:focus:ring-primary-400 dark:focus:border-primary-400"
+    )
+
+    base_file = (
+        "block w-full text-sm text-slate-900 dark:text-slate-100 "
+        "file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 "
+        "file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 "
+        "dark:file:bg-slate-800 dark:file:text-slate-200 dark:hover:file:bg-slate-700 "
+        "border rounded-lg border-slate-300 dark:border-slate-700 "
+        "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 "
+        "dark:focus:ring-primary-400 dark:focus:border-primary-400"
+    )
+
+    base_checkbox = (
+        "h-5 w-5 rounded border-slate-300 text-primary-600 "
+        "focus:ring-2 focus:ring-primary-500 focus:ring-offset-0 "
+        "dark:border-slate-600 dark:bg-slate-900"
+    )
+
+    base_radio = (
+        "text-primary-600 focus:ring-2 focus:ring-primary-500 "
+        "dark:bg-slate-900 dark:border-slate-600"
+    )
+
+    base_select = (
+        "appearance-none pr-10 cursor-pointer "  # space for chevron
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.apply_tailwind_styling()
+        # Optional nicer label suffix
+        if hasattr(self, "label_suffix"):
+            self.label_suffix = ""
+        self._apply_tailwind()
         self.setup_fields()
-    
-    def apply_tailwind_styling(self):
-        """Apply consistent Tailwind CSS styling to all form fields"""
-        for field_name, field in self.fields.items():
-            # Skip Select2 widgets as they have their own styling
-            if isinstance(field.widget, (s2forms.Select2Widget, s2forms.Select2MultipleWidget)):
+
+    def _apply_tailwind(self):
+        for name, field in self.fields.items():
+            widget = field.widget
+
+            # Skip Select2 — already styled above.
+            if isinstance(widget, (s2forms.Select2Widget, s2forms.Select2MultipleWidget, BaseSelect2Widget)):
                 continue
-            
-            # Base classes for all inputs
-            base_classes = (
-                'w-full px-4 py-3 border rounded-lg transition-all duration-200 ease-in-out '
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 '
-                'bg-white shadow-sm hover:shadow-md placeholder-gray-400'
-            )
-            
-            # Error state styling
-            if field_name in self.errors:
-                base_classes += ' border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50'
+
+            # Input field classes
+            if isinstance(widget, forms.FileInput):
+                _merge_class(widget, self.base_file)
+            elif isinstance(widget, forms.CheckboxInput):
+                _merge_class(widget, self.base_checkbox)
+            elif isinstance(widget, forms.RadioSelect):
+                _merge_class(widget, self.base_radio)
             else:
-                base_classes += ' border-gray-300'
-            
-            # Required field styling
-            if field.required:
-                base_classes += ' ring-1 ring-blue-100'
-            
-            # Widget-specific styling
-            if isinstance(field.widget, forms.CheckboxInput):
-                field.widget.attrs.update({
-                    'class': (
-                        'h-5 w-5 text-blue-600 bg-white border-gray-300 rounded '
-                        'focus:ring-blue-500 focus:ring-2 transition-all duration-200 '
-                        'hover:bg-blue-50 cursor-pointer'
+                # Inputs / Textareas / Date/Time / Number / Select
+                classes = self.base_input
+                if isinstance(widget, forms.Select):
+                    classes = f"{classes} {self.base_select}"
+                if isinstance(widget, forms.NumberInput):
+                    _set(widget, inputmode="decimal")
+                    classes = f"{classes} text-right font-mono"
+                if isinstance(widget, (forms.DateInput, forms.DateTimeInput)):
+                    _set(widget, autocomplete="off")
+                    classes = f"{classes} cursor-pointer"
+
+                # Error state (aria + red styles)
+                if name in self.errors:
+                    classes += (
+                        " border-rose-500 focus:ring-rose-500 focus:border-rose-500 "
+                        "dark:border-rose-500 dark:focus:ring-rose-400 dark:focus:border-rose-400"
                     )
-                })
-            elif isinstance(field.widget, forms.RadioSelect):
-                field.widget.attrs.update({
-                    'class': 'text-blue-600 bg-white border-gray-300 focus:ring-blue-500'
-                })
-            elif isinstance(field.widget, forms.Select):
-                field.widget.attrs.update({
-                    'class': f'{base_classes} pr-10 cursor-pointer appearance-none'
-                })
-            elif isinstance(field.widget, forms.Textarea):
-                field.widget.attrs.update({
-                    'class': f'{base_classes} resize-none min-h-[100px]',
-                    'rows': field.widget.attrs.get('rows', 4)
-                })
-            elif isinstance(field.widget, (forms.DateInput, forms.DateTimeInput)):
-                field.widget.attrs.update({
-                    'class': f'{base_classes} cursor-pointer',
-                    'autocomplete': 'off'
-                })
-            elif isinstance(field.widget, forms.NumberInput):
-                field.widget.attrs.update({
-                    'class': f'{base_classes} text-right font-mono',
-                    'autocomplete': 'off'
-                })
-            elif isinstance(field.widget, forms.FileInput):
-                field.widget.attrs.update({
-                    'class': (
-                        'w-full px-4 py-3 border border-gray-300 rounded-lg '
-                        'file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 '
-                        'file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 '
-                        'hover:file:bg-blue-100 file:cursor-pointer cursor-pointer'
-                    )
-                })
-            else:
-                field.widget.attrs.update({
-                    'class': f'{base_classes}',
-                    'autocomplete': 'off'
-                })
-    
+                    _set(widget, **{"aria-invalid": "true"})
+
+                # Required hint (subtle)
+                if field.required:
+                    classes += " ring-1 ring-primary-100 dark:ring-primary-900/30"
+
+                _merge_class(widget, classes)
+
+            # Common accessibility niceties
+            _set(widget, **{"aria-required": "true" if field.required else "false"})
+
     def setup_fields(self):
-        """Setup field-specific attributes and help texts"""
+        """Hook for per-form tweaks (placeholders/help_text)."""
         pass
 
-# ========== MODEL FORMS ==========
+# ──────────────────────────────────────────────────────────────────────────────
+# Model forms
+# ──────────────────────────────────────────────────────────────────────────────
 class CustomerForm(EnhancedTailwindFormMixin, forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ['name', 'phone']
+        fields = ["name", "phone"]
         widgets = {
-            'name': forms.TextInput(attrs={'placeholder': 'Full legal name'}),
-            'phone': forms.TextInput(attrs={'placeholder': '+256XXXXXXXXX'}),
+            "name": forms.TextInput(attrs={"placeholder": "Full legal name"}),
+            "phone": forms.TextInput(attrs={"placeholder": "+256XXXXXXXXX"}),
         }
-    
+
     def setup_fields(self):
-        self.fields['name'].help_text = "Customer's full legal name"
-        self.fields['phone'].help_text = "Unique phone number with country code"
+        self.fields["name"].help_text = "Customer’s full legal name."
+        self.fields["phone"].help_text = "Unique phone number (with country code)."
 
 class MillingProcessForm(EnhancedTailwindFormMixin, forms.ModelForm):
     class Meta:
         model = MillingProcess
-        fields = ['customer', 'hulled_weight', 'milling_rate', 'status', 'notes']
+        fields = ["customer", "hulled_weight", "milling_rate", "status", "notes"]
         widgets = {
-            'customer': CustomerWidget,
-            'hulled_weight': forms.NumberInput(attrs={'step': '1', 'min': '1'}),
-            'milling_rate': forms.NumberInput(attrs={'step': '1', 'min': '0'}),
-            'notes': forms.Textarea(attrs={'rows': 3}),
+            "customer": CustomerWidget,
+            "hulled_weight": forms.NumberInput(attrs={"step": "1", "min": "1", "placeholder": "e.g. 800"}),
+            "milling_rate": forms.NumberInput(attrs={"step": "1", "min": "0", "placeholder": "UGX/kg"}),
+            "notes": forms.Textarea(attrs={"rows": 3, "placeholder": "Optional notes…"}),
         }
-    
+
     def setup_fields(self):
-        self.fields['hulled_weight'].help_text = "Weight after milling (kg)"
-        self.fields['milling_rate'].help_text = "Rate per kg (UGX)"
-        self.fields['notes'].help_text = "Optional process notes"
+        self.fields["hulled_weight"].help_text = "Weight after milling (kg)."
+        self.fields["milling_rate"].help_text = "Rate per kg (UGX)."
+        self.fields["notes"].help_text = "Optional process notes."
 
 class CustomerAccountForm(EnhancedTailwindFormMixin, forms.ModelForm):
     class Meta:
         model = CustomerAccount
-        fields = ['customer', 'balance']
+        fields = ["customer", "balance"]
         widgets = {
-            'customer': CustomerWidget,
-            'balance': forms.NumberInput(attrs={'step': '0.01'}),
+            "customer": CustomerWidget,
+            "balance": forms.NumberInput(attrs={"step": "0.01", "placeholder": "0.00"}),
         }
-    
+
     def setup_fields(self):
-        self.fields['balance'].help_text = "Initial account balance in UGX"
+        self.fields["balance"].help_text = "Initial account balance (UGX)."

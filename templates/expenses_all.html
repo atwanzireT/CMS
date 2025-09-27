@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+  <!-- Header -->
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">All Expenses</h1>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}export=csv"
+         class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+        Export CSV
+      </a>
+      <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+        <span class="font-medium">{{ total }}</span> results
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="mb-5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Left block -->
+      <div class="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <label for="q" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Search</label>
+          <input id="q" type="text" name="q" value="{{ filters.q }}"
+                 class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Reference, type, reason, or requester.</p>
+        </div>
+
+        <div>
+          <label for="category" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Category</label>
+          <select id="category" name="category"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">All</option>
+            {% for v, label in choices.categories %}
+              <option value="{{ v }}" {% if filters.category == v %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="priority" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Priority</label>
+          <select id="priority" name="priority"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">All</option>
+            {% for v, label in choices.priorities %}
+              <option value="{{ v }}" {% if filters.priority == v %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="finance_status" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Finance Status</label>
+          <select id="finance_status" name="finance_status"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">All</option>
+            {% for v, label in choices.approval %}
+              <option value="{{ v }}" {% if filters.finance_status == v %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="admin_status" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Admin Status</label>
+          <select id="admin_status" name="admin_status"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">All</option>
+            {% for v, label in choices.approval %}
+              <option value="{{ v }}" {% if filters.admin_status == v %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="payment_status" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Payment Status</label>
+          <select id="payment_status" name="payment_status"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">All</option>
+            {% for v, label in choices.payment_statuses %}
+              <option value="{{ v }}" {% if filters.payment_status == v %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="payment_method" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Payment Method</label>
+          <select id="payment_method" name="payment_method"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">All</option>
+            {% for v, label in choices.payment_methods %}
+              <option value="{{ v }}" {% if filters.payment_method == v %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="requester" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Requester</label>
+          <select id="requester" name="requester"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">All</option>
+            {% for u in requester_options %}
+              <option value="{{ u.id }}" {% if filters.requester|add:""|stringformat:"s" == u.id|stringformat:"s" %}selected{% endif %}>
+                {{ u.get_full_name|default:u.username }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-800 dark:text-gray-200">Date From</label>
+          <input type="date" name="date_from" value="{{ filters.date_from }}"
+                 class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-800 dark:text-gray-200">Date To</label>
+          <input type="date" name="date_to" value="{{ filters.date_to }}"
+                 class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-800 dark:text-gray-200">Min Amount</label>
+          <input type="number" name="min_amount" value="{{ filters.min_amount }}"
+                 class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-800 dark:text-gray-200">Max Amount</label>
+          <input type="number" name="max_amount" value="{{ filters.max_amount }}"
+                 class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+      </div>
+
+      <!-- Right block -->
+      <div class="lg:col-span-3 grid grid-cols-1 gap-4">
+        <div>
+          <label for="requires_admin" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Requires Admin Approval</label>
+          <select id="requires_admin" name="requires_admin"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">All</option>
+            <option value="true" {% if filters.requires_admin == 'true' %}selected{% endif %}>Yes</option>
+            <option value="false" {% if filters.requires_admin == 'false' %}selected{% endif %}>No</option>
+          </select>
+        </div>
+
+        <div class="flex items-end gap-2">
+          <button type="submit"
+                  class="inline-flex items-center justify-center rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full">
+            Apply Filters
+          </button>
+          <a href="{% url 'expenses:expenses_all' %}"
+             class="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+            Reset
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Table -->
+  {% if page_obj.object_list %}
+    <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+        <thead class="bg-gray-50 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Reference</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Type</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Amount</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Requester</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Priority</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Finance</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Admin</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Payment</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Created</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+          {% for e in page_obj %}
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60">
+              <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{{ e.reference }}</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ e.get_expense_type_display }}</td>
+              <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">UGX {{ e.amount|floatformat:0|intcomma }}</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                {{ e.requested_by.get_full_name|default:e.requested_by.username }}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ e.get_priority_display|default:"Normal" }}</td>
+              <td class="px-4 py-3 text-sm">
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                  {% if e.finance_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                  {% elif e.finance_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                  {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
+                  {{ e.get_finance_status_display }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm">
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                  {% if e.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                  {% elif e.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                  {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
+                  {{ e.get_admin_status_display }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                {{ e.get_payment_status_display }}{% if e.payment_method %} · {{ e.get_payment_method_display }}{% endif %}
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ e.created_at|date:"M j, Y" }}</td>
+              <td class="px-4 py-3 text-sm text-right">
+                <a href="{% url 'expenses:expense_detail' e.pk %}"
+                   class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  View
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-6 flex items-center justify-between text-sm">
+      <div class="text-gray-600 dark:text-gray-400">
+        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+      </div>
+      <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+          <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'page='|cut:'&page=' }}&{% endif %}page={{ page_obj.previous_page_number }}"
+             class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
+            ‹ Previous
+          </a>
+        {% else %}
+          <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500 cursor-not-allowed">
+            ‹ Previous
+          </span>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'page='|cut:'&page=' }}&{% endif %}page={{ page_obj.next_page_number }}"
+             class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
+            Next ›
+          </a>
+        {% else %}
+          <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500 cursor-not-allowed">
+            Next ›
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No expenses found</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

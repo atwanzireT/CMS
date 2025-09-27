@@ -12,7 +12,7 @@
       <p class="mt-2 text-sm text-gray-600 dark:text-green-100/70">Coffee: <span class="font-medium text-gray-800 dark:text-green-50">{{ coffee_purchase }}</span></p>
     </div>
     <div class="flex gap-3">
-      <a href="{% url 'assessment_list' %}" class="inline-flex items-center rounded-lg border border-gray-300 dark:border-green-700/30 bg-transparent px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-green-100/80 hover:bg-gray-50 dark:hover:bg-green-900/20 transition-all duration-200">
+      <a href="{% url 'assessment:assessment_list' %}" class="inline-flex items-center rounded-lg border border-gray-300 dark:border-green-700/30 bg-transparent px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-green-100/80 hover:bg-gray-50 dark:hover:bg-green-900/20 transition-all duration-200">
         <i class="fas fa-arrow-left mr-2"></i> Back to list
       </a>
       <button form="assessmentForm" type="submit" class="inline-flex items-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 shadow-md hover:shadow-lg">
@@ -54,18 +54,6 @@
               </div>
             </div>
             {% if form.ref_price.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.ref_price.errors.0 }}</p>{% endif %}
-          </div>
-
-          <!-- Discretion -->
-          <div class="relative">
-            <label for="{{ form.discretion.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Discretion (UGX)</label>
-            <div class="relative">
-              {{ form.discretion }}
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <span class="text-gray-500 dark:text-green-200/50">UGX</span>
-              </div>
-            </div>
-            {% if form.discretion.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.discretion.errors.0 }}</p>{% endif %}
           </div>
 
           <!-- Moisture -->

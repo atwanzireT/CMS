@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Milling dashboard · GreatPearl Coffee{% endblock %}
+{% block page_title %}Milling dashboard{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center gap-2">
+  <a href="{% url 'milling:milling_list' %}"
+     class="inline-flex items-center px-3 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+    <i class="fa-solid fa-gear mr-2"></i>
+    Milling processes
+  </a>
+  <a href="{% url 'milling:customer_list' %}"
+     class="inline-flex items-center px-3 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+    <i class="fa-solid fa-users mr-2"></i>
+    Customers
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  {# ===== KPI CARDS ===== #}
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Today -->
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Today · {{ today|date:"M j, Y" }}</h3>
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold tracking-wide bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
+          LIVE
+        </span>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Processes</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{{ today_kpis.processes|default:0 }}</p>
+        </div>
+        <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Hulled (kg)</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{{ today_kpis.hulled_kg|default:0|intcomma }}</p>
+        </div>
+        <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Revenue (UGX)</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">UGX {{ today_kpis.revenue|default:0|floatformat:2|intcomma }}</p>
+        </div>
+        <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Avg. yield</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+            {% if today_kpis.avg_yield %}{{ today_kpis.avg_yield|floatformat:1 }}%{% else %}—{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- This month -->
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">This month</h3>
+        <span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold tracking-wide bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-200">
+          SUMMARY
+        </span>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Processes</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{{ month_kpis.processes|default:0 }}</p>
+        </div>
+        <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Hulled (kg)</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{{ month_kpis.hulled_kg|default:0|intcomma }}</p>
+        </div>
+        <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Revenue (UGX)</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">UGX {{ month_kpis.revenue|default:0|floatformat:2|intcomma }}</p>
+        </div>
+        <div class="p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <p class="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Avg. yield</p>
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+            {% if month_kpis.avg_yield %}{{ month_kpis.avg_yield|floatformat:1 }}%{% else %}—{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ===== STATUS & 7-DAY TREND ===== #}
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Status -->
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Status</h3>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+          <span class="inline-flex items-center gap-2 text-sm">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completed
+          </span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ status_counts.C|default:0|intcomma }}</span>
+        </div>
+        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+          <span class="inline-flex items-center gap-2 text-sm">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Pending
+          </span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ status_counts.P|default:0|intcomma }}</span>
+        </div>
+        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+          <span class="inline-flex items-center gap-2 text-sm">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span> Cancelled
+          </span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ status_counts.X|default:0|intcomma }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7-day trend -->
+    <div class="lg:col-span-2 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Last 7 days</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="text-left text-slate-500 dark:text-slate-400">
+            <tr>
+              <th class="py-2 pr-4 font-medium">Date</th>
+              <th class="py-2 pr-4 font-medium">Revenue (UGX)</th>
+              <th class="py-2 font-medium">Hulled (kg)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {% for d in daily_series %}
+            <tr>
+              <td class="py-2 pr-4 text-slate-900 dark:text-slate-100">{{ d.d|date:"M j" }}</td>
+              <td class="py-2 pr-4 text-slate-900 dark:text-slate-100">UGX {{ d.revenue|floatformat:2|intcomma }}</td>
+              <td class="py-2 text-slate-900 dark:text-slate-100">{{ d.hulled_kg|intcomma }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="py-4 text-center text-slate-500 dark:text-slate-400">No data available</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  {# ===== TOP CUSTOMERS / RECENT PROCESSES / RECENT PAYMENTS ===== #}
+  <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <!-- Top customers -->
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Top customers (revenue)</h3>
+      </div>
+      <div class="space-y-2">
+        {% for c in top_customers %}
+        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+          <div class="truncate">
+            <p class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ c.customer__name }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">{{ c.customer__id }}</p>
+          </div>
+          <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">UGX {{ c.revenue|floatformat:2|intcomma }}</p>
+        </div>
+        {% empty %}
+        <p class="text-sm text-slate-500 dark:text-slate-400">No customer data</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Recent processes -->
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Recent processes</h3>
+      </div>
+      <div class="space-y-2">
+        {% for p in recent_processes %}
+        <article class="p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ p.customer.name }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">{{ p.created_at|date:"M j, H:i" }}</p>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded-full font-medium
+              {% if p.status == 'C' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200
+              {% elif p.status == 'P' %} bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200
+              {% else %} bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-200 {% endif %}">
+              {{ p.get_status_display }}
+            </span>
+          </div>
+          <p class="mt-2 text-xs text-slate-600 dark:text-slate-300">
+            Hulled <span class="font-medium">{{ p.hulled_weight|default:0|intcomma }} kg</span> ·
+            Rate <span class="font-medium">UGX {{ p.milling_rate|default_if_none:"0"|floatformat:2|intcomma }}</span> ·
+            Revenue <span class="font-semibold text-emerald-700 dark:text-emerald-300">UGX {{ p.row_revenue|default:0|floatformat:2|intcomma }}</span>
+            {% if p.row_yield %} · Yield <span class="font-medium">{{ p.row_yield|floatformat:1 }}%</span>{% endif %}
+          </p>
+        </article>
+        {% empty %}
+        <p class="text-sm text-slate-500 dark:text-slate-400">No recent processes</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Recent payments -->
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Recent payments</h3>
+      </div>
+      <div class="space-y-2">
+        {% for t in recent_txns %}
+        <article class="p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+          <div class="flex items-center justify-between">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-slate-900 dark:text-white truncate">
+                {{ t.account.customer.name }}
+              </p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ t.created_at|date:"M j, H:i" }} · Ref {{ t.reference|default:"—" }}
+              </p>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded-full font-medium
+              {% if t.transaction_type == 'C' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200
+              {% else %} bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-200 {% endif %}">
+              {{ t.get_transaction_type_display }}
+            </span>
+          </div>
+          <p class="mt-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+            UGX {{ t.amount|floatformat:2|intcomma }}
+          </p>
+        </article>
+        {% empty %}
+        <p class="text-sm text-slate-500 dark:text-slate-400">No recent payments</p>
+        {% endfor %}
+      </div>
+
+      <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 text-sm text-slate-700 dark:text-slate-300">
+        <div class="flex items-center justify-between">
+          <span>Total customers</span>
+          <span class="font-semibold text-slate-900 dark:text-white">{{ totals.customers|default:0|intcomma }}</span>
+        </div>
+        <div class="flex items-center justify-between mt-1">
+          <span>Total balance</span>
+          <span class="font-semibold text-slate-900 dark:text-white">UGX {{ totals.total_balance|default:0|floatformat:2|intcomma }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

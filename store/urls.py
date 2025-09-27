@@ -10,7 +10,7 @@ urlpatterns = [
 
     # Supplier URLs
     path('suppliers/', supplier_list, name='supplier_list'),
-    path('suppliers/<int:pk>/', supplier_detail, name='supplier_detail'),
+    path('suppliers/<str:pk>/', supplier_detail, name='supplier_detail'),
     
     # Coffee Purchase URLs
     path('purchases/', purchase_list, name='purchase_list'),
