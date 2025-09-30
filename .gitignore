@@ -1,2 +1,54 @@
-/.idea
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Migrations
+**/migrations/
+!**/migrations/__init__.py
+**/migrations/*.py
+**/migrations/*.pyc
+
+# Virtual environments
 /venv
+/env
+/.env
+
+# IDEs and editors
+/.idea
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and databases
+*.log
+*.sqlite3
+*.db
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Node
+node_modules/
+
+# Environment variables
+.env
+.env.*
+
+# Coverage
+htmlcov/
+.coverage
+.tox/
+
+# Misc
+*.bak
+*.swp
+*.tmp
