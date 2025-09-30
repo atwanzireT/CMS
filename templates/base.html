@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}GreatPearl Coffee{% endblock %}</title>
+
   {{ form.media.css }}
 
   <!-- Tailwind -->
@@ -44,7 +45,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* Premium scrollbars */
+    [x-cloak]{display:none!important}
     ::-webkit-scrollbar{width:8px;height:8px}
     ::-webkit-scrollbar-thumb{background:linear-gradient(135deg,#14b8a6,#0f766e);border-radius:10px}
     ::-webkit-scrollbar-track{background:rgba(148,163,184,.2)}
@@ -57,38 +58,8 @@
     .navlink.is-active{background:linear-gradient(90deg,rgba(20,184,166,.18),rgba(20,184,166,0));color:#0f766e}
     .dark .navlink.is-active{color:#5eead4}
     .coffee-pattern{background-image:radial-gradient(circle at 20% 15%,rgba(20,184,166,.10)0%,transparent 35%),radial-gradient(circle at 85% 80%,rgba(245,158,11,.10)0%,transparent 40%)}
-
-    /* Visible Select2 control */
-    .tw-s2-container .select2-selection--single {
-      @apply !min-h-[40px] !border !border-gray-300 !rounded-lg !bg-white !text-gray-900
-            dark:!bg-gray-900 dark:!text-gray-100 dark:!border-gray-700;
-    }
-    .tw-s2-container .select2-selection__rendered { @apply !px-3 !leading-10; }
-    .tw-s2-container .select2-selection__arrow { @apply !h-10 !right-2; }
-
-    /* Focus */
-    .tw-s2-container .select2-selection--single:focus,
-    .tw-s2-container .select2-selection--single:has(:focus) {
-      @apply !ring-2 !ring-emerald-500 !border-emerald-500;
-    }
-
-    /* Dropdown */
-    .tw-s2-dropdown {
-      @apply !border !border-gray-200 !rounded-lg !shadow-lg !bg-white;
-    }
-    .dark .tw-s2-dropdown { @apply !border-gray-800 !bg-gray-900; }
-
-    .tw-s2-dropdown .select2-results__option {
-      @apply !px-3 !py-2 !text-sm !text-gray-900 dark:!text-gray-100;
-    }
-    .tw-s2-dropdown .select2-results__option--highlighted {
-      @apply !bg-emerald-600 !text-white;
-    }
-    .tw-s2-dropdown .select2-search__field {
-      @apply !px-3 !py-2 !rounded-md !border !border-gray-300 !w-full !bg-white !text-gray-900
-            dark:!bg-gray-900 dark:!text-gray-100 dark:!border-gray-700;
-    }
   </style>
+
   {% block extra_head %}{% endblock %}
 </head>
 
@@ -98,21 +69,27 @@
     <i :class="theme==='dark' ? 'fa-solid fa-sun text-amber-300' : 'fa-solid fa-moon text-slate-600'"></i>
   </button>
 
-  <!-- Topbar -->
   {% include 'partials/topbar.html' %}
 
-  <!-- Sidebar (desktop) / Drawer (mobile) -->
-  <aside id="sidebar" class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 -translate-x-full lg:translate-x-0 transition-all duration-300 z-40 overflow-y-auto">
+  <!-- Sidebar -->
+  <aside id="sidebar"
+    class="fixed left-0 top-16 h-[calc(100vh-4rem)] transition-all duration-300 z-40 overflow-y-auto bg-transparent"
+    :class="[
+      sidebarCollapsed ? 'lg:w-20' : 'lg:w-72',     // desktop width
+      'w-72',                                       // mobile width
+      sidebarOpen ? 'translate-x-0' : '-translate-x-full', // mobile slide
+      'lg:translate-x-0'                            // desktop shown
+    ]">
     <div class="glass h-full border-r">
       {% include 'partials/sidenavigation.html' %}
     </div>
   </aside>
 
-  <!-- Overlay for mobile sidebar -->
-  <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 lg:hidden" @click="sidebarOpen=false"></div>
+  <!-- Mobile overlay -->
+  <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-black/50 backdrop-blur-xs z-30 lg:hidden" @click="closeSidebar()"></div>
 
   <!-- Main -->
-  <main class="pt-16 mt-5 lg:pl-72 min-h-screen">
+  <main class="pt-16 mt-5 min-h-screen transition-all duration-300" :class="sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'">
     <!-- Messages -->
     {% if messages %}
     <div class="p-4 sm:p-6">
@@ -132,8 +109,8 @@
     {% endif %}
 
     <!-- Header / Breadcrumb + user pill -->
-    <section class="px-4 sm:px-6">
-      <div class="max-w-7xl mx-auto">
+    <section class="px-1 sm:px-2">
+      <div class="max-w-[90%] mx-auto">
         <div class="glass border rounded-2xl p-5 sm:p-6 shadow-soft animate-fade-in">
           <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 justify-between">
             <nav class="flex items-center gap-2 text-sm">
@@ -165,20 +142,20 @@
     </section>
 
     <!-- Page Content -->
-    <section class="px-4 sm:px-6 py-6">
-      <div class="max-w-7xl mx-auto">
+    <section class="px-1 sm:px-2 py-6">
+      <div class="max-w-[90%] mx-auto">
         {% block content %}{% endblock %}
       </div>
     </section>
 
     <footer class="px-4 sm:px-6 pb-8">
-      <div class="max-w-7xl mx-auto text-xs text-slate-500 dark:text-slate-400">© {{ now|date:"Y" }} Great Pearl Coffee Factory · All rights reserved</div>
+      <div class="max-w-[90%] mx-auto text-xs text-slate-500 dark:text-slate-400">© {{ now|date:"Y" }} Great Pearl Coffee Factory · All rights reserved</div>
     </footer>
   </main>
 
   {% block extra_js %}{% endblock %}
 
-  <!-- jQuery (optional for form widgets that need it) -->
+  <!-- jQuery (optional) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   {{ form.media.js }}
 
@@ -186,15 +163,42 @@
     function appShell(){
       return {
         theme: 'light',
-        sidebarOpen: false,
+        sidebarOpen: false,        // mobile drawer
+        sidebarCollapsed: false,   // desktop narrow mode
+
         init(){
-          const stored = localStorage.getItem('theme');
-          this.theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          const storedTheme = localStorage.getItem('theme');
+          this.theme = storedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
           document.documentElement.classList.toggle('dark', this.theme==='dark');
-          // highlight nav
-          try{ document.querySelectorAll('aside nav a').forEach(a=>{ const p = location.pathname.replace(/\/+$/,''); const h=(a.getAttribute('href')||'').replace(/\/+$/,''); if(h && (h===p || p.startsWith(h+'/'))) a.classList.add('is-active'); }); }catch{}
+
+          // Restore collapse state
+          this.sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+          // Highlight active nav
+          try {
+            document.querySelectorAll('aside nav a').forEach(a => {
+              const p = location.pathname.replace(/\/+$/,'');
+              const h = (a.getAttribute('href')||'').replace(/\/+$/,'');
+              if (h && (h===p || p.startsWith(h+'/'))) a.classList.add('is-active');
+            });
+          } catch {}
         },
-        toggleTheme(){ this.theme = this.theme==='dark'?'light':'dark'; localStorage.setItem('theme', this.theme); document.documentElement.classList.toggle('dark', this.theme==='dark'); },
+
+        toggleTheme(){
+          this.theme = this.theme==='dark' ? 'light' : 'dark';
+          localStorage.setItem('theme', this.theme);
+          document.documentElement.classList.toggle('dark', this.theme==='dark');
+        },
+
+        // Sidebar controls
+        openSidebar(){ this.sidebarOpen = true },
+        closeSidebar(){ this.sidebarOpen = false },
+        toggleSidebarMobile(){ this.sidebarOpen = !this.sidebarOpen },
+        toggleSidebarDesktop(){
+          this.sidebarCollapsed = !this.sidebarCollapsed;
+          localStorage.setItem('sidebarCollapsed', String(this.sidebarCollapsed));
+        },
+
         reload(){ location.reload() },
       }
     }

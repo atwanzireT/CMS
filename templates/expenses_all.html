@@ -2,12 +2,15 @@
 {% load humanize %}
 
 {% block content %}
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-  <!-- Header -->
+<div class="mx-auto">
+
+  <!-- Top Nav: Overview / Finance / Admin -->
   <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
     <div>
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">All Expenses</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Overview of every expense across the system.</p>
     </div>
+
     <div class="flex items-center gap-3">
       <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}export=csv"
          class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
@@ -17,6 +20,68 @@
         <span class="font-medium">{{ total }}</span> results
       </div>
     </div>
+  </div>
+
+  <!-- Role-aware Tabs -->
+  <div class="mb-6 overflow-x-auto">
+    <nav class="flex gap-2">
+      {# Overview tab #}
+      <a href="{% url 'expenses:expenses_all' %}"
+         class="whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium border
+                {% if request.resolver_match.url_name == 'expenses_all' %}
+                  bg-indigo-600 text-white border-indigo-600
+                {% else %}
+                  bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800
+                {% endif %}">
+        Overview
+      </a>
+
+      {# Finance tab (finance users + superusers) #}
+      {% if perms.accounts.access_finance or request.user.is_superuser %}
+        <a href="{% url 'expenses:finance_inbox' %}"
+           class="whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium border
+                  bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+          Finance Approvals
+        </a>
+      {% endif %}
+
+      {# Admin tab (superusers only) #}
+      {% if request.user.is_superuser %}
+        <a href="{% url 'expenses:admin_inbox' %}"
+           class="whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium border
+                  bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+          Admin Approvals
+        </a>
+      {% endif %}
+    </nav>
+  </div>
+
+  <!-- Quick filters row -->
+  <div class="mb-6 flex flex-wrap items-center gap-2">
+    <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Quick filters:</span>
+
+    <a href="?finance_status=PENDING"
+       class="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium
+              bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 border border-amber-200 dark:border-amber-800">
+      Finance Pending
+    </a>
+
+    <a href="?admin_status=PENDING"
+       class="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium
+              bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 border border-sky-200 dark:border-sky-800">
+      Admin Pending
+    </a>
+
+    <a href="?payment_status=NOT_PAID"
+       class="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium
+              bg-neutral-100 text-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-700">
+      Not Paid
+    </a>
+
+    <a href="{% url 'expenses:expenses_all' %}"
+       class="ml-auto inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+      Clear filters
+    </a>
   </div>
 
   <!-- Filters -->
@@ -189,22 +254,36 @@
                 {{ e.requested_by.get_full_name|default:e.requested_by.username }}
               </td>
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ e.get_priority_display|default:"Normal" }}</td>
+
               <td class="px-4 py-3 text-sm">
-                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                  {% if e.finance_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
-                  {% elif e.finance_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
-                  {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
+                <a href="{% url 'expenses:finance_inbox' %}"
+                   class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium underline-offset-2 hover:underline
+                    {% if e.finance_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                    {% elif e.finance_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                    {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
                   {{ e.get_finance_status_display }}
-                </span>
+                </a>
               </td>
+
               <td class="px-4 py-3 text-sm">
-                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                  {% if e.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
-                  {% elif e.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
-                  {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
-                  {{ e.get_admin_status_display }}
-                </span>
+                {% if request.user.is_superuser %}
+                  <a href="{% url 'expenses:admin_inbox' %}"
+                     class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium underline-offset-2 hover:underline
+                      {% if e.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                      {% elif e.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                      {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
+                    {{ e.get_admin_status_display }}
+                  </a>
+                {% else %}
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                    {% if e.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                    {% elif e.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                    {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
+                    {{ e.get_admin_status_display }}
+                  </span>
+                {% endif %}
               </td>
+
               <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                 {{ e.get_payment_status_display }}{% if e.payment_method %} · {{ e.get_payment_method_display }}{% endif %}
               </td>

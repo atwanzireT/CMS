@@ -2,17 +2,21 @@
   <div class="flex items-center justify-between h-full px-4 lg:px-6">
     <!-- Left -->
     <div class="flex items-center gap-3">
-      <!-- Mobile open/close -->
-      <button id="sidebarToggleMobile"
-              class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors lg:hidden"
-              aria-controls="sidebar" aria-expanded="false" aria-label="Toggle sidebar">
+      <!-- Mobile drawer toggle -->
+      <button
+        @click="$root.toggleSidebarMobile()"
+        :aria-expanded="$root.sidebarOpen ? 'true' : 'false'"
+        class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors lg:hidden"
+        aria-controls="sidebar" aria-label="Toggle sidebar">
         <i class="fa-solid fa-bars text-slate-600 dark:text-slate-300"></i>
       </button>
 
       <!-- Desktop collapse/expand -->
-      <button id="sidebarCollapseDesktop"
-              class="hidden lg:inline-flex p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Collapse or expand sidebar" title="Collapse/Expand sidebar">
+      <button
+        @click="$root.toggleSidebarDesktop()"
+        class="hidden lg:inline-flex p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        :title="$root.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        aria-label="Collapse or expand sidebar">
         <i class="fa-solid fa-bars text-slate-600 dark:text-slate-300"></i>
       </button>
 
@@ -47,42 +51,32 @@
 
     <!-- Right -->
     <div class="flex items-center gap-2">
-      <!-- Quick actions -->
-      <button class="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-              title="Notifications">
+      <button class="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Notifications">
         <i class="fa-solid fa-bell text-slate-600 dark:text-slate-300"></i>
         <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] leading-5 text-center shadow-soft">3</span>
       </button>
 
-      <button class="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-              title="Messages">
+      <button class="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Messages">
         <i class="fa-solid fa-envelope text-slate-600 dark:text-slate-300"></i>
         <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-sky-500 text-white text-[10px] leading-5 text-center shadow-soft">1</span>
       </button>
 
-      <!-- Theme toggle (mirrors floating button if you use it) -->
-      <button @click="$root.toggleTheme()"
-              class="hidden sm:inline-flex p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-              title="Toggle theme">
+      <button @click="$root.toggleTheme()" class="hidden sm:inline-flex p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle theme">
         <i class="fa-solid" :class="$root.theme==='dark' ? 'fa-sun text-amber-300' : 'fa-moon text-slate-600'"></i>
       </button>
 
       {% if user.is_authenticated %}
       <!-- User menu -->
       <div x-data="{ open:false }" class="relative">
-        <button @click="open = !open"
-                class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <button @click="open = !open" class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
           <div class="w-9 h-9 rounded-xl shadow-soft bg-gradient-to-br from-primary-500 to-primary-600 text-white grid place-items-center">
             <span class="text-sm font-semibold">{{ user.username|first|upper }}</span>
           </div>
           <div class="hidden md:block text-left">
-            <p class="text-sm font-semibold text-slate-900 dark:text-white">
-              {{ user.get_full_name|default:user.username }}
-            </p>
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ user.get_full_name|default:user.username }}</p>
             <p class="text-[11px] text-slate-500 dark:text-slate-400 capitalize">{{ user_role|default:"user" }}</p>
           </div>
-          <i class="fa-solid fa-chevron-down text-slate-400 text-[12px] transition-transform duration-200"
-             :class="{ 'rotate-180': open }"></i>
+          <i class="fa-solid fa-chevron-down text-slate-400 text-[12px] transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
         </button>
 
         <div x-show="open" @click.away="open=false"
@@ -97,24 +91,24 @@
             <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ user.get_full_name|default:user.username }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ user.email|default:"admin@example.com" }}</p>
           </div>
-          <a href="{% url 'accounts:my_profile' %}"
-             class="flex items-center px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+          <a href="{% url 'accounts:my_profile' %}" class="flex items-center px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
             <i class="fa-solid fa-user w-4 mr-3 text-slate-400"></i> Profile
           </a>
-          <a href="{% url 'accounts:it_department' %}"
-             class="flex items-center px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+          <a href="{% url 'accounts:it_department' %}" class="flex items-center px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
             <i class="fa-solid fa-gear w-4 mr-3 text-slate-400"></i> Settings
           </a>
           <div class="my-1 border-t border-slate-200/60 dark:border-slate-800/80"></div>
-          <a href="{% url 'accounts:logout' %}"
-             class="flex items-center px-4 py-2.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20">
-            <i class="fa-solid fa-right-from-bracket w-4 mr-3"></i> Logout
-          </a>
+          <form method="post" action="{% url 'accounts:logout' %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+              class="flex items-center px-4 py-2.5 text-sm rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 focus:outline-none">
+              <i class="fa-solid fa-right-from-bracket w-4 mr-3"></i> Logout
+            </button>
+          </form>
         </div>
       </div>
       {% else %}
-      <a href="{% url 'accounts:login' %}"
-         class="inline-flex items-center px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 shadow-soft">
+      <a href="{% url 'accounts:login' %}" class="inline-flex items-center px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 shadow-soft">
         <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
       </a>
       {% endif %}

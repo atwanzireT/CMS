@@ -2,34 +2,40 @@
   <nav class="space-y-5" aria-label="Sidebar">
     <!-- MAIN -->
     <section>
-      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2"
+          x-show="!$root.sidebarCollapsed" x-cloak>
         Main
       </h3>
       <ul class="space-y-1">
         {% url 'store:home' as store_home_url %}
         <li>
           <a href="{{ store_home_url }}"
-             class="navlink {% if request.path == store_home_url %}is-active{% endif %}">
+             class="navlink {% if request.path == store_home_url %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Dashboard' : ''">
             <i class="fa-solid fa-chart-pie w-4"></i>
-            <span class="font-medium">Dashboard</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Dashboard</span>
           </a>
         </li>
       </ul>
     </section>
 
-    {# ---------- OPERATIONS (only if user can access any) ---------- #}
+    <!-- OPERATIONS -->
     {% if can_access.milling or can_access.assessment or can_access.store or can_access.finance %}
     <section>
-      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2"
+          x-show="!$root.sidebarCollapsed" x-cloak>
         Operations
       </h3>
       <ul class="space-y-1">
         {% if can_access.milling %}
         <li>
-          <a href="{% url 'milling:milling_list' %}"
-             class="navlink {% if request.resolver_match.app_name == 'milling' and request.resolver_match.url_name == 'milling_list' %}is-active{% endif %}">
+          <a href="{% url 'milling:milling_dashboard' %}"
+             class="navlink {% if request.resolver_match.app_name == 'milling' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Milling' : ''">
             <i class="fa-solid fa-gears w-4"></i>
-            <span class="font-medium">Milling</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Milling</span>
           </a>
         </li>
         {% endif %}
@@ -37,9 +43,11 @@
         {% if can_access.assessment %}
         <li>
           <a href="{% url 'assessment:assessment_list' %}"
-             class="navlink {% if request.resolver_match.app_name == 'assessment' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'assessment' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Quality Control' : ''">
             <i class="fa-solid fa-clipboard-check w-4"></i>
-            <span class="font-medium">Quality Control</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Quality Control</span>
           </a>
         </li>
         {% endif %}
@@ -47,9 +55,11 @@
         {% if can_access.store %}
         <li>
           <a href="{% url 'store:store_dashboard' %}"
-             class="navlink {% if request.resolver_match.app_name == 'store' and request.resolver_match.url_name == 'store_dashboard' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'store' and request.resolver_match.url_name == 'store_dashboard' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Store Management' : ''">
             <i class="fa-solid fa-store w-4"></i>
-            <span class="font-medium">Store Management</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Store Management</span>
           </a>
         </li>
         {% endif %}
@@ -57,12 +67,13 @@
         {% if can_access.finance %}
         <li>
           <a href="{% url 'finance:finance_dashboard' %}"
-             class="navlink {% if request.resolver_match.app_name == 'finance' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'finance' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Finance' : ''">
             <i class="fa-solid fa-coins w-4"></i>
-            <span class="font-medium">Finance</span>
-            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-slate-800 dark:text-primary-300">
-              Secure
-            </span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Finance</span>
+            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-slate-800 dark:text-primary-300"
+                  x-show="!$root.sidebarCollapsed" x-cloak>Secure</span>
           </a>
         </li>
         {% endif %}
@@ -70,19 +81,22 @@
     </section>
     {% endif %}
 
-    {# ---------- MANAGEMENT (only if user can access any) ---------- #}
+    <!-- MANAGEMENT -->
     {% if can_access.sales or can_access.expenses or can_access.inventory %}
     <section>
-      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2"
+          x-show="!$root.sidebarCollapsed" x-cloak>
         Management
       </h3>
       <ul class="space-y-1">
         {% if can_access.sales %}
         <li>
           <a href="{% url 'sales:sales_list_create' %}"
-             class="navlink {% if request.resolver_match.app_name == 'sales' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'sales' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Sales' : ''">
             <i class="fa-solid fa-receipt w-4"></i>
-            <span class="font-medium">Sales</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Sales</span>
           </a>
         </li>
         {% endif %}
@@ -90,9 +104,11 @@
         {% if can_access.expenses %}
         <li>
           <a href="{% url 'expenses:expense_list' %}"
-             class="navlink {% if request.resolver_match.app_name == 'expenses' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'expenses' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Expenses' : ''">
             <i class="fa-solid fa-wallet w-4"></i>
-            <span class="font-medium">Expenses</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Expenses</span>
           </a>
         </li>
         {% endif %}
@@ -100,9 +116,11 @@
         {% if can_access.inventory %}
         <li>
           <a href="{% url 'inventory:inventory_home' %}"
-             class="navlink {% if request.resolver_match.app_name == 'inventory' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'inventory' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Inventory' : ''">
             <i class="fa-solid fa-warehouse w-4"></i>
-            <span class="font-medium">Inventory</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Inventory</span>
           </a>
         </li>
         {% endif %}
@@ -110,19 +128,22 @@
     </section>
     {% endif %}
 
-    {# ---------- SYSTEM (only if user can access any or is superuser) ---------- #}
+    <!-- SYSTEM -->
     {% if can_access.reports or request.user.is_superuser %}
     <section>
-      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2"
+          x-show="!$root.sidebarCollapsed" x-cloak>
         System
       </h3>
       <ul class="space-y-1">
         {% if can_access.reports %}
         <li>
           <a href="{% url 'reports:general_reports' %}"
-             class="navlink {% if request.resolver_match.app_name == 'reports' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'reports' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Reports' : ''">
             <i class="fa-solid fa-chart-line w-4"></i>
-            <span class="font-medium">Reports</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Reports</span>
           </a>
         </li>
         {% endif %}
@@ -130,12 +151,13 @@
         {% if request.user.is_superuser %}
         <li>
           <a href="{% url 'accounts:it_department' %}"
-             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'it_department' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'it_department' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'IT Department' : ''">
             <i class="fa-solid fa-desktop w-4"></i>
-            <span class="font-medium">IT Department</span>
-            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-slate-800 dark:text-amber-300">
-              Admin
-            </span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>IT Department</span>
+            <span class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-slate-800 dark:text-amber-300"
+                  x-show="!$root.sidebarCollapsed" x-cloak>Admin</span>
           </a>
         </li>
         {% endif %}
@@ -145,30 +167,41 @@
 
     <!-- ACCOUNT -->
     <section>
-      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2">
+      <h3 class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-3 mb-2"
+          x-show="!$root.sidebarCollapsed" x-cloak>
         Account
       </h3>
       <ul class="space-y-1">
         {% if request.user.is_authenticated %}
         <li>
           <a href="{% url 'accounts:user_edit' request.user.id %}"
-             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'user_edit' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'user_edit' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'My Profile' : ''">
             <i class="fa-solid fa-user w-4"></i>
-            <span class="font-medium">My Profile</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>My Profile</span>
           </a>
         </li>
         <li>
-          <a href="{% url 'accounts:logout' %}" class="navlink">
-            <i class="fa-solid fa-right-from-bracket w-4"></i>
-            <span class="font-medium">Logout</span>
-          </a>
+          <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="navlink w-full text-left"
+                    :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+                    :title="$root.sidebarCollapsed ? 'Logout' : ''">
+              <i class="fa-solid fa-right-from-bracket w-4"></i>
+              <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Logout</span>
+            </button>
+          </form>
         </li>
         {% else %}
         <li>
           <a href="{% url 'accounts:login' %}"
-             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'login' %}is-active{% endif %}">
+             class="navlink {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'login' %}is-active{% endif %}"
+             :class="$root.sidebarCollapsed ? 'justify-center gap-0 px-2' : ''"
+             :title="$root.sidebarCollapsed ? 'Login' : ''">
             <i class="fa-solid fa-right-to-bracket w-4"></i>
-            <span class="font-medium">Login</span>
+            <span class="font-medium" x-show="!$root.sidebarCollapsed" x-cloak>Login</span>
           </a>
         </li>
         {% endif %}

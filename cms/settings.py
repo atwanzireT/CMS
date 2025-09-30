@@ -183,3 +183,25 @@ TEMPLATES[0]["OPTIONS"]["context_processors"] += [
 # Login/Logout URLs
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# --- CSRF / session cookie config ---
+# Exact origins you’ll POST from (scheme + host [+ port])
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://system.greatpearlcoffee.com",
+    "https://www.system.greatpearlcoffee.com",
+]
+
+# In dev over HTTP, cookies cannot be 'secure'
+if DEBUG:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    CSRF_COOKIE_SAMESITE = "Lax"
+else:
+    # On production behind HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = "Lax" 
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True

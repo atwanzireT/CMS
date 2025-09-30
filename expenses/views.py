@@ -3,9 +3,10 @@ from __future__ import annotations
 import csv
 from decimal import Decimal, InvalidOperation
 from typing import Optional
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse
@@ -21,7 +22,10 @@ from .models import ExpenseRequest
 User = get_user_model()
 
 
+# ----------------------------- Helpers ---------------------------------------
+
 def _parse_decimal(val: Optional[str]) -> Optional[Decimal]:
+    """Parse a string to Decimal or return None; safe for filter inputs."""
     if not val:
         return None
     try:
@@ -29,6 +33,8 @@ def _parse_decimal(val: Optional[str]) -> Optional[Decimal]:
     except (InvalidOperation, TypeError):
         return None
 
+
+# ----------------------------- Listings & CSV --------------------------------
 
 @login_required
 @module_required("access_expenses")  # tighten if only Finance/Admin should access
@@ -183,6 +189,8 @@ def expenses_all(request):
     return render(request, "expenses_all.html", context)
 
 
+# ----------------------------- My Requests -----------------------------------
+
 @login_required
 @module_required("access_expenses")
 def expense_list(request):
@@ -210,12 +218,12 @@ def expense_list(request):
     )
 
     # Simple search on reference, category code, and business_reason
-    search = request.GET.get("q", "").strip()
+    search = (request.GET.get("q") or "").strip()
     if search:
         qs = qs.filter(
-            Q(reference__icontains=search) |
-            Q(expense_type__icontains=search.replace(" ", "_")) |
-            Q(business_reason__icontains=search)
+            Q(reference__icontains=search)
+            | Q(expense_type__icontains=search.replace(" ", "_"))
+            | Q(business_reason__icontains=search)
         )
 
     paginator = Paginator(qs, 10)
@@ -236,15 +244,13 @@ def expense_list(request):
 @login_required
 @module_required("access_expenses")
 def expense_detail(request, pk: int):
+    """Detail page with strict visibility: owner, finance, or superuser."""
     expense = get_object_or_404(
         ExpenseRequest.objects.select_related("requested_by", "finance_reviewer", "admin_reviewer"),
         pk=pk
     )
-    # Optional: ensure only owner or privileged users can view
     if expense.requested_by != request.user and not (
-        request.user.is_superuser
-        or request.user.has_perm("accounts.access_finance")
-        or request.user.has_perm("accounts.access_expenses")
+        request.user.is_superuser or request.user.has_perm("accounts.access_finance")
     ):
         messages.error(request, "You do not have permission to view this expense.")
         return redirect("expense_list")
@@ -252,7 +258,7 @@ def expense_detail(request, pk: int):
     return render(request, "expense_detail.html", {"expense": expense})
 
 
-# ---- Reviewer inboxes --------------------------------------------------------
+# ----------------------------- Reviewer Inboxes -------------------------------
 
 @login_required
 @module_required("access_finance")
@@ -269,7 +275,7 @@ def finance_inbox(request):
 
 
 @login_required
-@module_required("access_expenses")  # treat as your “admin” permission
+@user_passes_test(lambda u: u.is_superuser)  # SUPERUSERS ONLY
 def admin_inbox(request):
     qs = (
         ExpenseRequest.objects
@@ -282,15 +288,16 @@ def admin_inbox(request):
     return render(request, "admin_inbox.html", {"page_obj": page_obj})
 
 
-# ---- Actions: approvals & payments ------------------------------------------
+# ----------------------------- Actions ---------------------------------------
 
 @login_required
 @module_required("access_finance")
 @require_POST
 def finance_decide(request, pk: int):
+    """Finance approves/rejects."""
     expense = get_object_or_404(ExpenseRequest, pk=pk)
     status = request.POST.get("status")  # "APPROVED" or "REJECTED"
-    note = request.POST.get("note", "").strip()
+    note = (request.POST.get("note") or "").strip()
 
     try:
         expense.mark_finance_decision(request.user, status=status, note=note)
@@ -301,12 +308,13 @@ def finance_decide(request, pk: int):
 
 
 @login_required
-@module_required("access_expenses")  # treat as your “admin” permission
+@user_passes_test(lambda u: u.is_superuser)  # SUPERUSERS ONLY
 @require_POST
 def admin_decide(request, pk: int):
+    """Admin (superuser) approves/rejects."""
     expense = get_object_or_404(ExpenseRequest, pk=pk)
     status = request.POST.get("status")  # "APPROVED" or "REJECTED"
-    note = request.POST.get("note", "").strip()
+    note = (request.POST.get("note") or "").strip()
 
     try:
         expense.mark_admin_decision(request.user, status=status, note=note)
@@ -320,15 +328,15 @@ def admin_decide(request, pk: int):
 @module_required("access_finance")
 @require_POST
 def expense_pay(request, pk: int):
+    """Record a payment; allowed only after full approvals (model enforces)."""
     expense = get_object_or_404(ExpenseRequest, pk=pk)
     try:
-        amount = Decimal(request.POST.get("amount", "0").strip())
+        amount = Decimal((request.POST.get("amount") or "0").strip())
         method = request.POST.get("method") or ExpenseRequest.PaymentMethod.CASH
-        receipt_number = request.POST.get("receipt_number", "").strip() or None
+        receipt_number = (request.POST.get("receipt_number") or "").strip() or None
 
         expense.register_payment(amount=amount, method=method, receipt_number=receipt_number)
         messages.success(request, f"Payment of UGX {amount:,.0f} recorded for {expense.reference}.")
     except Exception as e:
         messages.error(request, f"Could not record payment: {e}")
     return redirect(request.POST.get("next") or "expense_detail", pk=expense.pk)
-

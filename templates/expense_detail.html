@@ -2,213 +2,338 @@
 {% load humanize %}
 
 {% block content %}
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+<div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6">
   <!-- Header -->
   <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
     <div>
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Inbox</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+        Expense {{ expense.reference }}
+      </h1>
       <p class="mt-1 text-gray-600 dark:text-gray-400">
-        Review and record Admin decisions for pending expense requests.
+        {{ expense.get_expense_type_display }} • UGX {{ expense.amount|floatformat:0|intcomma }}
       </p>
     </div>
-    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-      <span class="font-medium">{{ page_obj.paginator.count|default:0 }}</span> pending
+
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="{% url 'expenses:expenses_all' %}"
+         class="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+        All Expenses
+      </a>
+      {% if perms.accounts.access_finance or request.user.is_superuser %}
+        <a href="{% url 'expenses:finance_inbox' %}"
+           class="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+          Finance Inbox
+        </a>
+      {% endif %}
+      {% if request.user.is_superuser %}
+        <a href="{% url 'expenses:admin_inbox' %}"
+           class="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+          Admin Inbox
+        </a>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Flash messages -->
-  {% if messages %}
-    <div class="mb-5 space-y-3">
-      {% for message in messages %}
-        <div class="rounded-lg px-4 py-3 text-sm flex items-start
-                    {% if 'success' in message.tags %} bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-200 border border-green-200 dark:border-green-800/50
-                    {% elif 'error' in message.tags %} bg-rose-50 text-rose-800 dark:bg-rose-900/30 dark:text-rose-200 border border-rose-200 dark:border-rose-800/50
-                    {% else %} bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 {% endif %}">
-          <svg class="h-5 w-5 mr-2 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            {% if 'success' in message.tags %}
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            {% elif 'error' in message.tags %}
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-            {% else %}
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-            {% endif %}
-          </svg>
-          <span>{{ message }}</span>
+  <!-- Top status cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Overall</div>
+      <div class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ expense.overall_status }}</div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Finance</div>
+      <div class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
+                  {% if expense.finance_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                  {% elif expense.finance_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                  {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
+        {{ expense.get_finance_status_display }}
+      </div>
+      {% if expense.finance_reviewer %}
+        <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
+          by {{ expense.finance_reviewer.get_full_name|default:expense.finance_reviewer.username }}
+          {% if expense.finance_decision_at %} • {{ expense.finance_decision_at|date:"M j, Y H:i" }}{% endif %}
         </div>
-      {% endfor %}
+      {% endif %}
     </div>
-  {% endif %}
 
-  <!-- Empty state -->
-  {% if not page_obj.object_list %}
-    <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No pending requests</h3>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">All caught up! Newly submitted expenses will appear here.</p>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Admin</div>
+      <div class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
+                  {% if expense.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                  {% elif expense.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                  {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
+        {{ expense.get_admin_status_display }}
+      </div>
+      {% if expense.admin_reviewer %}
+        <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
+          by {{ expense.admin_reviewer.get_full_name|default:expense.admin_reviewer.username }}
+          {% if expense.admin_decision_at %} • {{ expense.admin_decision_at|date:"M j, Y H:i" }}{% endif %}
+        </div>
+      {% endif %}
     </div>
-  {% else %}
 
-    <!-- List -->
-    <div class="space-y-5">
-      {% for e in page_obj %}
-        <article class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow-sm transition-all hover:border-indigo-300 dark:hover:border-indigo-500">
-          <div class="flex items-start justify-between gap-4">
-            <div class="min-w-0 flex-1">
-              <!-- Top row -->
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {{ e.reference }}
-                  </h2>
-                  <span class="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2.5 py-0.5 text-xs font-medium">
-                    {{ e.get_expense_type_display }}
-                  </span>
-                  {% if e.requires_admin_approval %}
-                    <span class="inline-flex items-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-0.5 text-[11px] font-semibold">
-                      Requires Admin
-                    </span>
-                  {% endif %}
-                </div>
-                <div class="text-right">
-                  <div class="text-sm text-gray-600 dark:text-gray-300">Requested</div>
-                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ e.created_at|date:"M j, Y" }}</div>
-                </div>
-              </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Payment</div>
+      <div class="text-sm text-gray-900 dark:text-gray-100">
+        {{ expense.get_payment_status_display }}
+        {% if expense.paid_amount %} • Paid: UGX {{ expense.paid_amount|floatformat:0|intcomma }}{% endif %}
+      </div>
+      {% if expense.paid_at %}
+        <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">at {{ expense.paid_at|date:"M j, Y H:i" }}</div>
+      {% endif %}
+      {% if expense.receipt_number %}
+        <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">Receipt: {{ expense.receipt_number }}</div>
+      {% endif %}
+    </div>
+  </div>
 
-              <!-- Key facts -->
-              <div class="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
-                <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2">
-                  <div class="text-gray-600 dark:text-gray-400">Amount</div>
-                  <div class="font-semibold text-gray-900 dark:text-gray-100">UGX {{ e.amount|floatformat:0|intcomma }}</div>
-                </div>
-                <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2">
-                  <div class="text-gray-600 dark:text-gray-400">Requester</div>
-                  <div class="font-medium text-gray-900 dark:text-gray-100">{{ e.requested_by.get_full_name|default:e.requested_by.username }}</div>
-                </div>
-                <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2">
-                  <div class="text-gray-600 dark:text-gray-400">Priority</div>
-                  <div class="font-medium text-gray-900 dark:text-gray-100">{{ e.get_priority_display|default:"Normal" }}</div>
-                </div>
-                <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-3 py-2">
-                  <div class="text-gray-600 dark:text-gray-400">Payment Method</div>
-                  <div class="font-medium text-gray-900 dark:text-gray-100">{{ e.get_payment_method_display|default:"—" }}</div>
-                </div>
-              </div>
-
-              <!-- Reason -->
-              <div class="mt-3">
-                <div class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Business Reason</div>
-                <p class="text-sm text-gray-800 dark:text-gray-200">
-                  {{ e.business_reason|default:"—" }}
-                </p>
-              </div>
-
-              <!-- Status chips -->
-              <div class="mt-4 flex flex-wrap items-center gap-2">
-                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
-                             {% if e.finance_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
-                             {% elif e.finance_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
-                             {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
-                  Finance: {{ e.get_finance_status_display }}
-                </span>
-                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium
-                             {% if e.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
-                             {% elif e.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
-                             {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
-                  Admin: {{ e.get_admin_status_display }}
-                </span>
-                {% if e.finance_reviewer %}
-                  <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2.5 py-1 text-xs font-medium">
-                    Finance by: {{ e.finance_reviewer.get_full_name|default:e.finance_reviewer.username }}
-                  </span>
-                {% endif %}
-              </div>
-            </div>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left: Details -->
+    <section class="lg:col-span-2 space-y-6">
+      <!-- Request meta -->
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Request Details</h2>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          <div>
+            <dt class="text-gray-600 dark:text-gray-400">Requested By</dt>
+            <dd class="font-medium text-gray-900 dark:text-gray-100">{{ expense.requested_by.get_full_name|default:expense.requested_by.username }}</dd>
           </div>
+          <div>
+            <dt class="text-gray-600 dark:text-gray-400">Created</dt>
+            <dd class="font-medium text-gray-900 dark:text-gray-100">{{ expense.created_at|date:"M j, Y H:i" }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-600 dark:text-gray-400">Priority</dt>
+            <dd class="font-medium text-gray-900 dark:text-gray-100">{{ expense.get_priority_display|default:"Normal" }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-600 dark:text-gray-400">Payment Method</dt>
+            <dd class="font-medium text-gray-900 dark:text-gray-100">{{ expense.get_payment_method_display|default:"—" }}</dd>
+          </div>
+          <div class="sm:col-span-2">
+            <dt class="text-gray-600 dark:text-gray-400">Business Reason</dt>
+            <dd class="mt-1 text-gray-900 dark:text-gray-100">{{ expense.business_reason|default:"—" }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-600 dark:text-gray-400">Phone (Mobile Money)</dt>
+            <dd class="font-medium text-gray-900 dark:text-gray-100">{{ expense.phone_msisdn }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-600 dark:text-gray-400">Requires Admin Approval</dt>
+            <dd class="font-medium text-gray-900 dark:text-gray-100">
+              {% if expense.requires_admin_approval %}Yes{% else %}No{% endif %}
+            </dd>
+          </div>
+        </dl>
+      </div>
 
-          <!-- Decision form -->
-          <div class="mt-5 border-t border-gray-200 dark:border-gray-800 pt-4">
-            <form method="post" action="{% url 'expenses:admin_decide' e.pk %}" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      <!-- Approval timeline -->
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Approval Timeline</h2>
+        {% with logs=expense.approval_logs.all %}
+          {% if logs %}
+            <ol class="relative border-l border-gray-200 dark:border-gray-700">
+              {% for log in logs %}
+                <li class="ml-4 mb-4">
+                  <div class="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full
+                              {% if log.role == 'FINANCE' and log.status == 'APPROVED' %} bg-emerald-500
+                              {% elif log.role == 'FINANCE' and log.status == 'REJECTED' %} bg-rose-500
+                              {% elif log.role == 'ADMIN' and log.status == 'APPROVED' %} bg-sky-500
+                              {% elif log.role == 'ADMIN' and log.status == 'REJECTED' %} bg-rose-500
+                              {% else %} bg-gray-400 {% endif %}">
+                  </div>
+                  <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-3">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ log.get_role_display }} — {{ log.get_status_display }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ log.acted_at|date:"M j, Y H:i" }}
+                      </div>
+                    </div>
+                    {% if log.note %}
+                      <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">{{ log.note }}</p>
+                    {% endif %}
+                    <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      by {{ log.acted_by.get_full_name|default:log.acted_by.username }}
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ol>
+          {% else %}
+            <p class="text-sm text-gray-600 dark:text-gray-400">No approval activity yet.</p>
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Attachments -->
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Attachments</h2>
+        {% if expense.attachments.all %}
+          <ul class="divide-y divide-gray-200 dark:divide-gray-800">
+            {% for a in expense.attachments.all %}
+              <li class="py-2 flex items-center justify-between">
+                <div class="text-sm text-gray-900 dark:text-gray-100 truncate">
+                  {{ a.file.name|cut:"expense_attachments/" }}
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ a.uploaded_at|date:"M j, Y H:i" }}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-sm text-gray-600 dark:text-gray-400">No files uploaded.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Right: Admin actions / Payment -->
+    <aside class="space-y-6">
+      <!-- Admin decision box -->
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Admin Decision</h3>
+
+        {% if expense.admin_status == 'PENDING' %}
+          {% if request.user.is_superuser %}
+            <form method="post" action="{% url 'expenses:admin_decide' expense.pk %}" class="mt-3 space-y-3">
               {% csrf_token %}
-              <input type="hidden" name="next" value="{% url 'expenses:admin_inbox' %}">
+              <input type="hidden" name="next" value="{% url 'expenses:expense_detail' expense.pk %}">
+              <label for="note" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Note (optional)</label>
+              <textarea id="note" name="note" rows="3"
+                        class="block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
 
-              <!-- Note -->
-              <div class="lg:col-span-9">
-                <label for="note-{{ e.pk }}" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Decision Note (optional)</label>
-                <div class="mt-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500">
-                  <textarea id="note-{{ e.pk }}" name="note" rows="2"
-                            class="block w-full rounded-lg bg-transparent px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none resize-y"></textarea>
-                </div>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Add context for your decision (visible in the approval log).</p>
-              </div>
-
-              <!-- Actions -->
-              <div class="lg:col-span-3">
-                <div class="grid grid-cols-2 gap-2">
-                  <button type="submit" name="status" value="REJECTED"
-                          class="inline-flex items-center justify-center rounded-lg border border-rose-300 dark:border-rose-700 bg-rose-600/90 hover:bg-rose-600 text-white px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500"
-                          onclick="return confirm('Reject this request?');">
-                    Reject
-                  </button>
-                  <button type="submit" name="status" value="APPROVED"
-                          class="inline-flex items-center justify-center rounded-lg border border-emerald-300 dark:border-emerald-700 bg-emerald-600/90 hover:bg-emerald-600 text-white px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
-                    Approve
-                  </button>
-                </div>
-                <a href="{% url 'expenses:expense_detail' e.pk %}"
-                   class="mt-2 inline-flex w-full items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
-                  View details
-                </a>
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <button type="submit" name="status" value="REJECTED"
+                        class="inline-flex items-center justify-center rounded-lg border border-rose-300 dark:border-rose-700 bg-rose-600/90 hover:bg-rose-600 text-white px-3 py-2 text-sm font-medium"
+                        onclick="return confirm('Reject this request?');">
+                  Reject
+                </button>
+                <button type="submit" name="status" value="APPROVED"
+                        class="inline-flex items-center justify-center rounded-lg border border-emerald-300 dark:border-emerald-700 bg-emerald-600/90 hover:bg-emerald-600 text-white px-3 py-2 text-sm font-medium">
+                  Approve
+                </button>
               </div>
             </form>
+          {% else %}
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Read-only. Only superusers can take Admin actions.
+            </p>
+          {% endif %}
+
+          {% if expense.requires_admin_approval %}
+            <p class="mt-3 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50 rounded-lg px-3 py-2">
+              This request requires Admin approval (e.g., bank transfer).
+            </p>
+          {% endif %}
+        {% else %}
+          <!-- Already approved or rejected -->
+          <div class="mt-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-3">
+            <div class="text-sm">
+              <span class="font-medium">Decision:</span>
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                {% if expense.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                {% else %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200 {% endif %}">
+                {{ expense.get_admin_status_display }}
+              </span>
+            </div>
+            {% if expense.admin_reviewer or expense.admin_decision_at %}
+              <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                {% if expense.admin_reviewer %}by {{ expense.admin_reviewer.get_full_name|default:expense.admin_reviewer.username }}{% endif %}
+                {% if expense.admin_decision_at %} • {{ expense.admin_decision_at|date:"M j, Y H:i" }}{% endif %}
+              </div>
+            {% endif %}
+            {% if expense.admin_note %}
+              <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Note:</span> {{ expense.admin_note }}
+              </div>
+            {% endif %}
           </div>
-        </article>
-      {% endfor %}
-    </div>
-
-    <!-- Pagination -->
-    <div class="mt-6 flex items-center justify-between text-sm">
-      <div class="text-gray-600 dark:text-gray-400">
-        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
-      </div>
-      <div class="flex gap-2">
-        {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}"
-             class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
-            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Previous
-          </a>
-        {% else %}
-          <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500 flex items-center gap-1 cursor-not-allowed">
-            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Previous
-          </span>
-        {% endif %}
-        {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}"
-             class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1">
-            Next
-            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-          </a>
-        {% else %}
-          <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500 flex items-center gap-1 cursor-not-allowed">
-            Next
-            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-          </span>
         {% endif %}
       </div>
-    </div>
 
-  {% endif %}
+      <!-- Payment box -->
+      <div id="paymentBox"
+           data-requested="{{ expense.amount|floatformat:0 }}"
+           data-paid="{{ expense.paid_amount|default_if_none:0|floatformat:0 }}"
+           class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Payment</h3>
+
+        <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+          Status: <span class="font-medium">{{ expense.get_payment_status_display }}</span><br>
+          Requested: <span class="font-medium">UGX {{ expense.amount|floatformat:0|intcomma }}</span><br>
+          Paid: <span class="font-medium">UGX {{ expense.paid_amount|default_if_none:0|floatformat:0|intcomma }}</span>
+        </div>
+
+        {% if perms.accounts.access_finance %}
+          <form method="post" action="{% url 'expenses:expense_pay' expense.pk %}" class="mt-4 space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'expenses:expense_detail' expense.pk %}">
+
+            <div>
+              <label for="amount" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Amount</label>
+              <input id="amount" name="amount" type="number" step="1" min="0"
+                     inputmode="numeric"
+                     class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Auto-filled with remaining balance. Adjust if paying a different amount.
+              </p>
+            </div>
+
+            <div>
+              <label for="method" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Method</label>
+              <select id="method" name="method"
+                      class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                {% for v, label in expense.PaymentMethod.choices %}
+                  <option value="{{ v }}" {% if expense.payment_method == v %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div>
+              <label for="receipt_number" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Receipt No.</label>
+              <input id="receipt_number" name="receipt_number" type="text"
+                     class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <button id="payBtn" type="submit"
+                    {% if not expense.is_fully_approved %}disabled title="Payments allowed only after Admin and Finance approvals."{% endif %}
+                    class="w-full inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white
+                           {% if expense.is_fully_approved %} bg-indigo-600 hover:bg-indigo-700
+                           {% else %} bg-indigo-600 opacity-60 cursor-not-allowed {% endif %}">
+              Record Payment
+            </button>
+
+            {% if not expense.is_fully_approved %}
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Payments are disabled until the request is fully approved.
+              </p>
+            {% endif %}
+          </form>
+        {% else %}
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Only Finance can record payments.</p>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
 </div>
+
+{# --- Auto-fill remaining amount into the payment form --- #}
+<script>
+  (function () {
+    const box = document.getElementById('paymentBox');
+    if (!box) return;
+
+    const rawRequested = parseFloat(box.dataset.requested || '0'); // integers expected by floatformat:0
+    const rawPaid = parseFloat(box.dataset.paid || '0');
+    const remaining = Math.max(0, Math.round(rawRequested - rawPaid));
+
+    const amountInput = document.getElementById('amount');
+    if (amountInput && (amountInput.value === '' || Number(amountInput.value) === 0)) {
+      amountInput.value = remaining;
+    }
+  })();
+</script>
 {% endblock %}
