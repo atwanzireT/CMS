@@ -93,7 +93,7 @@
     <!-- Messages -->
     {% if messages %}
     <div class="p-4 sm:p-6">
-      <div class="max-w-7xl mx-auto space-y-3">
+      <div class="max-w-[95%] mx-auto space-y-3">
         {% for message in messages %}
           <div class="glass border rounded-2xl p-4 shadow-soft animate-slide-up flex items-start gap-3"
                {% if message.tags == 'success' %}style="--accent: #16a34a"{% elif message.tags == 'error' %}style="--accent:#dc2626"{% else %}style="--accent:#0284c7"{% endif %}>
@@ -110,7 +110,7 @@
 
     <!-- Header / Breadcrumb + user pill -->
     <section class="px-1 sm:px-2">
-      <div class="max-w-[90%] mx-auto">
+      <div class="max-w-[95%] mx-auto">
         <div class="glass border rounded-2xl p-5 sm:p-6 shadow-soft animate-fade-in">
           <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 justify-between">
             <nav class="flex items-center gap-2 text-sm">
@@ -143,13 +143,13 @@
 
     <!-- Page Content -->
     <section class="px-1 sm:px-2 py-6">
-      <div class="max-w-[90%] mx-auto">
+      <div class="max-w-[95%] mx-auto">
         {% block content %}{% endblock %}
       </div>
     </section>
 
     <footer class="px-4 sm:px-6 pb-8">
-      <div class="max-w-[90%] mx-auto text-xs text-slate-500 dark:text-slate-400">© {{ now|date:"Y" }} Great Pearl Coffee Factory · All rights reserved</div>
+      <div class="max-w-[95%] mx-auto text-xs text-slate-500 dark:text-slate-400">© {{ now|date:"Y" }} Great Pearl Coffee Factory · All rights reserved</div>
     </footer>
   </main>
 

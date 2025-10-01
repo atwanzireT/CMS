@@ -2,8 +2,8 @@
 {% load humanize %}
 
 <!-- Top: Welcome, Role, Date/Time, Quick Actions -->
-<div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200/70 dark:border-slate-800/70">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<div class="bg-white/80 dark:bg-slate-900/80 rounded-xl backdrop-blur border-b border-slate-200/70 dark:border-slate-800/70">
+  <div class="mx-auto  px-4 sm:px-6 lg:px-8 py-6">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{{ welcome_title|default:"Dashboard" }}</h1>
@@ -34,7 +34,7 @@
 <div class="mb-8 mt-6">
   <section
     id="weatherWidget"
-    class="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 shadow-[0_10px_30px_-12px_rgba(2,6,23,0.25)] mx-auto max-w-7xl"
+    class="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 shadow-[0_10px_30px_-12px_rgba(2,6,23,0.25)] mx-auto"
     data-api-key="{{ api_key|default:'' }}"
     data-location="{{ weather_location|default:'Kasese,Uganda' }}"
   >

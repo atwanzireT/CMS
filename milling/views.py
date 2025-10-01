@@ -35,11 +35,6 @@ def get_base_context(request, page_title='Default Page Title'):
     }
 
 
-
-# ========== DASHBOARD ==========
-def milling_dashboard(request):
-    return render(request, 'milling_dashboard.html', {})
-
 # ========== CUSTOMER VIEWS ==========
 @module_required("access_milling")
 def customer_list(request):
