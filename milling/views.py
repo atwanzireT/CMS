@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -11,19 +12,18 @@ from django.db import transaction
 from django.db.models import (
     Q, F, Sum, Count, DecimalField, ExpressionWrapper
 )
+from django.db.models.functions import Coalesce
 from django.http import (
     HttpResponse, JsonResponse, HttpResponseBadRequest
 )
 from django.shortcuts import render, redirect, get_object_or_404
-from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 
 from accounts.permissions import module_required
 from .models import Customer, MillingProcess, MillingTransaction, CustomerAccount
 from .forms import CustomerForm, MillingProcessForm
-from assessment.models import Assessment
-from assessment.forms import AssessmentForm
+
 
 
 
@@ -85,6 +85,8 @@ def customer_detail(request, pk):
     return render(request, 'customer_detail.html', context)
 
 # ========== MILLING PROCESS VIEWS ==========
+
+# ---------- helpers ----------
 def _parse_decimal(val: str | None) -> Decimal | None:
     if not val:
         return None
@@ -98,19 +100,14 @@ def _parse_decimal(val: str | None) -> Decimal | None:
 @module_required("access_milling")
 def milling_list(request):
     """
-    - GET: Show a full, filterable list of milling processes with totals and CSV export.
-      Filters (all optional):
-        q                -> search over customer id/name/phone and reference-like notes
-        status           -> P/C/X
-        customer         -> customer id (pk of Customer)
-        date_from        -> YYYY-MM-DD (created_at >=)
-        date_to          -> YYYY-MM-DD (created_at <=)
-        min_initial/max_initial  -> kg
-        min_hulled/max_hulled    -> kg
-        min_rate/max_rate        -> milling_rate (money per kg)
-        export=csv       -> export current filtered set to CSV
-
-    - POST: Create/update a milling process (uses hidden 'milling_id' for updates).
+    Milling processes list with filters, per-row balances, totals and CSV export.
+    - Row annotations:
+        calc_cost     = hulled_weight * milling_rate
+        milling_due   = calc_cost - sum(credits tied to this milling process)
+        account_balance = customer's current account balance
+    - Filters: q, status, customer, date_from/date_to, min/max initial/hulled, min/max rate
+    - Pagination: 'per' query param (20/50/100/200)
+    - CSV export: export=csv
     """
 
     # ----------------- Create/Update on POST -----------------
@@ -131,28 +128,48 @@ def milling_list(request):
             except Exception as e:
                 messages.error(request, f"Error saving process: {e}")
         else:
-            # surface form errors to messages
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
     else:
         form = MillingProcessForm()
 
-    # ----------------- Base Queryset & Annotation -----------------
+    # ----------------- Base annotations -----------------
+    # cost = hulled_weight * milling_rate
     milling_cost_expr = ExpressionWrapper(
         F("hulled_weight") * F("milling_rate"),
         output_field=DecimalField(max_digits=12, decimal_places=2),
     )
 
+    # sum of credits applied to this specific milling process
+    credits_sum_expr = Coalesce(
+        Sum(
+            "transactions__amount",
+            filter=Q(transactions__transaction_type=MillingTransaction.CREDIT),
+        ),
+        Decimal("0.00"),
+    )
+
+    # milling_due = cost - credits
+    milling_due_expr = ExpressionWrapper(
+        Coalesce(milling_cost_expr, Decimal("0.00")) - credits_sum_expr,
+        output_field=DecimalField(max_digits=12, decimal_places=2),
+    )
+
+    # ----------------- Queryset -----------------
     qs = (
         MillingProcess.objects
-        .select_related("customer", "created_by")
-        .annotate(calc_cost=milling_cost_expr)
+        .select_related("customer", "created_by", "customer__account")
+        .annotate(
+            calc_cost=milling_cost_expr,
+            milling_due=milling_due_expr,
+            account_balance=Coalesce(F("customer__account__balance"), Decimal("0.00")),
+        )
         .order_by("-created_at")
     )
 
     # ----------------- Filters -----------------
-    f = request.GET  # shorthand
+    f = request.GET
 
     q = (f.get("q") or "").strip()
     if q:
@@ -213,6 +230,7 @@ def milling_list(request):
             "Customer ID", "Customer Name", "Phone",
             "Initial (kg)", "Hulled (kg)",
             "Rate", "Milling Cost",
+            "Milling Due", "Customer Balance",
             "Status", "Created At", "Completed At",
             "Created By", "Notes",
         ])
@@ -225,6 +243,8 @@ def milling_list(request):
                 m.hulled_weight,
                 f"{m.milling_rate:.2f}" if m.milling_rate is not None else "",
                 f"{(m.calc_cost or Decimal('0')):.2f}",
+                f"{(m.milling_due or Decimal('0')):.2f}",
+                f"{(m.account_balance or Decimal('0')):.2f}",
                 m.get_status_display(),
                 m.created_at.strftime("%Y-%m-%d %H:%M"),
                 m.completed_at.strftime("%Y-%m-%d %H:%M") if m.completed_at else "",
@@ -237,11 +257,11 @@ def milling_list(request):
     aggregates = qs.aggregate(
         total_initial=Sum("initial_weight"),
         total_hulled=Sum("hulled_weight"),
-        total_cost=Sum(milling_cost_expr),
+        total_cost=Sum("calc_cost"),
+        total_due=Sum("milling_due"),
         count_all=Count("id"),
     )
 
-    # counts by status (for chips in UI)
     status_counts = qs.values("status").annotate(c=Count("id"))
     status_map = {row["status"]: row["c"] for row in status_counts}
     count_pending = status_map.get(MillingProcess.PENDING, 0)
@@ -249,13 +269,19 @@ def milling_list(request):
     count_cancelled = status_map.get(MillingProcess.CANCELLED, 0)
 
     # ----------------- Pagination -----------------
-    paginator = Paginator(qs, 20)
+    allowed_per = [20, 50, 100, 200]
+    try:
+        per = int(f.get("per") or 20)
+        if per not in allowed_per:
+            per = 20
+    except ValueError:
+        per = 20
+
+    paginator = Paginator(qs, per)
     page_obj = paginator.get_page(f.get("page"))
 
     # For filter dropdown
-    customer_options = (
-        Customer.objects.order_by("name").values("id", "name", "phone")
-    )
+    customer_options = Customer.objects.order_by("name").values("id", "name", "phone")
 
     context = {
         "form": form,
@@ -274,12 +300,14 @@ def milling_list(request):
             "max_hulled": f.get("max_hulled") or "",
             "min_rate": f.get("min_rate") or "",
             "max_rate": f.get("max_rate") or "",
+            "per": str(per),
         },
 
         # Choices for select fields in template
         "choices": {
             "statuses": MillingProcess.STATUS_CHOICES,
             "customers": customer_options,
+            "per_options": allowed_per,  # use this in template instead of ".split()"
         },
 
         # Totals
@@ -288,6 +316,7 @@ def milling_list(request):
             "initial": aggregates["total_initial"] or 0,
             "hulled": aggregates["total_hulled"] or 0,
             "cost": aggregates["total_cost"] or Decimal("0.00"),
+            "due": aggregates["total_due"] or Decimal("0.00"),
         },
 
         # Per-status counts
