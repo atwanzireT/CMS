@@ -57,4 +57,3 @@ nosetests.xml
 __pypackages__/
 build/
 dist/
-
