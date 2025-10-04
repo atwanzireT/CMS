@@ -5,17 +5,21 @@
 
 {% block header_actions %}
 <div class="mt-0">
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-64 sm:w-80 mx-auto sm:mx-0 my-2 sm:my-3"></div>
-    <a class="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 rounded-md bg-emerald-600 text-white font-semibold text-center text-xs sm:text-sm shadow hover:bg-emerald-700 transition-colors"
-         href="{% url 'store:purchase_list' %}">
-        <i class="fas fa-coffee mr-2 text-emerald-200 text-xs"></i>
-        Coffee Purchases
-    </a>
-    <a class="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 rounded-md bg-emerald-600 text-white font-semibold text-center text-xs sm:text-sm shadow hover:bg-emerald-700 transition-colors"
-         href="#">
-        <i class="fas fa-file-contract mr-2 text-emerald-200 text-xs"></i>
-        EUDR Doc
-    </a>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-64 sm:w-80 mx-auto sm:mx-0 my-2 sm:my-3"></div>
+  <a class="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 rounded-md bg-emerald-600 text-white font-semibold text-center text-xs sm:text-sm shadow hover:bg-emerald-700 transition-colors"
+    href="{% url 'store:purchase_list' %}">
+    <i class="fas fa-coffee mr-2 text-emerald-200 text-xs"></i>
+    Coffee Purchases
+  </a>
+  <a class="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 rounded-md bg-emerald-600 text-white font-semibold text-center text-xs sm:text-sm shadow hover:bg-emerald-700 transition-colors"
+    href="#">
+    <i class="fas fa-file-contract mr-2 text-emerald-200 text-xs"></i>
+    EUDR Doc
+  </a>
+  <a href="{% url 'store:supplier_list' %}"
+    class="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+    <i class="fas fa-truck mr-2"></i> Manage Suppliers
+  </a>
 </div>
 </div>
 {% endblock %}
@@ -27,26 +31,29 @@
     {# ===== Summary Cards ===== #}
     <section class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 mb-5 sm:mb-7 md:mb-8">
       <!-- Inventory Value -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Inventory Value</p>
-            <p class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mt-1">
+            <p class="text-normal font-semibold text-gray-800 dark:text-white mt-1">
               Ugx {{ total_inventory_value|floatformat:2|intcomma }}
             </p>
           </div>
-          <div class="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-full grid place-items-center">
+          <div
+            class="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-50 dark:bg-emerald-900/30 rounded-full grid place-items-center">
             <i class="fas fa-cubes text-emerald-600 dark:text-emerald-400 text-sm sm:text-base"></i>
           </div>
         </div>
       </div>
 
       <!-- Purchases (30d) -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Purchases (30d)</p>
-            <p class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mt-1">
+            <p class="text-normal font-semibold text-gray-800 dark:text-white mt-1">
               {{ total_purchase_quantity|floatformat:0|intcomma }} kg
             </p>
           </div>
@@ -57,11 +64,13 @@
       </div>
 
       <!-- Sales Revenue (30d) -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sales Revenue (30d)</p>
-            <p class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mt-1">
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sales Revenue (30d)
+            </p>
+            <p class="text-normal font-semibold text-gray-800 dark:text-white mt-1">
               Ugx {{ total_revenue|floatformat:2|intcomma }}
             </p>
           </div>
@@ -72,11 +81,12 @@
       </div>
 
       <!-- Low Stock -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md transition">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Low Stock Items</p>
-            <p class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mt-1">
+            <p class="text-normal font-semibold text-gray-800 dark:text-white mt-1">
               {{ low_stock_items.count|default:0 }}
             </p>
           </div>
@@ -92,12 +102,14 @@
       <!-- Inventory Overview -->
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
         <div class="flex items-center justify-between mb-4 sm:mb-5 md:mb-6">
-          <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Inventory Overview</h3>
+          <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Inventory Overview
+          </h3>
           <span class="text-xs text-gray-500 dark:text-gray-400">{{ inventory_items.count }} items</span>
         </div>
         <div class="space-y-3 sm:space-y-4">
           {% for item in inventory_items %}
-          <div class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          <div
+            class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <div class="mb-2 xs:mb-0">
               <p class="text-sm font-medium text-gray-900 dark:text-white">
                 {{ item.get_coffee_type_display }}
@@ -109,13 +121,16 @@
                 <p class="text-sm text-gray-900 dark:text-white">
                   {{ item.quantity|floatformat:2 }} {{ item.unit }}
                 </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Ush {{ item.average_unit_cost|floatformat:2 }}/unit</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Ush {{ item.average_unit_cost|floatformat:2 }}/unit
+                </p>
               </div>
               <div class="xs:ml-2">
                 {% if item in low_stock_items %}
-                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">Low</span>
+                <span
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">Low</span>
                 {% else %}
-                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200">Good</span>
+                <span
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200">Good</span>
                 {% endif %}
               </div>
             </div>
@@ -128,28 +143,31 @@
 
       <!-- Payment Status -->
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
-        <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-5 md:mb-6">Payment Status</h3>
+        <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-5 md:mb-6">
+          Payment Status</h3>
         <div class="space-y-3 sm:space-y-4">
           {% for status in payment_status %}
-          <div class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          <div
+            class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <div class="flex items-center gap-2 sm:gap-3">
               {% if status.payment_status == 'P' %}
-                <span class="w-3 h-3 bg-yellow-400 rounded-full"></span>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">Pending</span>
+              <span class="w-3 h-3 bg-yellow-400 rounded-full"></span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">Pending</span>
               {% elif status.payment_status == 'D' %}
-                <span class="w-3 h-3 bg-emerald-400 rounded-full"></span>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">Paid</span>
+              <span class="w-3 h-3 bg-emerald-400 rounded-full"></span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">Paid</span>
               {% elif status.payment_status == 'T' %}
-                <span class="w-3 h-3 bg-blue-400 rounded-full"></span>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">Partial</span>
+              <span class="w-3 h-3 bg-blue-400 rounded-full"></span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">Partial</span>
               {% else %}
-                <span class="w-3 h-3 bg-gray-400 rounded-full"></span>
-                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ status.status_label }}</span>
+              <span class="w-3 h-3 bg-gray-400 rounded-full"></span>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{ status.status_label }}</span>
               {% endif %}
             </div>
             <div class="text-right">
               <p class="text-sm text-gray-900 dark:text-white">{{ status.count|default:0|intcomma }} orders</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ status.total_quantity|default:0|floatformat:0|intcomma }} kg</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{
+                status.total_quantity|default:0|floatformat:0|intcomma }} kg</p>
             </div>
           </div>
           {% empty %}
@@ -165,18 +183,22 @@
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
         <div class="flex items-center justify-between mb-4 sm:mb-5 md:mb-6">
           <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Recent Purchases</h3>
-          <a href="#" class="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">View all</a>
+          <a href="#"
+            class="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">View
+            all</a>
         </div>
         <div class="space-y-3 sm:space-y-4">
           {% for purchase in recent_purchases %}
-          <div class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          <div
+            class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <div class="mb-2 xs:mb-0">
               <p class="text-sm font-medium text-gray-900 dark:text-white">{{ purchase.supplier.name }}</p>
               <p class="text-xs text-gray-500 dark:text-gray-400">{{ purchase.purchase_date|date:"M d, Y" }}</p>
             </div>
             <div class="flex items-center justify-between xs:justify-end xs:gap-4 w-full xs:w-auto">
               <p class="text-sm text-gray-900 dark:text-white">{{ purchase.quantity|floatformat:0|intcomma }} kg</p>
-              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+              <span
+                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
                 {{ purchase.get_coffee_type_display }}
               </span>
             </div>
@@ -191,18 +213,23 @@
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5 md:p-6">
         <div class="flex items-center justify-between mb-4 sm:mb-5 md:mb-6">
           <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Recent Sales</h3>
-          <a href="#" class="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">View all</a>
+          <a href="#"
+            class="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">View
+            all</a>
         </div>
         <div class="space-y-3 sm:space-y-4">
           {% for sale in recent_sales %}
-          <div class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          <div
+            class="flex flex-col xs:flex-row xs:items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <div class="mb-2 xs:mb-0">
               <p class="text-sm font-medium text-gray-900 dark:text-white">{{ sale.customer|default:"N/A" }}</p>
               <p class="text-xs text-gray-500 dark:text-gray-400">{{ sale.sale_date|date:"M d, Y" }}</p>
             </div>
             <div class="flex items-center justify-between xs:justify-end xs:gap-4 w-full xs:w-auto">
-              <p class="text-sm font-medium text-emerald-600 dark:text-emerald-400">Ugx {{ sale.total_amount|floatformat:2|intcomma }}</p>
-              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+              <p class="text-sm font-medium text-emerald-600 dark:text-emerald-400">Ugx {{
+                sale.total_amount|floatformat:2|intcomma }}</p>
+              <span
+                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
                 {{ sale.coffee_type_label }}
               </span>
             </div>
@@ -218,13 +245,16 @@
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
       <!-- Coffee Type Analysis (Purchases) -->
       <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 sm:p-5">
-        <h3 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-5">Coffee Type Analysis</h3>
+        <h3 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-5">Coffee Type Analysis
+        </h3>
         <div class="space-y-3 sm:space-y-4">
           {% for item in coffee_type_purchases %}
-          <div class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          <div
+            class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <span class="text-sm font-medium text-gray-900 dark:text-white">{{ item.label }}</span>
             <div class="text-right">
-              <p class="text-sm text-gray-900 dark:text-white">{{ item.total_quantity|default:0|floatformat:0|intcomma }} kg</p>
+              <p class="text-sm text-gray-900 dark:text-white">{{ item.total_quantity|default:0|floatformat:0|intcomma
+                }} kg</p>
               <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.count|default:0|intcomma }} purchases</p>
             </div>
           </div>
@@ -239,11 +269,14 @@
         <h3 class="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-5">Top Suppliers</h3>
         <div class="space-y-3 sm:space-y-4">
           {% for supplier in active_suppliers %}
-          <div class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+          <div
+            class="flex items-center justify-between p-3 sm:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <span class="text-sm font-medium text-gray-900 dark:text-white">{{ supplier.name }}</span>
             <div class="text-right">
-              <p class="text-sm text-gray-900 dark:text-white">{{ supplier.total_quantity|default:0|floatformat:0|intcomma }} kg</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ supplier.purchase_count|default:0|intcomma }} orders</p>
+              <p class="text-sm text-gray-900 dark:text-white">{{
+                supplier.total_quantity|default:0|floatformat:0|intcomma }} kg</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ supplier.purchase_count|default:0|intcomma }}
+                orders</p>
             </div>
           </div>
           {% empty %}
@@ -257,6 +290,8 @@
 </div>
 
 <style>
-  .transition { transition: all .3s ease; }
+  .transition {
+    transition: all .3s ease;
+  }
 </style>
 {% endblock %}
