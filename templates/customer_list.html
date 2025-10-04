@@ -1,181 +1,389 @@
+{# ========================= customer_list.html — frontend-only ========================= #}
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Customers - GreatPearl Coffee{% endblock %}
-{% block page_title %}Customers{% endblock %}
+{% block title %}Customers — GreatPearl Coffee{% endblock %}
+
+{% block page_title %}
+  <span class="inline-flex items-center gap-2">
+    <i class="fa-solid fa-users text-emerald-600"></i>
+    Customers
+  </span>
+{% endblock %}
 
 {% block header_actions %}
-<button onclick="toggleCustomerForm()"
-        class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+<div class="flex flex-wrap items-center gap-2 w-full">
+  <button type="button" onclick="window.cust.toggleForm()"
+          class="inline-flex items-center px-3 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700">
     <i class="fas fa-plus mr-2"></i> Add Customer
-</button>
+  </button>
+
+  <button type="button" id="custExportCsv"
+          class="inline-flex items-center px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50
+                 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+    <i class="fa-solid fa-file-csv mr-2"></i> Export CSV (filtered)
+  </button>
+
+  <button type="button"
+          class="inline-flex items-center px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50
+                 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+          onclick="location.reload()">
+    <i class="fas fa-sync-alt mr-2"></i> Refresh
+  </button>
+
+  <div class="relative ml-auto w-full sm:w-72">
+    <input id="custQuickSearch" type="search" placeholder="Quick search…"
+           class="w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+           aria-label="Search customers">
+    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
+  </div>
+</div>
 {% endblock %}
 
 {% block content %}
-<div class="rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8 bg-white dark:bg-gray-900 dark:border-gray-800">
-    <!-- Customer Table -->
+<div class="space-y-4">
+
+  {# Flash Messages #}
+  {% if messages %}
+  <div role="status" aria-live="polite" class="space-y-2">
+    {% for message in messages %}
+      {% with tag=message.tags %}
+      <div class="p-3 rounded-lg border flex items-start gap-3
+                  {% if tag == 'success' %} bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-900/40
+                  {% elif tag == 'error' or tag == 'danger' %} bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-900/40
+                  {% elif tag == 'warning' %} bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-200 dark:border-yellow-900/40
+                  {% else %} bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/40 dark:text-gray-100 dark:border-gray-800 {% endif %}">
+        <i class="fa-regular {% if tag == 'success' %}fa-circle-check{% elif tag == 'error' or tag == 'danger' %}fa-circle-xmark{% elif tag == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %} mt-0.5"></i>
+        <span class="flex-1">{{ message }}</span>
+        <button class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" onclick="this.closest('div').remove()">Dismiss</button>
+      </div>
+      {% endwith %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# Filters (client-side only) #}
+  <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <form class="grid gap-3 md:grid-cols-4" onsubmit="return false;">
+      <input id="f_cust_id"    type="text" placeholder="Customer ID…" class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+      <input id="f_cust_name"  type="text" placeholder="Name…"        class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+      <input id="f_cust_phone" type="text" placeholder="Phone…"       class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-gray-600 dark:text-gray-300">Page size</label>
+        <select id="custPageSize" class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+          <option>10</option><option selected>20</option><option>50</option><option>100</option><option value="999999">All</option>
+        </select>
+      </div>
+      <div class="md:col-span-4 flex items-center gap-2">
+        <button id="custClearFilters" class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Clear</button>
+        <div class="text-xs text-gray-500 ml-auto">Tip: click column headers to sort ↑/↓</div>
+      </div>
+    </form>
+  </div>
+
+  {# Table #}
+  <div class="rounded-xl shadow-sm border border-gray-200 overflow-hidden bg-white dark:bg-gray-900 dark:border-gray-800">
     <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-            <thead class="bg-gray-50 dark:bg-gray-800/60">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">ID</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Phone</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Created At</th>
-                    <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-                {% for customer in customers %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {{ customer.id }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                        {{ customer.name }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                        {{ customer.phone }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
-                        {{ customer.created_at|date:"M d, Y" }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onclick="editCustomer('{{ customer.id }}', '{{ customer.name|escapejs }}', '{{ customer.phone|escapejs }}')"
-                                class="text-primary-600 hover:text-primary-900 px-3 py-1 rounded-md hover:bg-primary-50 transition-colors dark:hover:bg-primary-900/20">
-                            <i class="fas fa-edit mr-1"></i> Edit
-                        </button>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="px-6 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                        No customers found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800" id="custTable">
+        <thead class="bg-gray-50 dark:bg-gray-800/60">
+          <tr>
+            <th scope="col" data-type="string" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              <button type="button" class="cust-sort-btn inline-flex items-center gap-1 select-none"><span>ID</span><span class="cust-caret text-gray-400">↕</span></button>
+            </th>
+            <th scope="col" data-type="string" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              <button type="button" class="cust-sort-btn inline-flex items-center gap-1 select-none"><span>Name</span><span class="cust-caret text-gray-400">↕</span></button>
+            </th>
+            <th scope="col" data-type="string" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              <button type="button" class="cust-sort-btn inline-flex items-center gap-1 select-none"><span>Phone</span><span class="cust-caret text-gray-400">↕</span></button>
+            </th>
+            <th scope="col" data-type="number" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+              <button type="button" class="cust-sort-btn inline-flex items-center gap-1 select-none"><span>Created</span><span class="cust-caret text-gray-400">↕</span></button>
+            </th>
+            <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="custTBody" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+          {% for customer in page_obj.object_list %}
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+              data-id="{{ customer.id|escape }}"
+              data-name="{{ customer.name|escape }}"
+              data-phone="{{ customer.phone|default_if_none:''|escape }}"
+              data-created="{{ customer.created_at|date:'U' }}">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ customer.id }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">{{ customer.name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
+              <span class="inline-flex items-center gap-2">
+                <span>{{ customer.phone|default:"—" }}</span>
+                {% if customer.phone %}
+                <button type="button" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800" title="Copy phone" onclick="navigator.clipboard.writeText('{{ customer.phone }}')">
+                  <i class="fa-regular fa-copy text-gray-400"></i>
+                </button>
+                {% endif %}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300" data-sort-value="{{ customer.created_at|date:'U' }}">{{ customer.created_at|date:"M d, Y" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="inline-flex gap-2">
+                <a href="{% url 'milling:customer_detail' customer.id %}"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+                  <i class="fa-solid fa-up-right-from-square"></i><span>Open</span>
+                </a>
+                <button type="button"
+                        onclick="window.cust.edit('{{ customer.id }}','{{ customer.name|escapejs }}','{{ customer.phone|default_if_none:''|escapejs }}')"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+                  <i class="fas fa-edit"></i><span>Edit</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="px-6 py-12 text-center text-gray-400 dark:text-gray-500">No customers</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+
+    {# Client-side pager #}
+    <div class="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+      <div class="text-sm text-gray-600 dark:text-gray-300">
+        <span id="custShowing">Showing 0–0 of 0</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="custPrev" class="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Previous</button>
+        <span id="custPageLabel" class="px-3 py-1 text-sm text-gray-700 dark:text-gray-200">Page 1 / 1</span>
+        <button id="custNext" class="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Next</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Modal Overlay -->
-<div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden transition-opacity duration-300"></div>
+{# Modal Overlay #}
+<div id="custOverlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
 
-<!-- Customer Modal -->
-<div id="customerModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg w-full max-w-md mx-4 transform transition-all duration-300 scale-95 opacity-0 border border-gray-200 dark:border-gray-800">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100" id="formTitle">Add New Customer</h2>
-                <button onclick="toggleCustomerForm()" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
+{# Customer Modal #}
+<div id="custModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div role="dialog" aria-modal="true" aria-labelledby="custFormTitle"
+       class="w-full max-w-md rounded-2xl bg-white dark:bg-gray-900 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 transform transition-all duration-200 scale-95 opacity-0 border border-gray-200 dark:border-gray-800">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="custFormTitle" class="text-xl font-semibold text-gray-900 dark:text-gray-100">Add New Customer</h2>
+        <button type="button" onclick="window.cust.toggleForm()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" aria-label="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
 
-            <form method="post" id="customerForm">
-                {% csrf_token %}
-                <input type="hidden" name="customer_id" id="customer_id" value="">
-
-                <div class="space-y-4">
-                    <!-- Name Field -->
-                    <div>
-                        <label for="id_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-                        <input type="text" name="name" id="id_name"
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500
-                                      bg-white text-gray-900
-                                      dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:placeholder-gray-400"
-                               required>
-                        {% if form.name.errors %}
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.name.errors }}</p>
-                        {% endif %}
-                    </div>
-
-                    <!-- Phone Field -->
-                    <div>
-                        <label for="id_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
-                        <input type="text" name="phone" id="id_phone"
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-primary-500 focus:border-primary-500
-                                      bg-white text-gray-900
-                                      dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:placeholder-gray-400"
-                               required>
-                        {% if form.phone.errors %}
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.phone.errors }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" onclick="toggleCustomerForm()"
-                            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors
-                                   dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
-                        Save Customer
-                    </button>
-                </div>
-            </form>
+      <form method="post" id="custForm">
+        {% csrf_token %}
+        <input type="hidden" name="customer_id" id="cust_id" value="">
+        <div class="space-y-4">
+          <div>
+            <label for="cust_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+            <input type="text" name="name" id="cust_name" required
+                   class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700">
+          </div>
+          <div>
+            <label for="cust_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+            <input type="text" name="phone" id="cust_phone" inputmode="tel" placeholder="+256XXXXXXXXX"
+                   class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700">
+          </div>
         </div>
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" onclick="window.cust.toggleForm()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700">Save</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 
 <script>
-    // Toggle customer form visibility
-    function toggleCustomerForm() {
-        const overlay = document.getElementById('modalOverlay');
-        const modal = document.getElementById('customerModal');
-        const modalContent = modal.querySelector('div');
+(() => {
+  // ===== Modal helpers =====
+  const overlay = document.getElementById('custOverlay');
+  const modal = document.getElementById('custModal');
+  const card = modal.querySelector('div');
 
-        if (modal.classList.contains('hidden')) {
-            // Show modal
-            overlay.classList.remove('hidden');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modalContent.classList.remove('scale-95', 'opacity-0');
-                modalContent.classList.add('scale-100', 'opacity-100');
-            }, 10);
+  function showModal() {
+    overlay.classList.remove('hidden');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    requestAnimationFrame(() => {
+      card.classList.remove('scale-95','opacity-0');
+      card.classList.add('scale-100','opacity-100');
+    });
+  }
+  function hideModal() {
+    card.classList.remove('scale-100','opacity-100');
+    card.classList.add('scale-95','opacity-0');
+    setTimeout(() => {
+      modal.classList.add('hidden'); modal.classList.remove('flex');
+      overlay.classList.add('hidden');
+    }, 180);
+  }
+  window.cust = {
+    toggleForm() {
+      if (modal.classList.contains('hidden')) {
+        document.getElementById('custForm').reset();
+        document.getElementById('cust_id').value = '';
+        document.getElementById('custFormTitle').textContent = 'Add New Customer';
+        showModal();
+        setTimeout(() => document.getElementById('cust_name')?.focus(), 50);
+      } else { hideModal(); }
+    },
+    edit(id, name, phone) {
+      document.getElementById('cust_id').value = id || '';
+      document.getElementById('cust_name').value = name || '';
+      document.getElementById('cust_phone').value = phone || '';
+      document.getElementById('custFormTitle').textContent = 'Edit Customer';
+      showModal();
+      setTimeout(() => document.getElementById('cust_name')?.focus(), 50);
+    },
+  };
+  overlay.addEventListener('click', hideModal);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) hideModal(); });
 
-            // Reset form when showing
-            document.getElementById('customerForm').reset();
-            document.getElementById('customer_id').value = '';
-            document.getElementById('formTitle').textContent = 'Add New Customer';
-        } else {
-            // Hide modal
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                overlay.classList.add('hidden');
-            }, 300);
-        }
-    }
+  // ===== Client-side table engine =====
+  const tbody = document.getElementById('custTBody');
+  const rowsAll = [...tbody.querySelectorAll('tr')];
 
-    // Edit customer function
-    function editCustomer(id, name, phone) {
-        // Fill the form with customer data
-        document.getElementById('customer_id').value = id;
-        document.getElementById('id_name').value = name;
-        document.getElementById('id_phone').value = phone;
+  const quick  = document.getElementById('custQuickSearch');
+  const fId    = document.getElementById('f_cust_id');
+  const fName  = document.getElementById('f_cust_name');
+  const fPhone = document.getElementById('f_cust_phone');
+  const clearBtn = document.getElementById('custClearFilters');
 
-        // Update form title
-        document.getElementById('formTitle').textContent = 'Edit Customer';
+  const pageSizeSel = document.getElementById('custPageSize');
+  const btnPrev   = document.getElementById('custPrev');
+  const btnNext   = document.getElementById('custNext');
+  const showingEl = document.getElementById('custShowing');
+  const pageLabel = document.getElementById('custPageLabel');
 
-        // Show the modal
-        const overlay = document.getElementById('modalOverlay');
-        const modal = document.getElementById('customerModal');
-        const modalContent = modal.querySelector('div');
+  const thead = document.querySelector('#custTable thead');
+  const headers = [...thead.querySelectorAll('th')];
+  const sortBtns = thead.querySelectorAll('.cust-sort-btn');
+  const sortState = { index: null, dir: 'asc', type: 'string' };
 
-        overlay.classList.remove('hidden');
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modalContent.classList.remove('scale-95', 'opacity-0');
-            modalContent.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
+  function norm(s){ return (s||'').toString().toLowerCase().trim(); }
 
-    // Close modal when clicking outside
-    document.getElementById('modalOverlay').addEventListener('click', toggleCustomerForm);
+  function passFilters(row){
+    const id = row.dataset.id || '';
+    const name = row.dataset.name || '';
+    const phone = row.dataset.phone || '';
+    const q = norm(quick.value);
+    if (q && !(id.toLowerCase().includes(q) || name.toLowerCase().includes(q) || phone.toLowerCase().includes(q))) return false;
+
+    const idq = norm(fId.value), nameq = norm(fName.value), phoneq = norm(fPhone.value);
+    if (idq && !id.toLowerCase().includes(idq)) return false;
+    if (nameq && !name.toLowerCase().includes(nameq)) return false;
+    if (phoneq && !phone.toLowerCase().includes(phoneq)) return false;
+    return true;
+  }
+
+  function getKey(row, idx, type){
+    const cell = row.children[idx];
+    if (!cell) return '';
+    const raw = cell.getAttribute('data-sort-value') ?? cell.textContent.trim();
+    return (type === 'number') ? Number(raw) : raw.toLowerCase();
+  }
+
+  function sortRows(rows){
+    if (sortState.index == null) return rows;
+    const {index, dir, type} = sortState;
+    return [...rows].sort((a,b)=>{
+      const ak = getKey(a,index,type), bk = getKey(b,index,type);
+      if (ak < bk) return dir==='asc' ? -1 : 1;
+      if (ak > bk) return dir==='asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+  function setHeaderState(idx){
+    headers.forEach((th,i)=>{
+      th.setAttribute('aria-sort', i===idx ? (sortState.dir==='asc'?'ascending':'descending') : 'none');
+      const caret = th.querySelector('.cust-caret');
+      if (caret) caret.textContent = i===idx ? (sortState.dir==='asc'?'↑':'↓') : '↕';
+    });
+  }
+
+  const state = { page: 1 };
+
+  function apply(){
+    const filtered = rowsAll.filter(passFilters);
+    const sorted   = sortRows(filtered);
+
+    const pageSize = parseInt(pageSizeSel.value || '20', 10);
+    const total    = sorted.length;
+    const pages    = Math.max(1, Math.ceil(total / pageSize));
+    if (state.page > pages) state.page = pages;
+
+    const start = (state.page - 1) * pageSize;
+    const end   = Math.min(total, start + pageSize);
+    const slice = sorted.slice(start, end);
+
+    const frag = document.createDocumentFragment();
+    slice.forEach(r => frag.appendChild(r));
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
+
+    showingEl.textContent = total ? `Showing ${start+1}–${end} of ${total}` : 'Showing 0–0 of 0';
+    pageLabel.textContent = `Page ${state.page} / ${pages}`;
+    btnPrev.disabled = state.page <= 1;
+    btnNext.disabled = state.page >= pages;
+  }
+
+  // events: filters + quick search
+  [quick, fId, fName, fPhone].forEach(el => el.addEventListener('input', ()=>{ state.page=1; apply(); }));
+  clearBtn.addEventListener('click', (e)=>{ e.preventDefault(); quick.value=''; fId.value=''; fName.value=''; fPhone.value=''; state.page=1; apply(); });
+
+  // events: pager
+  pageSizeSel.addEventListener('change', ()=>{ state.page=1; apply(); });
+  btnPrev.addEventListener('click', ()=>{ state.page = Math.max(1, state.page-1); apply(); });
+  btnNext.addEventListener('click', ()=>{ state.page += 1; apply(); });
+
+  // events: sorting
+  sortBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const th = btn.closest('th');
+      const idx = headers.indexOf(th);
+      const type = th.getAttribute('data-type') || 'string';
+      if (sortState.index === idx) sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+      else { sortState.index = idx; sortState.dir='asc'; sortState.type = type; }
+      setHeaderState(idx);
+      state.page = 1; apply();
+    });
+    btn.setAttribute('tabindex','0');
+    btn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); btn.click(); }});
+  });
+  headers.forEach(th=>th.setAttribute('aria-sort','none'));
+
+  // CSV export (filtered + sorted, all pages)
+  document.getElementById('custExportCsv').addEventListener('click', ()=>{
+    const filtered = rowsAll.filter(passFilters);
+    const sorted = sortRows(filtered);
+    const rows = [['Customer ID','Name','Phone','Created']];
+    sorted.forEach(tr=>{
+      const tds = tr.querySelectorAll('td');
+      rows.push([
+        tds[0].innerText.trim(),
+        tds[1].innerText.trim(),
+        tds[2].innerText.replace(/\n/g,' ').trim(),
+        tds[3].innerText.trim()
+      ]);
+    });
+    const csv = rows.map(r => r.map(cell=>{
+      const c = String(cell).replace(/"/g,'""');
+      return `"${c}"`;
+    }).join(',')).join('\n');
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'customers_filtered.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  // initial render
+  apply();
+})();
 </script>
 {% endblock %}

@@ -4,10 +4,10 @@ from .views import (
     customer_list,
     customer_detail,
     customer_search,
-    milling_list,
     milling_detail,
     create_milling_payment,
 )
+from .milling_list_view import milling_list
 from .dashboard_view import milling_dashboard
 
 app_name = "milling"

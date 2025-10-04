@@ -10,7 +10,7 @@ class Customer(models.Model):
     """Customer model with auto-generated ID"""
     id = models.CharField(primary_key=True, max_length=50, editable=False)
     name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=20, unique=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
