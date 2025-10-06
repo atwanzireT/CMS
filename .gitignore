@@ -52,3 +52,5 @@ htmlcov/
 *.bak
 *.swp
 *.tmp
+__pycache__/
+*.pyc
