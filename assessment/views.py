@@ -153,7 +153,7 @@ def assessment_create(request, pk: int):
                         coffee_purchase.save(update_fields=["assessment_needed"])
 
                 messages.success(request, "Quality assessment saved successfully!")
-                return redirect("assessment_list")
+                return redirect("assessment:assessment_list")
 
             except Exception as e:
                 # Log full traceback server-side
