@@ -15,7 +15,7 @@
       <a href="{% url 'assessment:assessment_list' %}" class="inline-flex items-center rounded-lg border border-gray-300 dark:border-green-700/30 bg-transparent px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-green-100/80 hover:bg-gray-50 dark:hover:bg-green-900/20 transition-all duration-200">
         <i class="fas fa-arrow-left mr-2"></i> Back to list
       </a>
-      <button form="assessmentForm" type="submit" class="inline-flex items-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 shadow-md hover:shadow-lg">
+      <button id="submitBtn" form="assessmentForm" type="submit" class="inline-flex items-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all duration-200 shadow-md hover:shadow-lg">
         <i class="fas fa-check-circle mr-2"></i> Submit Assessment
       </button>
     </div>
@@ -30,7 +30,7 @@
     </div>
   {% endif %}
 
-  <form id="assessmentForm" action="" method="post" class="grid grid-cols-1 gap-8 lg:grid-cols-12">
+  <form id="assessmentForm" action="" method="post" class="grid grid-cols-1 gap-8 lg:grid-cols-12" novalidate>
     {% csrf_token %}
 
     <!-- LEFT: Inputs -->
@@ -45,68 +45,87 @@
 
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <!-- Reference Price -->
-          <div class="relative">
+          <div class="relative" data-field="ref_price">
             <label for="{{ form.ref_price.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Reference Price (UGX)</label>
             <div class="relative">
               {{ form.ref_price }}
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <span class="text-gray-500 dark:text-green-200/50">UGX</span>
-              </div>
             </div>
             {% if form.ref_price.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.ref_price.errors.0 }}</p>{% endif %}
+            <p class="mt-1 text-xs text-gray-500 dark:text-green-300/80">Baseline before bonuses/penalties.</p>
           </div>
 
           <!-- Moisture -->
-          <div>
-            <label for="{{ form.moisture_content.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Moisture Content (%)</label>
+          <div data-field="moisture">
+            <label for="{{ form.moisture_content.id_for_label }}" class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-green-200/80">
+              <span>Moisture Content (%)</span>
+              <span class="rounded-full bg-gray-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-green-200/80">Typical ≤ 16.5%</span>
+            </label>
             {{ form.moisture_content }}
             {% if form.moisture_content.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.moisture_content.errors.0 }}</p>{% endif %}
           </div>
 
           <!-- Group 1 Defects -->
-          <div>
-            <label for="{{ form.group1_defects.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Group 1 Defects (%)</label>
+          <div data-field="g1">
+            <label for="{{ form.group1_defects.id_for_label }}" class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-green-200/80">
+              <span>Group 1 Defects (%)</span>
+              <span class="rounded-full bg-gray-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-green-200/80">Typical ≤ 10%</span>
+            </label>
             {{ form.group1_defects }}
             {% if form.group1_defects.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.group1_defects.errors.0 }}</p>{% endif %}
           </div>
 
           <!-- Group 2 Defects -->
-          <div>
-            <label for="{{ form.group2_defects.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Group 2 Defects (%)</label>
+          <div data-field="g2">
+            <label for="{{ form.group2_defects.id_for_label }}" class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-green-200/80">
+              <span>Group 2 Defects (%)</span>
+              <span class="rounded-full bg-gray-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-green-200/80">Typical ≤ 25%</span>
+            </label>
             {{ form.group2_defects }}
             {% if form.group2_defects.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.group2_defects.errors.0 }}</p>{% endif %}
           </div>
 
           <!-- Below Screen 12 -->
-          <div>
-            <label for="{{ form.below_screen_12.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Below Screen 12 (%)</label>
+          <div data-field="lt12">
+            <label for="{{ form.below_screen_12.id_for_label }}" class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-green-200/80">
+              <span>Below Screen 12 (%)</span>
+              <span class="rounded-full bg-gray-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-green-200/80">Typical ≤ 3%</span>
+            </label>
             {{ form.below_screen_12 }}
             {% if form.below_screen_12.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.below_screen_12.errors.0 }}</p>{% endif %}
           </div>
 
           <!-- Pods -->
-          <div>
-            <label for="{{ form.pods.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Pods (%)</label>
+          <div data-field="pods">
+            <label for="{{ form.pods.id_for_label }}" class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-green-200/80">
+              <span>Pods (%)</span>
+              <span class="rounded-full bg-gray-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-green-200/80">Typical ≤ 6%</span>
+            </label>
             {{ form.pods }}
             {% if form.pods.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.pods.errors.0 }}</p>{% endif %}
           </div>
 
           <!-- Husks -->
-          <div>
-            <label for="{{ form.husks.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Husks (%)</label>
+          <div data-field="husks">
+            <label for="{{ form.husks.id_for_label }}" class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-green-200/80">
+              <span>Husks (%)</span>
+              <span class="rounded-full bg-gray-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-green-200/80">Typical ≤ 6%</span>
+            </label>
             {{ form.husks }}
             {% if form.husks.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.husks.errors.0 }}</p>{% endif %}
           </div>
 
           <!-- Stones -->
-          <div>
-            <label for="{{ form.stones.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Stones (%)</label>
+          <div data-field="stones">
+            <label for="{{ form.stones.id_for_label }}" class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-green-200/80">
+              <span>Stones (%)</span>
+              <span class="rounded-full bg-gray-100 dark:bg-green-900/30 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-green-200/80">Typical ≤ 6%</span>
+            </label>
             {{ form.stones }}
             {% if form.stones.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.stones.errors.0 }}</p>{% endif %}
           </div>
 
           <!-- Offered Price -->
-          <div class="sm:col-span-2">
+          <div class="sm:col-span-2" data-field="offered_price">
             <label for="{{ form.offered_price.id_for_label }}" class="mb-2 block text-sm font-medium text-gray-700 dark:text-green-200/80">Offered Price</label>
             {{ form.offered_price }}
             {% if form.offered_price.errors %}<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.offered_price.errors.0 }}</p>{% endif %}
@@ -115,10 +134,18 @@
 
         <!-- Submit for small screens -->
         <div class="mt-8 border-t border-gray-100 dark:border-green-700/20 pt-6 sm:hidden">
-          <button type="submit" class="w-full rounded-lg bg-green-700 px-4 py-3 text-sm font-medium text-white hover:bg-green-800 transition-all duration-200 shadow-md hover:shadow-lg">
+          <button id="submitBtnSm" type="submit" class="w-full rounded-lg bg-green-700 px-4 py-3 text-sm font-medium text-white hover:bg-green-800 transition-all duration-200 shadow-md hover:shadow-lg">
             <i class="fas fa-check-circle mr-2"></i> Submit Assessment
           </button>
         </div>
+      </div>
+
+      <!-- Typical Targets (informational) -->
+      <div class="mt-6 rounded-2xl border border-gray-200 dark:border-green-700/30 bg-white dark:bg-gray-900 p-4 shadow">
+        <h4 class="mb-2 text-sm font-semibold text-gray-800 dark:text-green-100">Typical Targets (informational)</h4>
+        <p class="text-xs text-gray-600 dark:text-green-200/70">
+          Moisture ≤ 16.5 • G1 ≤ 10 • G2 ≤ 25 • &lt;Screen12 ≤ 3 • Pods ≤ 6 • Husks ≤ 6 • Stones ≤ 6 • (Pods+Husks+Stones) ≤ 6
+        </p>
       </div>
     </section>
 
@@ -128,7 +155,7 @@
         <!-- Decision Card -->
         <div id="decisionCard" class="rounded-2xl border border-gray-200 dark:border-green-700/30 bg-white dark:bg-gray-900 p-6 shadow-lg">
           <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-green-50">Quality Decision</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-green-50">Quality Decision (info only)</h3>
             <span id="decisionBadge" class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide shadow-sm"></span>
           </div>
           <ul id="reasonsList" class="list-inside list-disc space-y-1 text-sm text-gray-700 dark:text-green-100/80"></ul>
@@ -188,11 +215,12 @@
   </form>
 </div>
 
-<!-- Note: Removed Tailwind @apply (not supported via CDN). Form field styling comes from server-side classes. -->
-
-<!-- Live Calculation Script (1 dp everywhere) -->
+<!-- Live Calculation (no client-side validation; info-only) -->
 <script>
   (function () {
+    // Typical targets (for info display and badges only)
+    const LIMITS = { moisture:16.5, g1:10, g2:25, lt12:3, pods:6, husks:6, stones:6, phs:6 };
+
     const q = (id) => document.getElementById(id);
     const asNum = (v) => {
       if (v === null || v === undefined) return null;
@@ -201,6 +229,7 @@
     };
     const clamp1 = (x) => Math.round(x * 10) / 10;
     const fmt1 = (x) => (x == null ? "—" : clamp1(x).toFixed(1));
+    const z = (x) => (x == null ? 0 : x);
 
     // Map Django-generated IDs (default: id_<fieldname>)
     const ids = {
@@ -213,7 +242,7 @@
       pods: "id_pods",
       husks: "id_husks",
       stones: "id_stones",
-      fm: "id_fm"  // disabled display field added in the form
+      fm: "id_fm"
     };
 
     const inputs = {};
@@ -227,10 +256,18 @@
     const finalPriceEl = q("finalPrice");
     const refPriceEl = q("previewRefPrice");
     const bonusNote = q("bonusNote");
-    const decisionCard = q("decisionCard");
+
+    // Do NOT set min/max/required; keep inputs free
+    // Only helpful numeric hints
+    ["moisture","g1","g2","lt12","pods","husks","stones","ref_price","discretion","offered_price"].forEach(k=>{
+      const el = inputs[k];
+      if (el) {
+        el.setAttribute("inputmode","decimal");
+        el.setAttribute("step","any");
+      }
+    });
 
     const val = (el) => (el ? asNum(el.value) : null);
-    const z = (x) => (x == null ? 0 : x);
 
     function compute() {
       const RP = val(inputs.ref_price);
@@ -244,10 +281,10 @@
       const B16 = val(inputs.husks);
       const B18 = val(inputs.stones);
 
-      // Display reference price (integer)
+      // Reference price preview
       refPriceEl.textContent = (RP != null) ? Math.round(RP).toLocaleString('en-UG') : "—";
 
-      // Clean outturn D8
+      // Clean outturn
       let cleanOutturn = null;
       if ([B6,B8,B14,B16,B18,B10].every(x => x != null)) {
         cleanOutturn = 100 - z(B6) - z(B8) - z(B14) - z(B16) - z(B18) - z(B10);
@@ -256,92 +293,76 @@
         cleanOutturnEl.textContent = "—";
       }
 
-      // Pods + Husks + Stones
+      // P+H+S (also mirror into fm if present)
       let phsSum = null;
       if ([B14,B16,B18].every(x => x != null)) {
         phsSum = z(B14) + z(B16) + z(B18);
         phsSumEl.textContent = fmt1(phsSum) + " %";
-        // Reflect to disabled FM input if present
         if (inputs.fm) inputs.fm.value = clamp1(phsSum).toFixed(1);
       } else {
         phsSumEl.textContent = "—";
       }
 
-      // Derived Outturn B12
+      // Derived Outturn (aligned with modal: NO hard reject on <12 > 3)
       let B12 = null;
       if ([B4,B6,B8,B14,B16,B18,B10].every(x => x != null)) {
-        if (z(B10) > 3) {
-          B12 = null; // reject path
-          derivedOutturnEl.textContent = "— (reject: <12% > 3)";
-        } else {
-          let outturn = 100
-                        - Math.max(0, z(B4) - 14)
-                        - Math.max(0, z(B6) - 4)
-                        - Math.max(0, z(B8) - 10)
-                        - z(B14)
-                        - z(B16)
-                        - z(B18)
-                        - Math.max(0, z(B10) - 1);
-          B12 = clamp1(outturn);
-          derivedOutturnEl.textContent = fmt1(B12) + " %";
-        }
+        let outturn = 100
+                      - Math.max(0, z(B4) - 14)
+                      - Math.max(0, z(B6) - 4)
+                      - Math.max(0, z(B8) - 10)
+                      - z(B14)
+                      - z(B16)
+                      - z(B18)
+                      - Math.max(0, z(B10) - 1);
+        B12 = clamp1(outturn);
+        derivedOutturnEl.textContent = fmt1(B12) + " %";
       } else {
         derivedOutturnEl.textContent = "—";
       }
 
-      // Rejection logic
+      // Informational “decision”
+      reasonsList.innerHTML = "";
+      const missing = [B4,B6,B8,B14,B16,B18,B10].some(x => x == null);
       const reasons = [];
-      if ([B4,B6,B8,B14,B16,B18,B10].some(x => x == null)) {
-        reasons.push("Missing required values for quality decision");
-      } else {
-        if (z(B10) > 3) reasons.push(`Below screen 12 ${fmt1(B10)}% > 3%`);
-        if (z(B4)  > 16.5) reasons.push(`Moisture ${fmt1(B4)}% > 16.5%`);
-        if (z(B6)  > 10)   reasons.push(`Group 1 defects ${fmt1(B6)}% > 10%`);
-        if (z(B8)  > 25)   reasons.push(`Group 2 defects ${fmt1(B8)}% > 25%`);
-        if (z(B14) > 6)    reasons.push(`Pods ${fmt1(B14)}% > 6%`);
-        if (z(B16) > 6)    reasons.push(`Husks ${fmt1(B16)}% > 6%`);
-        if (z(B18) > 6)    reasons.push(`Stones ${fmt1(B18)}% > 6%`);
-        if (phsSum != null && phsSum > 6) reasons.push(`Pods+Husks+Stones ${fmt1(phsSum)}% > 6%`);
+      if (!missing) {
+        if (z(B4)  > LIMITS.moisture) reasons.push(`Moisture ${fmt1(B4)}% > ${LIMITS.moisture}%`);
+        if (z(B6)  > LIMITS.g1)       reasons.push(`Group 1 defects ${fmt1(B6)}% > ${LIMITS.g1}%`);
+        if (z(B8)  > LIMITS.g2)       reasons.push(`Group 2 defects ${fmt1(B8)}% > ${LIMITS.g2}%`);
+        if (z(B10) > LIMITS.lt12)     reasons.push(`Below screen 12 ${fmt1(B10)}% > ${LIMITS.lt12}%`);
+        if (z(B14) > LIMITS.pods)     reasons.push(`Pods ${fmt1(B14)}% > ${LIMITS.pods}%`);
+        if (z(B16) > LIMITS.husks)    reasons.push(`Husks ${fmt1(B16)}% > ${LIMITS.husks}%`);
+        if (z(B18) > LIMITS.stones)   reasons.push(`Stones ${fmt1(B18)}% > ${LIMITS.stones}%`);
+        if (phsSum != null && phsSum > LIMITS.phs) reasons.push(`Pods+Husks+Stones ${fmt1(phsSum)}% > ${LIMITS.phs}%`);
       }
 
-      // Render decision
-      reasonsList.innerHTML = "";
-      const missingOnly = reasons.length && reasons[0] === "Missing required values for quality decision";
-      const rejected = !missingOnly && reasons.length > 0;
-
-      if (missingOnly) {
+      if (missing) {
         decisionBadge.textContent = "Pending";
         decisionBadge.className = "inline-flex items-center rounded-full bg-gray-100 dark:bg-green-900/30 text-gray-800 dark:text-green-200 px-3 py-1 text-xs font-medium uppercase tracking-wide shadow-sm";
-        decisionCard.className = "rounded-2xl border border-gray-200 dark:border-green-700/30 bg-white dark:bg-gray-900 p-6 shadow-lg";
-        reasonsList.innerHTML = "<li class='text-gray-600 dark:text-green-200/70'>Provide all required inputs to see decision.</li>";
-      } else if (rejected) {
-        decisionBadge.textContent = "Rejected";
-        decisionBadge.className = "inline-flex items-center rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 px-3 py-1 text-xs font-medium uppercase tracking-wide shadow-sm";
-        decisionCard.className = "rounded-2xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 p-6 shadow-lg";
+        const li = document.createElement('li');
+        li.textContent = "Provide inputs to see thresholds and price preview.";
+        li.className = 'text-gray-600 dark:text-green-200/70';
+        reasonsList.appendChild(li);
+      } else if (reasons.length) {
+        decisionBadge.textContent = "Above targets";
+        decisionBadge.className = "inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 px-3 py-1 text-xs font-medium uppercase tracking-wide shadow-sm";
         reasons.forEach(r => {
           const li = document.createElement('li');
           li.textContent = r;
-          li.className = 'text-red-700 dark:text-red-300';
+          li.className = 'text-amber-700 dark:text-amber-300';
           reasonsList.appendChild(li);
         });
-      } else if ([B4,B6,B8,B14,B16,B18,B10].every(x => x != null)) {
-        decisionBadge.textContent = "Accepted";
+      } else {
+        decisionBadge.textContent = "Within targets";
         decisionBadge.className = "inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-3 py-1 text-xs font-medium uppercase tracking-wide shadow-sm";
-        decisionCard.className = "rounded-2xl border border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-900/20 p-6 shadow-lg";
         const li = document.createElement('li');
-        li.textContent = "Meets acceptance thresholds.";
+        li.textContent = "Metrics are within typical targets (info only).";
         li.className = 'text-green-700 dark:text-green-300';
         reasonsList.appendChild(li);
-      } else {
-        decisionBadge.textContent = "Pending";
-        decisionBadge.className = "inline-flex items-center rounded-full bg-gray-100 dark:bg-green-900/30 text-gray-800 dark:text-green-200 px-3 py-1 text-xs font-medium uppercase tracking-wide shadow-sm";
-        decisionCard.className = "rounded-2xl border border-gray-200 dark:border-green-700/30 bg-white dark:bg-gray-900 p-6 shadow-lg";
       }
 
-      // Final price
+      // Price preview (no blocking)
       bonusNote.classList.add("hidden");
-      if (rejected || RP == null || B12 == null ||
-          [B4,B6,B8,B10,B14,B16,B18].some(x => x == null)) {
+      if (RP == null || B12 == null || [B4,B6,B8,B10,B14,B16,B18].some(x => x == null)) {
         finalPriceEl.textContent = "—";
         return;
       }
@@ -356,49 +377,44 @@
         bonusNote.classList.remove("hidden");
       }
 
-      // Moisture penalty
+      // Moisture penalty (>=14)
       if (z(B4) >= 14) price -= (z(B4) - 14) * RP * 0.002;
 
-      // G1 penalty
+      // G1 penalty over 4
       if (z(B6) > 4) price -= (z(B6) - 4) * 50;
 
-      // G2 penalty
+      // G2 penalty over 10
       if (z(B8) > 10) price -= (z(B8) - 10) * 20;
 
-      // B12 adjustments
+      // Derived outturn adjustments
       if (B12 < 78) price -= (78 - B12) * 50;
       else if (B12 > 82) price += (B12 - 82) * 50;
 
-      // Deduct pods/husks/stones
+      // Pods/Husks/Stones deductions
       price -= z(B14) * 10 + z(B16) * 10 + z(B18) * 20;
 
-      // Below 12 > 1 penalty
+      // Below screen 12 > 1 penalty
       if (z(B10) > 1) price -= (z(B10) - 1) * 30;
 
       // Discretion
       if (!Number.isNaN(disc) && disc != null) price += disc;
 
       price = Math.max(0, clamp1(price));
-      // show 1 dp to match model (final_price has decimal_places=1)
       finalPriceEl.textContent = price.toLocaleString('en-UG', {minimumFractionDigits: 1, maximumFractionDigits: 1});
     }
 
-    // Debounce helper
+    // Debounced live compute
     let t = null;
-    function schedule() {
-      if (t) cancelAnimationFrame(t);
-      t = requestAnimationFrame(compute);
-    }
+    function schedule(){ if(t) cancelAnimationFrame(t); t = requestAnimationFrame(compute); }
 
-    // Attach listeners
+    // Attach listeners (no submit guards)
     Object.values(inputs).forEach(el => {
       if (!el) return;
-      el.setAttribute("inputmode", "decimal");
       el.addEventListener("input", schedule);
       el.addEventListener("change", schedule);
     });
 
-    // Initial compute after DOM paints
+    // Initial compute after paint (fields stay empty)
     window.addEventListener("DOMContentLoaded", () => requestAnimationFrame(compute));
   })();
 </script>

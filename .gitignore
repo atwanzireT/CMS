@@ -1,56 +1,60 @@
-# Python
+# ============================
+# Python & Django .gitignore
+# ============================
+
+# Byte-compiled / cache files
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.pyc
+*$py.class
 
-# Migrations
+# Django database files
+*.db
+*.sqlite3
+
+# Migrations (keep only __init__.py)
 **/migrations/
 !**/migrations/__init__.py
-**/migrations/*.py
-**/migrations/*.pyc
 
 # Virtual environments
-/venv
-/env
-/.env
+venv/
+env/
+ENV/
+.venv/
+.virtualenv/
+*.env
+*.venv
 
-# IDEs and editors
-/.idea
+# Environment variables & secrets
+.env
+*.env.local
+.env.*
+secrets.json
+
+# Logs
+*.log
+
+# Static & media (collected/generated files)
+staticfiles/
+static/
+media/
+
+# IDEs & editors
 .vscode/
-*.sublime-workspace
-*.sublime-project
-
-# OS files
+.idea/
+*.swp
 .DS_Store
 Thumbs.db
 
-# Logs and databases
-*.log
-*.sqlite3
-*.db
+# Coverage & test
+htmlcov/
+.tox/
+.coverage
+coverage.xml
+.pytest_cache/
+nosetests.xml
 
-# Build
+# Others
+__pypackages__/
 build/
 dist/
-*.egg-info/
 
-# Node
-node_modules/
-
-# Environment variables
-.env
-.env.*
-
-# Coverage
-htmlcov/
-.coverage
-.tox/
-
-# Misc
-*.bak
-*.swp
-*.tmp
-__pycache__/
-*.pyc
