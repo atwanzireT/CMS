@@ -187,6 +187,7 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 # --- CSRF / session cookie config ---
 # Exact origins you’ll POST from (scheme + host [+ port])
 CSRF_TRUSTED_ORIGINS = [
+    "http://143.198.106.185",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "https://system.greatpearlcoffee.com",
