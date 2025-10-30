@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto p-4 sm:p-6 print:p-0 text-gray-900 dark:text-gray-100">
+  <!-- Header -->
+  <header class="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm print:border-0 print:shadow-none print:rounded-none">
+    <div class="p-5 border-b border-gray-200 dark:border-gray-700 print:border-0">
+      <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+              {{ report.get_coffee_type_display }}
+            </span>
+            <span class="text-xs text-gray-600 dark:text-gray-300">Entered by {{ report.input_by }}</span>
+          </div>
+
+          <h1 class="mt-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+            {{ report.date|date:"F j, Y" }} — Daily Store Report
+          </h1>
+
+          {% if report.sold_to %}
+          <p class="text-sm text-gray-700 dark:text-gray-200 mt-1">
+            Buyer: <span class="font-medium">{{ report.sold_to }}</span>
+          </p>
+          {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2 md:sticky md:top-4 print:hidden">
+          <a href="{% url 'general_reports' %}"
+             class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-gray-700 dark:text-gray-200"
+             aria-label="Back to general reports">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back
+          </a>
+
+          {% if report.attachment %}
+          <a href="{{ report.attachment.url }}" target="_blank"
+             class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition"
+             aria-label="View attachment">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 7h2a2 2 0 012 2v9a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2h2m6-3H9v6h6V4z"/>
+            </svg>
+            Attachment
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI Grid -->
+    <section aria-labelledby="kpi-heading" class="p-5">
+      <h2 id="kpi-heading" class="sr-only">Key figures</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Bought -->
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-gray-600 dark:text-gray-300">Kg Bought</p>
+            <svg class="w-4 h-4 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+          </div>
+          <p class="mt-1 text-2xl font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+            {{ report.kilograms_bought|floatformat:2 }}
+          </p>
+        </div>
+
+        <!-- Sold -->
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-gray-600 dark:text-gray-300">Kg Sold</p>
+            <svg class="w-4 h-4 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5"/>
+            </svg>
+          </div>
+          <p class="mt-1 text-2xl font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+            {{ report.kilograms_sold|floatformat:2 }}
+          </p>
+          {% if report.number_of_bags_sold %}
+          <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+            Bags Sold: <span class="tabular-nums font-medium">{{ report.number_of_bags_sold }}</span>
+          </p>
+          {% endif %}
+        </div>
+
+        <!-- Left in store -->
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-gray-600 dark:text-gray-300">Kg Left in Store</p>
+            <svg class="w-4 h-4 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <p class="mt-1 text-2xl font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+            {{ report.kilograms_left_in_store|floatformat:2 }}
+          </p>
+          <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+            Bags Left: <span class="tabular-nums font-medium">{{ report.bags_left_in_store }}</span>
+          </p>
+        </div>
+
+        <!-- Prices & cash -->
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-gray-600 dark:text-gray-300">Avg Price (UGX/kg)</p>
+            <svg class="w-4 h-4 text-gray-500 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01"/>
+            </svg>
+          </div>
+          <p class="mt-1 text-2xl font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+            {{ report.average_buying_price_ugx_per_kg|floatformat:0 }}
+          </p>
+          <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+            Advances: <span class="tabular-nums font-medium">{{ report.advances_given_ugx|floatformat:0 }}</span>
+          </p>
+        </div>
+      </div>
+
+      {% if report.kilograms_unbought_in_store %}
+      <div class="mt-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4">
+        <p class="text-sm text-amber-800 dark:text-amber-200">
+          <span class="font-semibold">Unbought Inventory:</span>
+          <span class="tabular-nums font-medium">{{ report.kilograms_unbought_in_store|floatformat:2 }}</span> kg present but not yet bought/processed.
+        </p>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Details & Comments -->
+    <section aria-labelledby="details-heading" class="px-5 pb-6">
+      <h2 id="details-heading" class="sr-only">Report details</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Meta</h3>
+          <dl class="divide-y divide-gray-200/60 dark:divide-gray-700/60">
+            <div class="py-2 flex items-start justify-between gap-4">
+              <dt class="text-gray-600 dark:text-gray-300">Created</dt>
+              <dd class="text-right tabular-nums text-gray-900 dark:text-gray-100">{{ report.created_at|date:"M j, Y, g:i a" }}</dd>
+            </div>
+            <div class="py-2 flex items-start justify-between gap-4">
+              <dt class="text-gray-600 dark:text-gray-300">Updated</dt>
+              <dd class="text-right tabular-nums text-gray-900 dark:text-gray-100">{{ report.updated_at|date:"M j, Y, g:i a" }}</dd>
+            </div>
+            <div class="py-2 flex items-start justify-between gap-4">
+              <dt class="text-gray-600 dark:text-gray-300">Coffee Type</dt>
+              <dd class="text-right text-gray-900 dark:text-gray-100">{{ report.get_coffee_type_display }}</dd>
+            </div>
+            {% if report.sold_to %}
+            <div class="py-2 flex items-start justify-between gap-4">
+              <dt class="text-gray-600 dark:text-gray-300">Buyer</dt>
+              <dd class="text-right text-gray-900 dark:text-gray-100">{{ report.sold_to }}</dd>
+            </div>
+            {% endif %}
+
+            {% if report.attachment %}
+            <div class="py-2 flex items-start justify-between gap-4">
+              <dt class="text-gray-600 dark:text-gray-300">Attachment</dt>
+              <dd class="text-right">
+                <a href="{{ report.attachment.url }}" target="_blank"
+                   class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 hover:underline">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 7h2a2 2 0 012 2v9a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2h2m6-3H9v6h6V4z"/>
+                  </svg>
+                  View file
+                </a>
+              </dd>
+            </div>
+            {% endif %}
+          </dl>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">Comments</h3>
+          {% if report.comments %}
+            <p class="text-sm leading-6 text-gray-800 dark:text-gray-100 whitespace-pre-line">{{ report.comments }}</p>
+          {% else %}
+            <p class="text-sm text-gray-600 dark:text-gray-300">No comments.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Footer actions -->
+      <div class="mt-6 flex flex-wrap items-center gap-2 print:hidden">
+        <a href="{% url 'general_reports' %}"
+           class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition text-gray-700 dark:text-gray-200">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Back to list
+        </a>
+
+        {% if report.attachment %}
+        <a href="{{ report.attachment.url }}" target="_blank"
+           class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 7h2a2 2 0 012 2v9a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2h2m6-3H9v6h6V4z"/>
+          </svg>
+          View Attachment
+        </a>
+        {% endif %}
+      </div>
+    </section>
+  </header>
+</div>
+
+<!-- Dark mode safety override (prevents accidental black text) -->
+<style>
+  .dark .text-black { color: rgb(243 244 246) !important; }       /* gray-100 */
+  .dark .stroke-black { stroke: rgb(243 244 246) !important; }
+  .dark .fill-black { fill: rgb(243 244 246) !important; }
+</style>
+
+{% endblock %}

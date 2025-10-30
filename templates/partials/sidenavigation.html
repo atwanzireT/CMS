@@ -1,0 +1,285 @@
+<nav aria-label="Sidebar" class="px-2 py-4">
+  <ul class="space-y-1">
+    <!-- MAIN -->
+    {% url 'store:home' as store_home_url %}
+    <li>
+      <div class="mm-section mb-4" x-show="!sidebarCollapsed" x-cloak>
+        <span class="mm-title text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-3">Main</span>
+      </div>
+      <a href="{{ store_home_url }}" 
+         class="navlink group transition-all duration-200 {% if request.path == store_home_url %}is-active{% endif %}" 
+         :class="sidebarCollapsed ? 'justify-center px-3' : 'px-3'"
+         :title="sidebarCollapsed ? 'Dashboard' : ''">
+        <i class="fa-solid fa-chart-pie w-5 text-slate-600 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+        <span class="font-medium transition-all duration-200" 
+              :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+              x-show="!sidebarCollapsed" 
+              x-cloak>Dashboard</span>
+      </a>
+    </li>
+
+    <!-- OPERATIONS -->
+    {% if can_access.milling or can_access.assessment or can_access.store or can_access.finance %}
+    <li x-data="{ open: {% if 'milling' in request.path or 'assessment' in request.path or 'store' in request.path or 'finance' in request.path %}true{% else %}false{% endif %} }" 
+        class="mm-group">
+      <button @click="open = !open" 
+              class="navlink group w-full text-left transition-all duration-200" 
+              :class="sidebarCollapsed ? 'justify-center px-3' : 'px-3'">
+        <i class="fa-solid fa-industry w-5 text-slate-600 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+        <span class="font-medium transition-all duration-200" 
+              :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+              x-show="!sidebarCollapsed" 
+              x-cloak>Operations</span>
+        <i class="fa-solid fa-chevron-down text-xs ml-auto transition-transform duration-200" 
+           :class="open ? 'rotate-180' : ''"
+           x-show="!sidebarCollapsed" 
+           x-cloak></i>
+      </button>
+      <ul x-show="open" x-collapse class="ml-2 mt-1 space-y-1 border-l border-slate-200 dark:border-slate-700 pl-3">
+        {% if can_access.milling %}
+        <li>
+          <a href="{% url 'milling:milling_list' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Milling' : ''">
+            <i class="fa-solid fa-gears w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Milling</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if can_access.assessment %}
+        <li>
+          <a href="{% url 'assessment:assessment_list' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Quality Control' : ''">
+            <i class="fa-solid fa-clipboard-check w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Quality Control</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if can_access.store %}
+        <li>
+          <a href="{% url 'store:purchase_list' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Store Management' : ''">
+            <i class="fa-solid fa-store w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Store Management</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if can_access.finance %}
+        <li>
+          <a href="{% url 'finance:finance_dashboard' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Finance' : ''">
+            <i class="fa-solid fa-coins w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Finance</span>
+            <span class="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-slate-800 dark:text-primary-300 font-medium"
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Secure</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </li>
+    {% endif %}
+
+    <!-- MANAGEMENT -->
+    {% if can_access.sales or can_access.expenses or can_access.inventory %}
+    <li x-data="{ open: {% if 'sales' in request.path or 'expenses' in request.path or 'inventory' in request.path %}true{% else %}false{% endif %} }" 
+        class="mm-group">
+      <button @click="open = !open" 
+              class="navlink group w-full text-left transition-all duration-200" 
+              :class="sidebarCollapsed ? 'justify-center px-3' : 'px-3'">
+        <i class="fa-solid fa-sitemap w-5 text-slate-600 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+        <span class="font-medium transition-all duration-200" 
+              :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+              x-show="!sidebarCollapsed" 
+              x-cloak>Management</span>
+        <i class="fa-solid fa-chevron-down text-xs ml-auto transition-transform duration-200" 
+           :class="open ? 'rotate-180' : ''"
+           x-show="!sidebarCollapsed" 
+           x-cloak></i>
+      </button>
+      <ul x-show="open" x-collapse class="ml-2 mt-1 space-y-1 border-l border-slate-200 dark:border-slate-700 pl-3">
+        {% if can_access.sales %}
+        <li>
+          <a href="{% url 'sales:sales_list_create' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Sales' : ''">
+            <i class="fa-solid fa-receipt w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Sales</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if can_access.expenses %}
+        <li>
+          <a href="{% url 'expenses:expense_list' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Expenses' : ''">
+            <i class="fa-solid fa-wallet w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Expenses</span>
+          </a>
+        </li>
+        {% endif %}
+
+        {% if can_access.inventory %}
+        <li>
+          <a href="{% url 'inventory:inventory_home' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Inventory' : ''">
+            <i class="fa-solid fa-warehouse w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Inventory</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </li>
+    {% endif %}
+
+    <!-- SYSTEM -->
+    {% if can_access.reports or request.user.is_superuser %}
+    <li x-data="{ open: {% if 'reports' in request.path or 'accounts' in request.path and request.user.is_superuser %}true{% else %}false{% endif %} }" 
+        class="mm-group">
+      <button @click="open = !open" 
+              class="navlink group w-full text-left transition-all duration-200" 
+              :class="sidebarCollapsed ? 'justify-center px-3' : 'px-3'">
+        <i class="fa-solid fa-sliders w-5 text-slate-600 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+        <span class="font-medium transition-all duration-200" 
+              :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+              x-show="!sidebarCollapsed" 
+              x-cloak>System</span>
+        <i class="fa-solid fa-chevron-down text-xs ml-auto transition-transform duration-200" 
+           :class="open ? 'rotate-180' : ''"
+           x-show="!sidebarCollapsed" 
+           x-cloak></i>
+      </button>
+      <ul x-show="open" x-collapse class="ml-2 mt-1 space-y-1 border-l border-slate-200 dark:border-slate-700 pl-3">
+        {% if can_access.reports %}
+        <li>
+          <a href="{% url 'reports:general_reports' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Reports' : ''">
+            <i class="fa-solid fa-chart-line w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Reports</span>
+          </a>
+        </li>
+        {% endif %}
+        {% if request.user.is_superuser %}
+        <li>
+          <a href="{% url 'accounts:it_department' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'IT Department' : ''">
+            <i class="fa-solid fa-desktop w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>IT Department</span>
+            <span class="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-slate-800 dark:text-amber-300 font-medium"
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Admin</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </li>
+    {% endif %}
+
+    <!-- ACCOUNT -->
+    <li x-data="{ open: false }" class="mm-group">
+      <button @click="open = !open" 
+              class="navlink group w-full text-left transition-all duration-200" 
+              :class="sidebarCollapsed ? 'justify-center px-3' : 'px-3'">
+        <i class="fa-solid fa-user-gear w-5 text-slate-600 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+        <span class="font-medium transition-all duration-200" 
+              :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+              x-show="!sidebarCollapsed" 
+              x-cloak>Account</span>
+        <i class="fa-solid fa-chevron-down text-xs ml-auto transition-transform duration-200" 
+           :class="open ? 'rotate-180' : ''"
+           x-show="!sidebarCollapsed" 
+           x-cloak></i>
+      </button>
+      <ul x-show="open" x-collapse class="ml-2 mt-1 space-y-1 border-l border-slate-200 dark:border-slate-700 pl-3">
+        {% if request.user.is_authenticated %}
+        <li>
+          <a href="{% url 'accounts:user_edit' request.user.id %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'My Profile' : ''">
+            <i class="fa-solid fa-user w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>My Profile</span>
+          </a>
+        </li>
+        <li>
+          <form method="post" action="{% url 'accounts:logout' %}" class="w-full">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="navlink group w-full text-left transition-all duration-200 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20" 
+                    :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+                    :title="sidebarCollapsed ? 'Logout' : ''">
+              <i class="fa-solid fa-right-from-bracket w-4"></i>
+              <span class="transition-all duration-200" 
+                    :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                    x-show="!sidebarCollapsed" 
+                    x-cloak>Logout</span>
+            </button>
+          </form>
+        </li>
+        {% else %}
+        <li>
+          <a href="{% url 'accounts:login' %}" 
+             class="navlink group transition-all duration-200" 
+             :class="sidebarCollapsed ? 'justify-center px-2' : 'px-3'"
+             :title="sidebarCollapsed ? 'Login' : ''">
+            <i class="fa-solid fa-right-to-bracket w-4 text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400"></i>
+            <span class="transition-all duration-200" 
+                  :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'" 
+                  x-show="!sidebarCollapsed" 
+                  x-cloak>Login</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </li>
+  </ul>
+</nav>

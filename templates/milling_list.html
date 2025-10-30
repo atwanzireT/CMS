@@ -1,0 +1,667 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Milling Processes - GreatPearl Coffee{% endblock %}
+
+{% block page_title %}
+  <span class="inline-flex items-center gap-2">
+    <i class="fa-solid fa-gears text-emerald-600"></i>
+    Milling Processes
+  </span>
+{% endblock %}
+
+{% block header_actions %}
+<div class="flex flex-wrap items-center gap-2">
+  <button type="button"
+          onclick="toggleMillingForm()"
+          class="inline-flex items-center px-3 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+    <i class="fas fa-plus mr-2"></i> New Milling
+  </button>
+
+  <a href="{% url 'milling:customer_list' %}"
+     class="inline-flex items-center px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <i class="fas fa-users mr-2"></i> Customers
+  </a>
+
+  <a href="{% url 'milling:milling_dashboard' %}"
+     class="inline-flex items-center px-3 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500">
+    <i class="fas fa-chart-pie mr-2"></i> Dashboard
+  </a>
+
+  <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}export=csv"
+     class="inline-flex items-center px-3 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
+     title="Export current results to CSV">
+    <i class="fa-solid fa-file-csv mr-2"></i> Export CSV
+  </a>
+
+  <button type="button"
+          class="inline-flex items-center px-3 py-2 rounded-lg bg-slate-200 text-slate-800 text-sm font-medium hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          title="Refresh page"
+          onclick="location.reload()">
+    <i class="fas fa-sync-alt mr-2"></i> Refresh
+  </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  {# ---------------------- Flash Messages ---------------------- #}
+  {% if messages %}
+  <div role="status" aria-live="polite" class="space-y-2">
+    {% for message in messages %}
+      {% with tag=message.tags %}
+      <div data-toast
+           class="p-4 rounded-lg border flex items-start gap-3
+           {% if tag == 'success' %} bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-200 dark:border-green-900/40
+           {% elif tag == 'error' or tag == 'danger' %} bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-900/40
+           {% elif tag == 'warning' %} bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-200 dark:border-yellow-900/40
+           {% else %} bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-900/40 dark:text-gray-100 dark:border-gray-800 {% endif %}">
+        {% if tag == 'success' %}
+          <i class="fas fa-check-circle text-green-600 dark:text-green-400 mt-0.5"></i>
+        {% elif tag == 'error' or tag == 'danger' %}
+          <i class="fas fa-exclamation-circle text-red-600 dark:text-red-400 mt-0.5"></i>
+        {% elif tag == 'warning' %}
+          <i class="fas fa-triangle-exclamation text-yellow-600 dark:text-yellow-400 mt-0.5"></i>
+        {% else %}
+          <i class="fas fa-info-circle text-gray-500 dark:text-gray-300 mt-0.5"></i>
+        {% endif %}
+        <span class="flex-1">{{ message }}</span>
+        <button class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                onclick="this.closest('[data-toast]').remove()">Dismiss</button>
+      </div>
+      {% endwith %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ---------------------- KPIs (simple) ---------------------- #}
+  <div class="grid gap-3 sm:grid-cols-3">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Rows</div>
+      <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ totals.count|intcomma }}</div>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Hulled (kg)</div>
+      <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ totals.hulled|intcomma }}</div>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Total Cost</div>
+      <div class="mt-1 text-2xl font-semibold text-emerald-600 dark:text-emerald-300">UGX {{ totals.cost|default_if_none:'0'|floatformat:2|intcomma }}</div>
+    </div>
+  </div>
+
+  {# ---------------------- Filters ---------------------- #}
+  <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <form method="get" class="grid gap-3 md:grid-cols-4">
+      <input type="text" name="q" value="{{ filters.q }}" placeholder="Search name / phone / customer ID / notes"
+             class="md:col-span-2 w-full rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+
+      <select name="status"
+              class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+        <option value="">All statuses</option>
+        {% for code,label in choices.statuses %}
+          <option value="{{ code }}" {% if filters.status == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="customer"
+              class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+        <option value="">All customers</option>
+        {% for c in choices.customers %}
+          <option value="{{ c.id }}" {% if filters.customer == c.id %}selected{% endif %}>
+            {{ c.name }} ({{ c.phone }})
+          </option>
+        {% endfor %}
+      </select>
+
+      <input type="date" name="date_from" value="{{ filters.date_from }}"
+             class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+      <input type="date" name="date_to" value="{{ filters.date_to }}"
+             class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+
+      <div class="md:col-span-4 flex flex-wrap items-center gap-2">
+        <button class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+          Apply
+        </button>
+        <a href="{% url 'milling:milling_list' %}"
+           class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+          Reset
+        </a>
+
+        <button type="button" id="toggle-adv"
+                class="ml-auto inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                       dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+          <i class="fa-solid fa-sliders"></i> Advanced
+        </button>
+      </div>
+
+      {# Advanced filters (hidden by default) #}
+      <div id="adv-filters" class="md:col-span-4 grid gap-3 sm:grid-cols-3 hidden">
+        <input type="number" name="min_initial" step="1" placeholder="Min initial (kg)" value="{{ filters.min_initial }}"
+               class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+        <input type="number" name="max_initial" step="1" placeholder="Max initial (kg)" value="{{ filters.max_initial }}"
+               class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+        <div class="hidden sm:block"></div>
+
+        <input type="number" name="min_hulled" step="1" placeholder="Min hulled (kg)" value="{{ filters.min_hulled }}"
+               class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+        <input type="number" name="max_hulled" step="1" placeholder="Max hulled (kg)" value="{{ filters.max_hulled }}"
+               class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+        <div class="hidden sm:block"></div>
+
+        <input type="number" name="min_rate" step="0.01" placeholder="Min rate (UGX/kg)" value="{{ filters.min_rate }}"
+               class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+        <input type="number" name="max_rate" step="0.01" placeholder="Max rate (UGX/kg)" value="{{ filters.max_rate }}"
+               class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+      </div>
+    </form>
+  </div>
+
+  {# ---------------------- Table ---------------------- #}
+  <div class="rounded-xl shadow-sm border border-gray-200 overflow-hidden bg-white dark:bg-gray-900 dark:border-gray-800">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+        <thead class="bg-gray-50 dark:bg-gray-800/60">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Customer</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Initial (kg)</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Hulled (kg)</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Rate (UGX/kg)</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Cost</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Due</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Acct. Bal</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+          {% for process in page_obj.object_list %}
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+                  <i class="fas fa-user text-emerald-700 dark:text-emerald-300"></i>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ process.customer.name }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ process.customer.phone }}</div>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">{{ process.initial_weight|default:"-"|intcomma }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">{{ process.hulled_weight|default:"-"|intcomma }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">UGX {{ process.milling_rate|default_if_none:'0'|floatformat:2|intcomma }}</td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+              UGX {{ process.calc_cost|default_if_none:'0'|floatformat:2|intcomma }}
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              {% with due=process.milling_due %}
+              <span class="font-medium {% if due and due > 0 %}text-rose-600 dark:text-rose-300{% else %}text-emerald-700 dark:text-emerald-300{% endif %}">
+                UGX {{ due|default_if_none:'0'|floatformat:2|intcomma }}
+              </span>
+              {% endwith %}
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+              UGX {{ process.account_balance|default_if_none:'0'|floatformat:2|intcomma }}
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                {% if process.status == 'C' %} bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200
+                {% elif process.status == 'P' %} bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200
+                {% else %} bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200 {% endif %}">
+                {{ process.get_status_display }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">{{ process.created_at|date:"M d, Y" }}</td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="flex justify-end gap-2">
+                {% with row_pk=process.pk %}
+                <button type="button"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border
+                         {% if row_pk %}
+                           border-emerald-200 text-emerald-700 hover:bg-emerald-50
+                           dark:border-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/20
+                         {% else %}
+                           border-gray-200 text-gray-400 cursor-not-allowed
+                           dark:border-gray-700 dark:text-gray-500
+                         {% endif %}"
+                        title="Record payment"
+                        data-open-milling-payment
+                        {% if row_pk %}
+                          data-action="{% url 'milling:create_milling_payment' row_pk %}"
+                        {% else %}
+                          data-action="#" disabled
+                        {% endif %}
+                        data-customer="{{ process.customer.name|escape }}"
+                        data-customer-id="{{ process.customer.id }}"
+                        data-balance="{{ process.customer.account.balance|default_if_none:0|default:0 }}"
+                        data-cost="{{ process.calc_cost|default_if_none:'0.00' }}">
+                  <i class="fa-solid fa-credit-card"></i>
+                  <span>Pay</span>
+                </button>
+                {% endwith %}
+
+                <a href="{% url 'milling:milling_detail' process.pk %}"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors
+                          dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                   title="View details">
+                  <i class="fa-solid fa-up-right-from-square"></i>
+                  <span>View</span>
+                </a>
+
+                <button type="button"
+                        onclick="editMillingProcess('{{ process.pk }}','{{ process.customer.id }}','{{ process.hulled_weight|default:'' }}','{{ process.milling_rate|default:'' }}','{{ process.notes|escapejs }}')"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors
+                               dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                        title="Edit">
+                  <i class="fas fa-edit"></i>
+                  <span>Edit</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="10" class="px-6 py-12 text-center">
+              <div class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+                <i class="fas fa-coffee text-4xl mb-3"></i>
+                <p class="text-sm font-medium mb-4">No milling processes found</p>
+                <button type="button"
+                        onclick="toggleMillingForm()"
+                        class="text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 dark:hover:text-emerald-200 text-sm font-medium inline-flex items-center">
+                  <i class="fas fa-plus mr-1"></i> Add milling process
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ---------------------- Pagination ---------------------- #}
+    <div class="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+      <div class="text-sm text-gray-600 dark:text-gray-300">
+        {% if page_obj.paginator.count %}
+          Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count|intcomma }}
+        {% else %} No results {% endif %}
+      </div>
+      <div class="flex space-x-2">
+        {% if page_obj.has_previous %}
+          <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}"
+             class="px-3 py-1 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 text-gray-700
+                    dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Previous</a>
+        {% else %}
+          <span class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-400 dark:border-gray-800 dark:text-gray-600">Previous</span>
+        {% endif %}
+
+        <span class="px-3 py-1 text-sm text-gray-700 dark:text-gray-200">
+          Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+          <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}"
+             class="px-3 py-1 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 text-gray-700
+                    dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Next</a>
+        {% else %}
+          <span class="px-3 py-1 border border-gray-200 rounded-lg text-sm text-gray-400 dark:border-gray-800 dark:text-gray-600">Next</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ---------------------- Create/Edit Milling Modal ---------------------- #}
+<div id="modalOverlay" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
+
+<div id="millingModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div class="w-full max-w-xl rounded-2xl bg-white dark:bg-gray-900 shadow-2xl ring-1 ring-black/5 dark:ring-white/10
+              transform transition-all duration-200 scale-95 opacity-0">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="formTitle" class="text-xl font-semibold text-gray-900 dark:text-gray-100">New Milling Process</h2>
+        <button type="button" onclick="toggleMillingForm()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form method="post" id="millingForm">
+        {% csrf_token %}
+        <input type="hidden" name="milling_id" id="milling_id" value="">
+
+        <div class="space-y-4">
+          <div>
+            <label for="id_customer" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer*</label>
+            {{ form.customer }}
+            {% if form.customer.errors %}
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.customer.errors }}</p>
+            {% endif %}
+          </div>
+
+          <div class="grid sm:grid-cols-3 gap-3">
+            <div>
+              <label for="id_hulled_weight" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hulled (kg)*</label>
+              {{ form.hulled_weight }}
+            </div>
+            <div>
+              <label for="id_milling_rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rate (UGX/kg)*</label>
+              {{ form.milling_rate }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Computed Cost</label>
+              <input id="computed_cost" type="text" readonly
+                     class="w-full px-3 py-2 rounded-lg border bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-right font-mono text-sm"
+                     value="UGX 0.00">
+            </div>
+          </div>
+
+          <div>
+            <label for="id_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+            {{ form.notes }}
+          </div>
+
+          <div class="mt-2 border border-gray-200 dark:border-gray-800 rounded-xl p-3">
+            <label for="paid_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Paid Amount (UGX)</label>
+            <input name="paid_amount" id="paid_amount" type="number" step="0.01" min="0" inputmode="decimal" autocomplete="off"
+                   class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 text-right font-mono"
+                   placeholder="0.00">
+            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Leave blank if no payment was made at creation time.</p>
+
+            <div class="mt-3 flex items-center gap-2">
+              <label class="inline-flex items-center gap-2 text-sm">
+                <input type="checkbox" name="auto_debit_cost" id="auto_debit_cost"
+                       class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                <span>Auto-debit milling cost (hulled × rate)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button"
+                  onclick="toggleMillingForm()"
+                  class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors
+                         dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# ---------------------- Milling Payment Modal ---------------------- #}
+<div id="millingPaymentModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-gray-900 shadow-2xl ring-1 ring-black/5 dark:ring-white/10">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+          <i class="fa-solid fa-credit-card"></i>
+        </span>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Record Milling Payment</h3>
+      </div>
+      <button type="button" id="closeMillingPaymentBtn"
+              class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300"
+              aria-label="Close">✕</button>
+    </div>
+
+    <div class="px-6 pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-3">
+        <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Customer</div>
+        <div class="mt-1 font-medium text-gray-900 dark:text-white truncate" id="mpCustomer">—</div>
+      </div>
+      <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-3">
+        <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Balance</div>
+        <div class="mt-1 font-semibold text-emerald-700 dark:text-emerald-300" id="mpBalance">UGX —</div>
+      </div>
+      <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-3">
+        <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Milling Cost</div>
+        <div class="mt-1 font-medium text-gray-900 dark:text-white" id="mpCost">UGX —</div>
+      </div>
+    </div>
+
+    <form id="millingPaymentForm" class="px-6 pb-6 pt-5 space-y-5" method="post" action="#">
+      {% csrf_token %}
+      <input type="hidden" id="mpAction" value="#">
+      <input type="hidden" id="mpCustomerId" value="">
+
+      <div>
+        <label for="mpAmount" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Amount <span class="text-gray-400 font-normal">(UGX)</span></label>
+        <div class="relative mt-1">
+          <input id="mpAmount" name="amount" type="number" step="0.1" min="0.1" required
+                 inputmode="decimal" autocomplete="off"
+                 class="p-3 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"/>
+          <div class="absolute inset-y-0 right-0 flex items-center gap-1 pr-1">
+            <button type="button" id="mpFillMax"
+                    class="px-2.5 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                    data-max="0">Max</button>
+            <button type="button" id="mpClear"
+                    class="px-2.5 py-1.5 text-xs rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+              Clear
+            </button>
+          </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Use <span class="font-mono">Max</span> to pay the full current balance.</p>
+      </div>
+
+      <div>
+        <label for="mpReference" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Reference <span class="text-gray-400 font-normal">(optional)</span></label>
+        <input id="mpReference" name="reference" type="text"
+               class="mt-1 p-3 w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+               placeholder="e.g. CASH-{{ request.user.pk }}">
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button type="button" id="mpCancel"
+                class="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+          Cancel
+        </button>
+        <button type="submit" id="mpSubmit"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white font-medium shadow hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition">
+          <svg class="h-4 w-4 animate-spin hidden" id="mpSpinner" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+          <span>Save Payment</span>
+        </button>
+      </div>
+
+      <p id="mpError" class="hidden text-sm text-red-600 dark:text-red-400 mt-1"></p>
+    </form>
+  </div>
+</div>
+
+{# ---------------------- Scripts ---------------------- #}
+<script>
+  // ---------- Helpers ----------
+  function fmtUGX(n, digits=2){
+    if (isNaN(n)) return 'UGX 0.00';
+    return 'UGX ' + Number(n).toLocaleString('en-US', {minimumFractionDigits: digits, maximumFractionDigits: digits});
+  }
+  function getCookie(name) {
+    const value = `; ${document.cookie}`; const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // ---------- Advanced Filters Toggle ----------
+  (function(){
+    const btn = document.getElementById('toggle-adv');
+    const adv = document.getElementById('adv-filters');
+    if(btn && adv){
+      btn.addEventListener('click', () => adv.classList.toggle('hidden'));
+    }
+  })();
+
+  // ---------- Create/Edit Milling Modal ----------
+  const overlay = document.getElementById('modalOverlay');
+  const millingModal = document.getElementById('millingModal');
+  const millingCard = millingModal.querySelector('div > .p-6')?.parentElement ?? millingModal.querySelector('div');
+  const millingForm = document.getElementById('millingForm');
+  const hulledEl = document.getElementById('id_hulled_weight');
+  const rateEl = document.getElementById('id_milling_rate');
+  const costEl = document.getElementById('computed_cost');
+
+  function toggleMillingForm() {
+    const isHidden = millingModal.classList.contains('hidden');
+    if (isHidden) {
+      overlay.classList.remove('hidden');
+      millingModal.classList.remove('hidden'); millingModal.classList.add('flex');
+      setTimeout(() => { millingCard.classList.remove('scale-95','opacity-0'); millingCard.classList.add('scale-100','opacity-100'); }, 10);
+      millingForm.reset(); document.getElementById('milling_id').value = '';
+      document.getElementById('formTitle').textContent = 'New Milling Process';
+      updateComputedCost();
+    } else {
+      millingCard.classList.remove('scale-100','opacity-100'); millingCard.classList.add('scale-95','opacity-0');
+      setTimeout(() => { millingModal.classList.add('hidden'); millingModal.classList.remove('flex'); overlay.classList.add('hidden'); }, 180);
+    }
+  }
+  overlay.addEventListener('click', toggleMillingForm);
+
+  function editMillingProcess(id, customerId, hulledWeight, rate, notes) {
+    toggleMillingForm();
+    document.getElementById('milling_id').value = id || '';
+    document.getElementById('id_customer').value = customerId || '';
+    if (document.getElementById('id_hulled_weight')) document.getElementById('id_hulled_weight').value = hulledWeight || '';
+    if (document.getElementById('id_milling_rate')) document.getElementById('id_milling_rate').value = rate || '';
+    if (document.getElementById('id_notes')) document.getElementById('id_notes').value = notes || '';
+    document.getElementById('formTitle').textContent = 'Edit Milling Process';
+    updateComputedCost();
+  }
+
+  function updateComputedCost(){
+    const h = parseFloat(hulledEl?.value || '0');
+    const r = parseFloat(rateEl?.value || '0');
+    const cost = (isNaN(h) || isNaN(r)) ? 0 : h * r;
+    if (costEl) costEl.value = fmtUGX(cost);
+  }
+  hulledEl?.addEventListener('input', updateComputedCost);
+  rateEl?.addEventListener('input', updateComputedCost);
+  document.getElementById('auto_debit_cost')?.addEventListener('change', updateComputedCost);
+
+  // ---------- Milling Payment Modal ----------
+  const payModal = document.getElementById('millingPaymentModal');
+  const openPayBtns = document.querySelectorAll('[data-open-milling-payment]');
+  const payCloseBtn = document.getElementById('closeMillingPaymentBtn');
+  const payCancelBtn = document.getElementById('mpCancel');
+  const payForm = document.getElementById('millingPaymentForm');
+
+  const mpAction = document.getElementById('mpAction');
+  const mpCustomerId = document.getElementById('mpCustomerId');
+  const mpAmount = document.getElementById('mpAmount');
+  const mpReference = document.getElementById('mpReference');
+  const mpCustomer = document.getElementById('mpCustomer');
+  const mpBalance = document.getElementById('mpBalance');
+  const mpCost = document.getElementById('mpCost');
+  const mpFillMax = document.getElementById('mpFillMax');
+  const mpClear = document.getElementById('mpClear');
+  const mpError = document.getElementById('mpError');
+  const mpSubmit = document.getElementById('mpSubmit');
+  const mpSpinner = document.getElementById('mpSpinner');
+
+  function openPayModal() { payModal.classList.remove('hidden'); payModal.classList.add('flex'); mpError.classList.add('hidden'); mpError.textContent=''; setTimeout(() => mpAmount?.focus(), 50); }
+  function closePayModal() { payModal.classList.add('hidden'); payModal.classList.remove('flex'); }
+
+  const subObs = new MutationObserver(() => { if (mpSubmit.disabled) mpSpinner.classList.remove('hidden'); else mpSpinner.classList.add('hidden'); });
+  subObs.observe(mpSubmit, { attributes: true, attributeFilter: ['disabled'] });
+
+  openPayBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.hasAttribute('disabled')) return;
+      const action = btn.dataset.action; if (!action || action === '#') return;
+
+      const customer = btn.dataset.customer || '—';
+      const customerId = btn.dataset.customerId || '';
+      const balance = parseFloat(btn.dataset.balance || '0');
+      const cost = parseFloat(btn.dataset.cost || '0');
+
+      mpAction.value = action;
+      mpCustomerId.value = customerId;
+      mpCustomer.textContent = customer;
+      mpBalance.textContent = fmtUGX(isNaN(balance)?0:balance);
+      mpCost.textContent = fmtUGX(isNaN(cost)?0:cost);
+      mpFillMax.dataset.max = isNaN(balance) ? '0' : String(balance);
+
+      mpAmount.value = isNaN(cost) ? '0.00' : cost.toFixed(2);
+      openPayModal();
+    });
+  });
+
+  payCloseBtn.addEventListener('click', closePayModal);
+  payCancelBtn.addEventListener('click', closePayModal);
+  payModal.addEventListener('click', (e) => { if (e.target === payModal) closePayModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !payModal.classList.contains('hidden')) closePayModal(); });
+
+  mpFillMax.addEventListener('click', () => {
+    const max = parseFloat(mpFillMax.dataset.max || '0');
+    mpAmount.value = (isNaN(max)?0:max).toFixed(2);
+    mpAmount.focus();
+  });
+  mpClear.addEventListener('click', () => { mpAmount.value = ''; mpAmount.focus(); });
+
+  payForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    mpError.classList.add('hidden'); mpError.textContent = '';
+    mpSubmit.disabled = true;
+
+    try {
+      const action = mpAction.value;
+      const fd = new FormData(payForm);
+      const tokenInput = payForm.querySelector('input[name="csrfmiddlewaretoken"]');
+      if (tokenInput) fd.set('csrfmiddlewaretoken', tokenInput.value);
+
+      const resp = await fetch(action, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': csrftoken, 'Accept': 'application/json' },
+        body: fd
+      });
+
+      if (resp.redirected) { window.location = resp.url; return; }
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || 'Failed to save payment.');
+      }
+
+      const data = await resp.json();
+      if (!data.ok) throw new Error('Failed to save payment.');
+
+      miniToast('Payment recorded successfully.', 'success');
+      closePayModal();
+      setTimeout(() => location.reload(), 600);
+    } catch (err) {
+      mpError.textContent = err.message || 'Something went wrong.';
+      mpError.classList.remove('hidden');
+    } finally {
+      mpSubmit.disabled = false;
+    }
+  });
+
+  function miniToast(message, type='success') {
+    const toast = document.createElement('div');
+    toast.className = [
+      'fixed','bottom-4','right-4','z-[60]','px-4','py-3','rounded-lg','shadow-lg','border',
+      type === 'success'
+        ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-900/40'
+        : 'bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-200 dark:border-red-900/40'
+    ].join(' ');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 2000);
+  }
+</script>
+{% endblock %}

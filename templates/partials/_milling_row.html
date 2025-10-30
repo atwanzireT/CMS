@@ -1,0 +1,80 @@
+{# templates/partials/_milling_row.html #}
+{% with p=process %}
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
+  <td class="px-6 py-4 whitespace-nowrap">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 h-10 w-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+        <i class="fas fa-user text-emerald-700 dark:text-emerald-300"></i>
+      </div>
+      <div class="ml-4">
+        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ p.customer.name }}</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">{{ p.customer.phone }}</div>
+      </div>
+    </div>
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+    {{ p.initial_weight|default:"-" }} kg
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+    {{ p.hulled_weight|default:"-" }} kg
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+    UGX {{ p.milling_rate|default:"-"|floatformat:0|intcomma }}
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+    UGX {{ p.milling_cost|floatformat:0|intcomma }}
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap">
+    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+          {% if p.status == 'C' %} bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200
+          {% elif p.status == 'P' %} bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200
+          {% else %} bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200 {% endif %}">
+      {{ p.get_status_display }}
+    </span>
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+    {{ p.created_at|date:"M d, Y" }}
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-200">
+    {% if p.created_by %}{{ p.created_by.get_full_name|default:p.created_by.username }}{% else %}—{% endif %}
+  </td>
+
+  <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-[220px]">
+    <span title="{{ p.notes }}">{{ p.notes|default:"—"|truncatechars:40 }}</span>
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+    <div class="flex justify-end gap-2">
+      <button type="button"
+              class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors
+                     dark:border-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/20"
+              title="Record payment"
+              data-open-milling-payment
+              data-action="{% url 'milling:create_milling_payment' p.id %}"
+              data-customer="{{ p.customer.name|escape }}"
+              data-customer-id="{{ p.customer.id }}"
+              data-balance="{{ p.customer.account.balance|default:0 }}"
+              data-cost="{{ p.milling_cost|default_if_none:'0.00' }}">
+        <i class="fa-solid fa-credit-card"></i>
+        <span>Pay</span>
+      </button>
+
+      <button type="button"
+              onclick="editMillingProcess('{{ p.id }}', '{{ p.customer.id }}', '{{ p.hulled_weight|default:'' }}', '{{ p.milling_rate|default:'' }}', '{{ p.notes|escapejs }}')"
+              class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors
+                     dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+              title="Edit">
+        <i class="fas fa-edit"></i>
+        <span>Edit</span>
+      </button>
+    </div>
+  </td>
+</tr>
+{% endwith %}

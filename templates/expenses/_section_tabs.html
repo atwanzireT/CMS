@@ -1,0 +1,42 @@
+{# templates/expenses/_section_tabs.html #}
+<div class="mb-6 border-b border-gray-200 dark:border-gray-800">
+  {% with url_name=request.resolver_match.url_name %}
+    <nav class="-mb-px flex flex-wrap gap-4" aria-label="Tabs">
+      {# Expenses tab: active on expense pages & admin/finance inbox/all #}
+      <a href="{% url 'expenses:expense_list' %}"
+         class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium
+           {% if url_name in 'expense_list expenses_all finance_inbox admin_inbox' %}
+             border-indigo-600 text-indigo-700 dark:text-indigo-300
+           {% else %}
+             border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300
+             dark:text-gray-400 dark:hover:text-gray-200
+           {% endif %}">
+        Expenses
+      </a>
+
+      {# Requisitions tab #}
+      <a href="{% url 'expenses:requisition_list' %}"
+         class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium
+           {% if url_name in 'requisition_list requisition_detail' %}
+             border-indigo-600 text-indigo-700 dark:text-indigo-300
+           {% else %}
+             border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300
+             dark:text-gray-400 dark:hover:text-gray-200
+           {% endif %}">
+        Requisitions
+      </a>
+
+      {# Salaries tab #}
+      <a href="{% url 'expenses:salary_list' %}"
+         class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium
+           {% if url_name in 'salary_list salary_detail salary_finance_inbox salary_admin_inbox' %}
+             border-indigo-600 text-indigo-700 dark:text-indigo-300
+           {% else %}
+             border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300
+             dark:text-gray-400 dark:hover:text-gray-200
+           {% endif %}">
+        Salaries
+      </a>
+    </nav>
+  {% endwith %}
+</div>

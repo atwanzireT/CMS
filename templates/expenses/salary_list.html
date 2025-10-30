@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="mx-auto py-6">
+
+  <!-- Header -->
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Salary Requests</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Request mid/emergency salary and track approvals.</p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+      <span class="font-medium">{{ total }}</span> total
+    </div>
+  </div>
+
+  {% include "expenses/_section_tabs.html" %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- LEFT: Salary form -->
+    <section class="lg:col-span-5">
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+        <header class="flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 px-6 py-4 bg-gray-50 dark:bg-gray-800">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">💸</div>
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">New Salary Request</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Advance / emergency payouts.</p>
+          </div>
+        </header>
+        <div class="px-6 py-5">
+          <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ form.as_tailwind }}
+            <button type="submit"
+              class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              Submit Request
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: List + search -->
+    <section class="lg:col-span-7">
+      <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800 px-6 py-4 bg-gray-50 dark:bg-gray-800">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">My Salary Requests</h2>
+          <form method="get" class="w-full sm:w-auto">
+            <label for="q" class="sr-only">Search</label>
+            <div class="relative">
+              <input id="q" type="text" name="q" value="{{ request.GET.q|default_if_none:'' }}"
+                     placeholder="Search reference, type, reason…"
+                     class="block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 py-2.5 pl-3 pr-10 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              {% if request.GET.q %}
+                <a class="absolute inset-y-0 right-2 flex items-center text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" href="?">Clear</a>
+              {% endif %}
+            </div>
+          </form>
+        </header>
+
+        <div class="px-6 py-5">
+          {% if page_obj.object_list %}
+            <ul class="space-y-4">
+              {% for s in page_obj %}
+                <li class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:border-indigo-300 dark:hover:border-indigo-500 transition">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100">{{ s.reference }}</h3>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">· {{ s.get_payment_type_display }}</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">· UGX {{ s.amount|floatformat:0|intcomma }}</span>
+                      </div>
+                      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ s.reason|default:"—" }}</p>
+                      <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5
+                          {% if s.finance_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                          {% elif s.finance_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                          {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
+                          Finance: {{ s.get_finance_status_display }}
+                        </span>
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5
+                          {% if s.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                          {% elif s.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                          {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
+                          Admin: {{ s.get_admin_status_display }}
+                        </span>
+                        <span class="text-gray-500 dark:text-gray-400">· {{ s.month|date:"F Y" }}</span>
+                        <span class="text-gray-500 dark:text-gray-400">· Submitted {{ s.created_at|date:"M j, Y" }}</span>
+                        {% if s.is_paid %}
+                          <span class="inline-flex items-center rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 px-2 py-0.5">
+                            Paid {{ s.paid_at|date:"M j, Y" }}
+                          </span>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <div class="shrink-0">
+                      <a href="{% url 'expenses:salary_detail' s.pk %}"
+                         class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+                        View
+                      </a>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+
+            <!-- Pagination -->
+            <div class="mt-6 flex items-center justify-between text-sm">
+              <div class="text-gray-600 dark:text-gray-400">
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+              </div>
+              <div class="flex gap-2">
+                {% if page_obj.has_previous %}
+                  <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'page='|cut:'&page=' }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                     class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800">‹ Previous</a>
+                {% else %}
+                  <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500">‹ Previous</span>
+                {% endif %}
+                {% if page_obj.has_next %}
+                  <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'page='|cut:'&page=' }}&{% endif %}page={{ page_obj.next_page_number }}"
+                     class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800">Next ›</a>
+                {% else %}
+                  <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500">Next ›</span>
+                {% endif %}
+              </div>
+            </div>
+          {% else %}
+            <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-10 text-center">
+              <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">No salary requests</h3>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Use the form to submit your first request.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

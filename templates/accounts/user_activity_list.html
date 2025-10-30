@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}User Activities{% endblock %}
+{% block content %}
+<h3>User Activity</h3>
+<table class="table table-sm table-striped">
+  <thead>
+    <tr><th>Time</th><th>User</th><th>Action</th><th>Model</th><th>Object</th><th>Details</th><th>IP</th></tr>
+  </thead>
+  <tbody>
+    {% for a in activities %}
+    <tr>
+      <td>{{ a.timestamp }}</td>
+      <td>{{ a.user }}</td>
+      <td>{{ a.get_action_display }}</td>
+      <td>{{ a.model_name }}</td>
+      <td>{{ a.object_id }}</td>
+      <td>{{ a.details }}</td>
+      <td>{{ a.ip_address }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" class="text-center">No activity recorded.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

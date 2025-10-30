@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Create Group{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">
+  <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-dark-700 dark:bg-dark-800">
+    <div class="mb-6 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Create Group</h1>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Name the group and choose access gates.</p>
+      </div>
+      <a href="{% url 'accounts:groups' %}"
+         class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-200 dark:hover:bg-dark-700">
+        <i class="fas fa-arrow-left"></i><span>Back</span>
+      </a>
+    </div>
+
+    <form method="post" class="space-y-6" novalidate>
+      {% csrf_token %}
+
+      <!-- Group name -->
+      <div>
+        <label for="{{ form.name.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-gray-100">
+          {{ form.name.label }}
+        </label>
+        {{ form.name }}
+        {% if form.name.errors %}
+          <p id="id_name_error" class="mt-1 text-xs text-rose-600">{{ form.name.errors|striptags }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Access gates -->
+      <div>
+        <div class="mb-2 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Access Gates</h2>
+          <div class="flex items-center gap-2">
+            <button type="button" id="grantAllBtn"
+                    class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <i class="fas fa-toggle-on"></i> Grant all
+            </button>
+            <button type="button" id="revokeAllBtn"
+                    class="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500">
+              <i class="fas fa-toggle-off"></i> Revoke all
+            </button>
+          </div>
+        </div>
+
+        <div id="gatesGrid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {% for field in form %}
+            {% if field.name != 'name' %}
+              <label for="{{ field.id_for_label }}"
+                     class="group flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-4 hover:shadow-sm hover:border-primary-300 dark:border-dark-700 dark:bg-dark-800 dark:hover:border-primary-700 transition cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <div class="shrink-0 rounded-lg p-2 bg-gray-100 dark:bg-dark-700">
+                    <i class="fas fa-key text-gray-500 group-hover:text-primary-500"></i>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ field.label }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      Permission: access_{{ field.name|cut:"allow_" }}
+                    </div>
+                  </div>
+                </div>
+                <span class="ml-3">{{ field }}</span>
+              </label>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-200">
+          {{ form.non_field_errors|striptags }}
+        </div>
+      {% endif %}
+
+      <div class="flex items-center justify-end gap-2">
+        <button type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+          <i class="fas fa-save"></i><span>Create group</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const container = document.getElementById('gatesGrid');
+    const grant = document.getElementById('grantAllBtn');
+    const revoke = document.getElementById('revokeAllBtn');
+
+    function setAll(val) {
+      if (!container) return;
+      container.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = val);
+    }
+    if (grant) grant.addEventListener('click', () => setAll(true));
+    if (revoke) revoke.addEventListener('click', () => setAll(false));
+  })();
+</script>
+{% endblock %}

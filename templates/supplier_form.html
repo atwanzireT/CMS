@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+    {% if object %}Update Supplier{% else %}Create Supplier{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+   
+
+    <!-- Form Card -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <form method="post" class="divide-y divide-gray-200">
+            {% csrf_token %}
+            
+            <div class="px-4 py-5 sm:p-6 space-y-6">
+                <!-- Basic Info -->
+                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                    <div class="sm:col-span-3">
+                        <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Supplier Name *
+                        </label>
+                        <div class="mt-1">
+                            {{ form.name }}
+                        </div>
+                        {% if form.name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.name.errors.as_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Phone Number *
+                        </label>
+                        <div class="mt-1">
+                            {{ form.phone }}
+                        </div>
+                        {% if form.phone.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.phone.errors.as_text }}</p>
+                        {% endif %}
+                    </div>
+
+
+                    <div class="sm:col-span-3">
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Email Address
+                        </label>
+                        <div class="mt-1">
+                            {{ form.email }}
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-3">
+                        <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Physical Address
+                        </label>
+                        <div class="mt-1">
+                            {{ form.address }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                <div class="flex justify-end space-x-3">
+                    <a href="{% url 'supplier_list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Cancel
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        {% if object %}Update{% else %}Create{% endif %} Supplier
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Form input styling */
+    input, select, textarea {
+        @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+    }
+    textarea {
+        @apply min-h-[100px];
+    }
+    .select2-container {
+        @apply w-full !important;
+    }
+    .select2-selection {
+        @apply h-[38px] !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block page_title %}Customer Details — {{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div class="flex items-start gap-3">
+      <a href="{% url 'milling:customer_list' %}"
+         class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+        <i class="fa-solid fa-arrow-left mr-2"></i> Back
+      </a>
+      <div>
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ customer.name }}</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          <span class="mr-3 inline-flex items-center"><i class="fa-solid fa-id-card-clip mr-1"></i>ID: {{ customer.id }}</span>
+          <span class="mr-3 inline-flex items-center"><i class="fa-regular fa-calendar mr-1"></i>Added: {{ customer.created_at|date:"M d, Y" }}</span>
+          {% if customer.phone %}
+          <span class="inline-flex items-center"><i class="fa-solid fa-phone mr-1"></i>{{ customer.phone }}</span>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <div class="flex gap-2">
+      <a href="?export=csv&scope=milling"
+         class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+        <i class="fa-solid fa-file-csv mr-2"></i>Milling CSV
+      </a>
+      <a href="?export=csv&scope=transactions"
+         class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50
+                dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+        <i class="fa-solid fa-file-csv mr-2"></i>Transactions CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1"><i class="fa-solid fa-sack-dollar mr-1"></i>Balance</div>
+      <div class="text-lg font-semibold">
+        {% if account %}
+          <span class="{% if account.balance < 0 %}text-red-600 dark:text-red-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+            UGX {{ account.balance|floatformat:2|intcomma }}
+          </span>
+        {% else %}<span class="text-gray-400">—</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1"><i class="fa-solid fa-seedling mr-1"></i>Total Hulled</div>
+      <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        {{ stats.total_hulled|default:0|intcomma }} <span class="text-gray-500 dark:text-gray-400 text-sm">kg</span>
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400">Completed processes</p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1"><i class="fa-regular fa-rectangle-list mr-1"></i>Milling Count</div>
+      <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        {{ milling_page.paginator.count|default:0|intcomma }}
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <div class="text-xs text-gray-500 dark:text-gray-400 mb-1"><i class="fa-regular fa-clock mr-1"></i>Last Milling</div>
+      <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+        {% with first=milling_page.object_list|first %}
+          {% if first %}{{ first.created_at|date:"M d, Y H:i" }}{% else %}<span class="text-gray-400">—</span>{% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="grid gap-6 lg:grid-cols-5">
+    <!-- Left column -->
+    <div class="space-y-6 lg:col-span-2">
+      <!-- Customer info -->
+      <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Customer Information</h2>
+          {% if customer.phone %}
+          <button type="button" class="rounded-md px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  title="Copy phone" onclick="navigator.clipboard.writeText('{{ customer.phone }}')">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+          {% endif %}
+        </div>
+        <div class="px-4 py-4">
+          <dl class="grid grid-cols-3 gap-y-3 text-sm">
+            <dt class="text-gray-500 dark:text-gray-400">Customer ID</dt>
+            <dd class="col-span-2 font-medium text-gray-900 dark:text-gray-100">{{ customer.id }}</dd>
+
+            <dt class="text-gray-500 dark:text-gray-400">Name</dt>
+            <dd class="col-span-2 font-medium text-gray-900 dark:text-gray-100">{{ customer.name }}</dd>
+
+            <dt class="text-gray-500 dark:text-gray-400">Phone</dt>
+            <dd class="col-span-2 text-gray-900 dark:text-gray-100">{{ customer.phone|default:"—" }}</dd>
+
+            <dt class="text-gray-500 dark:text-gray-400">Date Added</dt>
+            <dd class="col-span-2 text-gray-900 dark:text-gray-100">{{ customer.created_at|date:"M d, Y H:i" }}</dd>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Account & recent transactions -->
+      <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Account</h2>
+          {% if account %}
+            <span class="rounded-full px-3 py-1 text-xs font-medium
+              {% if account.balance < 0 %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300
+              {% else %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300{% endif %}">
+              Balance: UGX {{ account.balance|floatformat:2|intcomma }}
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="px-4 py-4">
+          {% if account %}
+          <div class="mb-3 flex items-center justify-between">
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              <span class="mr-4">Credits:
+                <span class="font-semibold text-gray-900 dark:text-gray-100">UGX {{ stats.total_credits|default_if_none:0|floatformat:2|intcomma }}</span>
+              </span>
+              <span>Debits:
+                <span class="font-semibold text-gray-900 dark:text-gray-100">UGX {{ stats.total_debits|default_if_none:0|floatformat:2|intcomma }}</span>
+              </span>
+            </div>
+            <button type="button" disabled
+              class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">
+              <i class="fas fa-exchange-alt mr-2"></i>New Transaction
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+              <thead class="bg-gray-50 dark:bg-gray-800/60">
+                <tr>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Date</th>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Type</th>
+                  <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Amount (UGX)</th>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Reference</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                {% for tx in transactions_page.object_list %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60">
+                  <td class="px-3 py-2 whitespace-nowrap text-gray-800 dark:text-gray-200">{{ tx.created_at|date:"M d, Y H:i" }}</td>
+                  <td class="px-3 py-2">
+                    <span class="rounded-full px-2 py-0.5 text-xs font-medium
+                      {% if tx.transaction_type == 'D' %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300
+                      {% else %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300{% endif %}">
+                      {{ tx.get_transaction_type_display }}
+                    </span>
+                  </td>
+                  <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">{{ tx.amount|floatformat:2|intcomma }}</td>
+                  <td class="px-3 py-2 max-w-[220px] truncate text-gray-700 dark:text-gray-300">{{ tx.reference|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="px-3 py-6 text-center text-gray-400 dark:text-gray-500">No transactions yet</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if transactions_page.paginator.num_pages > 1 %}
+          <div class="mt-3 flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              Page {{ transactions_page.number }} / {{ transactions_page.paginator.num_pages }}
+            </span>
+            <div class="inline-flex gap-2">
+              {% if transactions_page.has_previous %}
+              <a href="?tpage={{ transactions_page.previous_page_number }}&mpage={{ milling_page.number }}&per_t={{ per_t }}&per_m={{ per_m }}"
+                 class="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Prev</a>
+              {% else %}
+              <span class="rounded-lg border border-gray-200 px-3 py-1 text-xs text-gray-400 dark:border-gray-800">Prev</span>
+              {% endif %}
+
+              {% if transactions_page.has_next %}
+              <a href="?tpage={{ transactions_page.next_page_number }}&mpage={{ milling_page.number }}&per_t={{ per_t }}&per_m={{ per_m }}"
+                 class="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Next</a>
+              {% else %}
+              <span class="rounded-lg border border-gray-200 px-3 py-1 text-xs text-gray-400 dark:border-gray-800">Next</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% else %}
+          <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-900/40 dark:bg-yellow-900/20 dark:text-yellow-200">
+            No account found for this customer.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="space-y-6 lg:col-span-3">
+      <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+          <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Milling History</h2>
+          <div class="text-xs text-gray-500 dark:text-gray-400">
+            Total Hulled: <span class="font-semibold text-gray-900 dark:text-gray-100">{{ stats.total_hulled|default:0|intcomma }}</span> kg
+          </div>
+        </div>
+
+        <div class="px-4 py-4">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+              <thead class="bg-gray-50 dark:bg-gray-800/60">
+                <tr>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Date</th>
+                  <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Initial (kg)</th>
+                  <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Hulled (kg)</th>
+                  <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Rate (UGX)</th>
+                  <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Cost (UGX)</th>
+                  <th class="px-3 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">Status</th>
+                  <th class="px-3 py-2 text-right font-semibold text-gray-600 dark:text-gray-300">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                {% for m in milling_page.object_list %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60">
+                  <td class="px-3 py-2 whitespace-nowrap text-gray-800 dark:text-gray-200">{{ m.created_at|date:"M d, Y H:i" }}</td>
+                  <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">{{ m.initial_weight|intcomma }}</td>
+                  <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">{{ m.hulled_weight|intcomma }}</td>
+                  <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">UGX {{ m.milling_rate|floatformat:2|intcomma }}</td>
+                  <td class="px-3 py-2 text-right text-gray-900 dark:text-gray-100">UGX {{ m.milling_cost|floatformat:2|intcomma }}</td>
+                  <td class="px-3 py-2">
+                    {% if m.status == 'C' %}
+                      <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Completed</span>
+                    {% elif m.status == 'P' %}
+                      <span class="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300">Pending</span>
+                    {% else %}
+                      <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">Cancelled</span>
+                    {% endif %}
+                  </td>
+                  <td class="px-3 py-2 text-right">
+                    <a href="{% url 'milling:milling_detail' m.pk %}"
+                       class="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50
+                              dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+                      <i class="fa-solid fa-up-right-from-square"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="px-3 py-6 text-center text-gray-400 dark:text-gray-500">No milling records yet</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if milling_page.paginator.num_pages > 1 %}
+          <div class="mt-3 flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              Page {{ milling_page.number }} / {{ milling_page.paginator.num_pages }}
+            </span>
+            <div class="inline-flex gap-2">
+              {% if milling_page.has_previous %}
+              <a href="?mpage={{ milling_page.previous_page_number }}&tpage={{ transactions_page.number }}&per_t={{ per_t }}&per_m={{ per_m }}"
+                 class="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Prev</a>
+              {% else %}
+              <span class="rounded-lg border border-gray-200 px-3 py-1 text-xs text-gray-400 dark:border-gray-800">Prev</span>
+              {% endif %}
+
+              {% if milling_page.has_next %}
+              <a href="?mpage={{ milling_page.next_page_number }}&tpage={{ transactions_page.number }}&per_t={{ per_t }}&per_m={{ per_m }}"
+                 class="rounded-lg border border-gray-300 px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Next</a>
+              {% else %}
+              <span class="rounded-lg border border-gray-200 px-3 py-1 text-xs text-gray-400 dark:border-gray-800">Next</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

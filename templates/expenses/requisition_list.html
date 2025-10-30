@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="mx-auto py-6">
+
+  <!-- Header -->
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">My Requisitions</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Create and track purchase requisitions.</p>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+      <span class="font-medium">{{ total }}</span> total
+    </div>
+  </div>
+
+  {% include "expenses/_section_tabs.html" %}
+
+  <!-- Search + New -->
+  <div class="mb-5 flex flex-col sm:flex-row gap-3 sm:items-end sm:justify-between">
+    <form method="get" class="w-full sm:w-2/3">
+      <label for="q" class="block text-sm font-medium text-gray-800 dark:text-gray-200">Search</label>
+      <input id="q" type="text" name="q" value="{{ request.GET.q }}"
+             placeholder="Reference, title, category, description…"
+             class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    </form>
+    <button type="button" id="openRequisitionModal"
+            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 text-sm font-medium">
+      + New Requisition
+    </button>
+  </div>
+
+  <!-- Table -->
+  {% if page_obj.object_list %}
+    <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+        <thead class="bg-gray-50 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Reference</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Title</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Category</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Amount</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Finance</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Admin</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300">Created</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+          {% for r in page_obj %}
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60">
+              <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{{ r.reference }}</td>
+              <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">{{ r.title }}</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ r.get_category_display }}</td>
+              <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">UGX {{ r.amount|floatformat:0|intcomma }}</td>
+              <td class="px-4 py-3 text-sm">
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                  {% if r.finance_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                  {% elif r.finance_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                  {% else %} bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 {% endif %}">
+                  {{ r.get_finance_status_display }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm">
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                  {% if r.admin_status == 'APPROVED' %} bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200
+                  {% elif r.admin_status == 'REJECTED' %} bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200
+                  {% else %} bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200 {% endif %}">
+                  {{ r.get_admin_status_display }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ r.created_at|date:"M j, Y" }}</td>
+              <td class="px-4 py-3 text-right">
+                <a href="{% url 'expenses:requisition_detail' r.pk %}"
+                   class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  View
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-6 flex items-center justify-between text-sm">
+      <div class="text-gray-600 dark:text-gray-400">
+        Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+      </div>
+      <div class="flex gap-2">
+        {% if page_obj.has_previous %}
+          <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'page='|cut:'&page=' }}&{% endif %}page={{ page_obj.previous_page_number }}"
+             class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800">‹ Previous</a>
+        {% else %}
+          <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500">‹ Previous</span>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <a href="?{% if request.GET %}{{ request.GET.urlencode|cut:'page='|cut:'&page=' }}&{% endif %}page={{ page_obj.next_page_number }}"
+             class="rounded-lg border border-gray-300 dark:border-gray-600 px-3.5 py-2 hover:bg-gray-50 dark:hover:bg-gray-800">Next ›</a>
+        {% else %}
+          <span class="rounded-lg border border-gray-200 dark:border-gray-700 px-3.5 py-2 text-gray-400 dark:text-gray-500">Next ›</span>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-12 text-center">
+      <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">No requisitions found</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try a different search or create a new requisition.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Modal: New Requisition -->
+<div id="requisitionModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/40" aria-hidden="true"></div>
+  <div class="relative mx-auto mt-10 w-full max-w-xl">
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">New Requisition</h2>
+        <button type="button" id="closeRequisitionModal"
+                class="rounded-lg px-2 py-1 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">✕</button>
+      </div>
+      <form method="post" class="px-5 py-4">
+        {% csrf_token %}
+        {{ form.as_tailwind }}
+        <div class="mt-4 flex items-center justify-end gap-2">
+          <button type="button" id="cancelRequisitionModal"
+                  class="inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="inline-flex items-center rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-medium">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const modal = document.getElementById('requisitionModal');
+    const openBtn = document.getElementById('openRequisitionModal');
+    const closeBtn = document.getElementById('closeRequisitionModal');
+    const cancelBtn = document.getElementById('cancelRequisitionModal');
+    function open(){ modal.classList.remove('hidden'); }
+    function close(){ modal.classList.add('hidden'); }
+    openBtn?.addEventListener('click', open);
+    closeBtn?.addEventListener('click', close);
+    cancelBtn?.addEventListener('click', close);
+    modal?.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  })();
+</script>
+{% endblock %}

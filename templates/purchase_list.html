@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Coffee Purchases - GreatPearl Coffee{% endblock %}
+{% block page_title %}
+  <span class="inline-flex items-center gap-2">
+    <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
+    Coffee Purchases
+  </span>
+{% endblock %}
+
+{% block header_actions %}
+<div class="flex flex-wrap items-center gap-2">
+  <a href="{% url 'store:supplier_list' %}"
+     class="inline-flex items-center px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700
+            dark:bg-blue-700 dark:hover:bg-blue-600">
+    <i class="fas fa-truck mr-2"></i> Suppliers
+  </a>
+
+  <button onclick="openPurchaseForm()"
+          class="inline-flex items-center px-3 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700">
+    <i class="fas fa-plus mr-2"></i> New Purchase
+  </button>
+
+  <a href="{% url 'store:report_create' %}"
+     class="inline-flex items-center px-3 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600
+            dark:bg-amber-500 dark:hover:bg-amber-600">
+    <i class="fa-solid fa-file-lines mr-2 text-amber-100 dark:text-amber-100" aria-hidden="true"></i> Create Report
+  </a>
+
+  <a href="{% url 'store:store_dashboard' %}"
+     class="inline-flex items-center px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700
+            dark:bg-indigo-700 dark:hover:bg-indigo-600">
+    <i class="fas fa-chart-pie mr-2"></i> Store Stats
+  </a>
+
+  <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}export=csv"
+     class="inline-flex items-center px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700
+            dark:bg-red-700 dark:hover:bg-red-600" title="Export current results to CSV">
+    <i class="fa-solid fa-file-csv mr-2"></i> Export CSV
+  </a>
+
+  <button type="button"
+          class="inline-flex items-center px-3 py-2 rounded-lg bg-gray-200 text-gray-800 text-sm font-medium hover:bg-gray-300
+                 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          onclick="location.reload()">
+    <i class="fas fa-sync-alt mr-2"></i> Refresh
+  </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  {# KPIs (optional: provide totals in context as {count, qty, assessed}) #}
+  <div class="grid gap-3 sm:grid-cols-3">
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Rows</div>
+      <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+        {{ totals.count|default:purchases.paginator.count|intcomma }}
+      </div>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Total Quantity (kg)</div>
+      <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+        {{ totals.qty|default:"0"|intcomma }}
+      </div>
+    </div>
+    <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <div class="text-xs text-gray-500 dark:text-gray-400">Assessed</div>
+      <div class="mt-1 text-2xl font-semibold text-emerald-600 dark:text-emerald-300">
+        {{ totals.assessed|default:"0"|intcomma }}
+      </div>
+    </div>
+  </div>
+
+  {# Filters #}
+  <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <form method="get" class="grid gap-3 md:grid-cols-6">
+      <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search supplier / phone / notes"
+             class="md:col-span-2 w-full rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"/>
+
+      <select name="coffee_category"
+              class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+        <option value="">All Forms</option>
+        {% for code,label in choices.coffee_category %}
+          <option value="{{ code }}" {% if request.GET.coffee_category == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="coffee_type"
+              class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+        <option value="">All Types</option>
+        {% for code,label in choices.coffee_type %}
+          <option value="{{ code }}" {% if request.GET.coffee_type == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="payment_status"
+              class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+        <option value="">Any Payment</option>
+        {% for code,label in choices.payment_status %}
+          <option value="{{ code }}" {% if request.GET.payment_status == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="assessment"
+              class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+        <option value="">Any Assessment</option>
+        <option value="1" {% if request.GET.assessment == '1' %}selected{% endif %}>Assessed</option>
+        <option value="0" {% if request.GET.assessment == '0' %}selected{% endif %}>Assessment Needed</option>
+      </select>
+
+      <div class="md:col-span-6 grid grid-cols-2 gap-3">
+        <input type="date" name="date_from" value="{{ request.GET.date_from }}"
+               class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" />
+        <input type="date" name="date_to" value="{{ request.GET.date_to }}"
+               class="rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100" />
+      </div>
+
+      <div class="md:col-span-6 flex items-center gap-2">
+        <button class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Apply</button>
+        <a href="{% url 'store:purchase_list' %}"
+           class="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">
+          Reset
+        </a>
+      </div>
+    </form>
+  </div>
+
+  {# Table #}
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-700/50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Supplier</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Coffee</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Qty (kg)</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Dates</th>
+            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          {% for purchase in purchases %}
+          {% with a=purchase.assessment %}
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="h-10 w-10 flex items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40">
+                  <i class="fas fa-truck text-emerald-700 dark:text-emerald-300"></i>
+                </div>
+                <div class="ml-3">
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    <a href="{% url 'store:supplier_detail' purchase.supplier.id %}"
+                       class="hover:text-emerald-600 dark:hover:text-emerald-300 hover:underline">
+                      {{ purchase.supplier.name }}
+                    </a>
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ purchase.supplier.phone }}</div>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900 dark:text-white">
+                <span class="font-medium">{{ purchase.get_coffee_type_display }}</span>
+                <span class="text-gray-500 dark:text-gray-400 ml-2">• {{ purchase.get_coffee_category_display }}</span>
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ purchase.bags }} bag{{ purchase.bags|pluralize }}</div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
+              {{ purchase.quantity|floatformat:"0"|intcomma }}
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex flex-col gap-1">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                  {% if purchase.payment_status == 'D' %} bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200
+                  {% elif purchase.payment_status == 'P' %} bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200
+                  {% else %} bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 {% endif %}">
+                  {{ purchase.get_payment_status_display }}
+                </span>
+
+                {% if a %}
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200">Assessed</span>
+                {% elif purchase.assessment_needed %}
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200">Assessment Needed</span>
+                {% endif %}
+              </div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+              <div class="flex flex-col">
+                <span>Purchased: {{ purchase.purchase_date|date:"M d, Y" }}</span>
+                {% if purchase.delivery_date %}
+                  <span class="text-xs text-gray-400 dark:text-gray-500">Delivered: {{ purchase.delivery_date|date:"M d" }}</span>
+                {% endif %}
+              </div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+              <div class="flex justify-end gap-2">
+                <button onclick="openPurchaseForm('{{ purchase.id }}')"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50
+                               dark:border-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/20" title="Edit">
+                  <i class="fas fa-edit"></i>
+                  <span class="hidden sm:inline">Edit</span>
+                </button>
+
+                <a href="{% url 'store:purchase_detail' purchase.id %}"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50
+                          dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800" title="View">
+                  <i class="fas fa-up-right-from-square"></i>
+                  <span class="hidden sm:inline">View</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endwith %}
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center">
+              <div class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+                <i class="fas fa-mug-saucer text-4xl mb-3"></i>
+                <p class="text-sm font-medium mb-4">No purchases found</p>
+                <div class="flex gap-4">
+                  <a href="{% url 'store:supplier_list' %}"
+                     class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-sm font-medium inline-flex items-center">
+                    <i class="fas fa-truck mr-1"></i> Add suppliers
+                  </a>
+                  <button onclick="openPurchaseForm()"
+                          class="text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-emerald-200 text-sm font-medium inline-flex items-center">
+                    <i class="fas fa-plus mr-1"></i> Add purchase
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Pagination #}
+    {% if purchases.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-6 py-4">
+      <div class="text-sm text-gray-600 dark:text-gray-300">
+        Showing {{ purchases.start_index }}–{{ purchases.end_index }} of {{ purchases.paginator.count|intcomma }}
+      </div>
+      <div class="flex items-center gap-2">
+        {% if purchases.has_previous %}
+          <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ purchases.previous_page_number }}"
+             class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
+        {% else %}
+          <span class="px-3 py-1 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-400">Previous</span>
+        {% endif %}
+
+        <span class="px-3 py-1 text-sm text-gray-700 dark:text-gray-200">
+          Page {{ purchases.number }} / {{ purchases.paginator.num_pages }}
+        </span>
+
+        {% if purchases.has_next %}
+          <a href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ purchases.next_page_number }}"
+             class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
+        {% else %}
+          <span class="px-3 py-1 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-400">Next</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{# ------------------------------- Modal -------------------------------- #}
+<div id="purchaseModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div id="purchaseOverlay" class="fixed inset-0 bg-black/50"></div>
+
+  <div class="relative w-full max-w-2xl rounded-2xl bg-white dark:bg-gray-900 shadow-2xl ring-1 ring-black/5 dark:ring-white/10
+              transform transition-all duration-200 scale-95 opacity-0" id="purchaseCard">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+      <h3 id="modalTitle" class="text-lg font-semibold text-gray-900 dark:text-white">New Coffee Purchase</h3>
+      <button type="button" onclick="closePurchaseForm()"
+              class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300" aria-label="Close">✕</button>
+    </div>
+
+    <form method="post" id="purchaseForm" class="px-6 pb-6 pt-5 space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="purchase_id" id="purchase_id" value="">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <div class="flex items-center justify-between mb-1">
+            <label for="id_supplier" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier</label>
+            <a href="{% url 'store:supplier_list' %}"
+               class="text-xs inline-flex items-center px-2 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+              <i class="fas fa-plus mr-1"></i> Add Supplier
+            </a>
+          </div>
+          {{ form.supplier }}
+        </div>
+
+        <div>
+          <label for="id_coffee_category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Coffee Form</label>
+          {{ form.coffee_category }}
+        </div>
+        <div>
+          <label for="id_coffee_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Coffee Type</label>
+          {{ form.coffee_type }}
+        </div>
+
+        <div>
+          <label for="id_quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity (kg)</label>
+          {{ form.quantity }}
+        </div>
+        <div>
+          <label for="id_bags" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bags</label>
+          {{ form.bags }}
+        </div>
+
+        <div>
+          <label for="id_purchase_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Purchase Date</label>
+          {{ form.purchase_date }}
+        </div>
+        <div>
+          <label for="id_delivery_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Delivery Date</label>
+          {{ form.delivery_date }}
+        </div>
+
+        <div class="md:col-span-2">
+          <label for="id_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+          {{ form.notes }}
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="closePurchaseForm()"
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+          Save Purchase
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ------------------------------- Scripts ------------------------------- #}
+<script>
+  // Modal helpers
+  const modal = document.getElementById('purchaseModal');
+  const card  = document.getElementById('purchaseCard');
+  const overlay = document.getElementById('purchaseOverlay');
+  const form = document.getElementById('purchaseForm');
+  const title = document.getElementById('modalTitle');
+
+  function openPurchaseForm(id = null){
+    if (id) {
+      document.getElementById('purchase_id').value = id;
+      title.textContent = 'Edit Purchase';
+    } else {
+      document.getElementById('purchase_id').value = '';
+      title.textContent = 'New Coffee Purchase';
+      form.reset();
+    }
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => { card.classList.remove('scale-95','opacity-0'); card.classList.add('scale-100','opacity-100'); }, 10);
+    document.body.classList.add('overflow-hidden');
+  }
+
+  function closePurchaseForm(){
+    card.classList.remove('scale-100','opacity-100');
+    card.classList.add('scale-95','opacity-0');
+    setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 180);
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  overlay?.addEventListener('click', closePurchaseForm);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closePurchaseForm(); });
+</script>
+{% endblock %}

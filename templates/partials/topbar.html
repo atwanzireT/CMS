@@ -1,0 +1,108 @@
+<nav class="fixed top-0 left-0 right-0 h-16 glass border-b border-slate-200/60 dark:border-slate-800/80 z-50">
+  <div class="flex items-center justify-between h-full px-4 lg:px-6">
+    <!-- Left -->
+    <div class="flex items-center gap-3">
+      <!-- Mobile drawer toggle -->
+      <button
+        @click="$root.toggleSidebarMobile()"
+        :aria-expanded="$root.sidebarOpen ? 'true' : 'false'"
+        class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors lg:hidden"
+        aria-controls="sidebar" aria-label="Toggle sidebar">
+        <i class="fa-solid fa-bars text-slate-600 dark:text-slate-300"></i>
+      </button>
+
+      <!-- Desktop collapse/expand -->
+      <button
+        @click="$root.toggleSidebarDesktop()"
+        class="hidden lg:inline-flex p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        :title="$root.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        aria-label="Collapse or expand sidebar">
+        <i class="fa-solid fa-bars text-slate-600 dark:text-slate-300"></i>
+      </button>
+
+      <!-- Brand -->
+      <a href="{% url 'store:home' %}" class="flex items-center gap-3 group">
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl shadow-soft bg-gradient-to-br from-primary-500 to-primary-600 text-white">
+          <i class="fa-solid fa-mug-hot text-lg"></i>
+        </div>
+        <div class="leading-tight">
+          <h1 class="text-lg font-bold text-slate-900 dark:text-white">
+            Great<span class="text-primary-600 dark:text-primary-300 font-display">Pearl</span>
+            <span class="text-amber-500">Coffee</span>
+          </h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 -mt-0.5">Management System</p>
+        </div>
+      </a>
+    </div>
+
+    <!-- Center: Search (optional) -->
+    <div class="hidden md:flex flex-1 max-w-xl mx-4">
+      <form method="get" action="#" class="w-full">
+        <label class="relative w-full">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" name="q" placeholder="Search…"
+                 class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/70 backdrop-blur
+                        text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-400" />
+        </label>
+      </form>
+    </div>
+
+    <!-- Right -->
+    <div class="flex items-center gap-2">
+      <button class="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Notifications">
+        <i class="fa-solid fa-bell text-slate-600 dark:text-slate-300"></i>
+        <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] leading-5 text-center shadow-soft">3</span>
+      </button>
+
+      {% if user.is_authenticated %}
+      <!-- User menu -->
+      <div x-data="{ open:false }" class="relative">
+        <button @click="open = !open" class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <div class="w-9 h-9 rounded-xl shadow-soft bg-gradient-to-br from-primary-500 to-primary-600 text-white grid place-items-center">
+            <span class="text-sm font-semibold">{{ user.username|first|upper }}</span>
+          </div>
+          <div class="hidden md:block text-left">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ user.get_full_name|default:user.username }}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 capitalize">{{ user_role|default:"user" }}</p>
+          </div>
+          <i class="fa-solid fa-chevron-down text-slate-400 text-[12px] transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+        </button>
+
+        <div x-show="open" @click.away="open=false"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-1"
+             class="absolute right-0 mt-2 w-60 glass rounded-2xl shadow-soft border border-slate-200/60 dark:border-slate-800/80 overflow-hidden z-50">
+          <div class="px-4 py-3 border-b border-slate-200/60 dark:border-slate-800/80">
+            <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ user.get_full_name|default:user.username }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ user.email|default:"admin@example.com" }}</p>
+          </div>
+          <a href="{% url 'accounts:my_profile' %}" class="flex items-center px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i class="fa-solid fa-user w-4 mr-3 text-slate-400"></i> Profile
+          </a>
+          <a href="{% url 'accounts:it_department' %}" class="flex items-center px-4 py-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+            <i class="fa-solid fa-gear w-4 mr-3 text-slate-400"></i> Settings
+          </a>
+          <div class="my-1 border-t border-slate-200/60 dark:border-slate-800/80"></div>
+          <form method="post" action="{% url 'accounts:logout' %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+              class="flex items-center px-4 py-2.5 text-sm rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 focus:outline-none">
+              <i class="fa-solid fa-right-from-bracket w-4 mr-3"></i> Logout
+            </button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <a href="{% url 'accounts:login' %}" class="inline-flex items-center px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 shadow-soft">
+        <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</nav>

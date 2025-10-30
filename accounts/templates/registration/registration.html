@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Register User{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl">
+  <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-dark-700 dark:bg-dark-800">
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Register User</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Enter user details below.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6" novalidate>
+      {% csrf_token %}
+
+      <!-- Grid -->
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <!-- Username -->
+        <div>
+          <label for="{{ form.username.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-gray-100">
+            Username
+          </label>
+          {{ form.username }}
+          {% if form.username.help_text %}
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ form.username.help_text|safe }}</p>
+          {% endif %}
+          {% if form.username.errors %}
+            <p id="id_username_error" class="mt-1 text-xs text-rose-600">{{ form.username.errors|striptags }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="{{ form.email.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-gray-100">
+            Email
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <p id="id_email_error" class="mt-1 text-xs text-rose-600">{{ form.email.errors|striptags }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Phone -->
+        <div>
+          <label for="{{ form.phone_number.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-gray-100">
+            Phone Number
+          </label>
+          {{ form.phone_number }}
+          {% if form.phone_number.errors %}
+            <p id="id_phone_error" class="mt-1 text-xs text-rose-600">{{ form.phone_number.errors|striptags }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Address -->
+        <div>
+          <label for="{{ form.address.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-gray-100">
+            Address
+          </label>
+          {{ form.address }}
+          {% if form.address.errors %}
+            <p id="id_address_error" class="mt-1 text-xs text-rose-600">{{ form.address.errors|striptags }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Profile Picture -->
+        <div class="md:col-span-2">
+          <label for="{{ form.profile_picture.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-gray-100">
+            Profile Picture
+          </label>
+          <div class="flex items-start gap-4">
+            <div class="flex-1">
+              {{ form.profile_picture }}
+              {% if form.profile_picture.errors %}
+                <p id="id_profile_picture_error" class="mt-1 text-xs text-rose-600">{{ form.profile_picture.errors|striptags }}</p>
+              {% endif %}
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">PNG or JPG, up to a few MB.</p>
+            </div>
+            <img id="previewImg" src="" alt="" class="hidden h-28 w-28 rounded-xl object-cover ring-1 ring-gray-200 dark:ring-dark-600" />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="{{ form.password1.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-gray-100">
+            Password
+          </label>
+          <div class="relative">
+            {{ form.password1 }}
+            <button type="button" id="togglePass1"
+              class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700">
+              Show
+            </button>
+          </div>
+          {% if form.password1.help_text %}
+            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ form.password1.help_text|safe }}</div>
+          {% endif %}
+          {% if form.password1.errors %}
+            <p id="id_password1_error" class="mt-1 text-xs text-rose-600">{{ form.password1.errors|striptags }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Confirm Password -->
+        <div>
+          <label for="{{ form.password2.id_for_label }}" class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-gray-100">
+            Confirm Password
+          </label>
+          <div class="relative">
+            {{ form.password2 }}
+            <button type="button" id="togglePass2"
+              class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-700">
+              Show
+            </button>
+          </div>
+          {% if form.password2.errors %}
+            <p id="id_password2_error" class="mt-1 text-xs text-rose-600">{{ form.password2.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-200">
+          {{ form.non_field_errors|striptags }}
+        </div>
+      {% endif %}
+
+      <div class="flex items-center gap-2">
+        <button type="submit"
+          class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+          <i class="fas fa-save"></i><span>Submit</span>
+        </button>
+        <a href="{% url 'accounts:it_department' %}"
+          class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-200 dark:hover:bg-dark-700">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Password show/hide toggles
+  (function () {
+    const t1 = document.getElementById('togglePass1');
+    const t2 = document.getElementById('togglePass2');
+    const p1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const p2 = document.getElementById('{{ form.password2.id_for_label }}');
+
+    function wire(btn, input) {
+      if (!btn || !input) return;
+      btn.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.textContent = show ? 'Hide' : 'Show';
+      });
+    }
+    wire(t1, p1);
+    wire(t2, p2);
+  })();
+
+  // Profile image preview
+  (function () {
+    const fileInput = document.getElementById('{{ form.profile_picture.id_for_label }}');
+    const preview = document.getElementById('previewImg');
+    if (!fileInput || !preview) return;
+    fileInput.addEventListener('change', () => {
+      const [file] = fileInput.files || [];
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove('hidden');
+      } else {
+        preview.src = '';
+        preview.classList.add('hidden');
+      }
+    });
+  })();
+</script>
+{% endblock %}
