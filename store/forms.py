@@ -433,3 +433,61 @@ class EUDRDocumentationForm(EnhancedTailwindFormMixin, forms.ModelForm):
         if kg is not None and kg < 0:
             raise ValidationError("Total kilograms cannot be negative.")
         return kg
+
+
+class PurchaseForm(forms.ModelForm):
+    # (keep your existing fields/Meta; only __init__/clean/save are new/updated)
+
+    def __init__(self, *args, user=None, locked_supplier=None, **kwargs):
+        """
+        Accepts locked_supplier from the view. If provided:
+          - Prefills the supplier field
+          - Disables it in the UI
+          - Remembers it for clean()/save()
+        """
+        self._locked_supplier = locked_supplier
+        super().__init__(*args, **kwargs)
+
+        # Optional: if you filter suppliers by user, do it here using `user`
+
+        # If the form includes a 'supplier' field, reflect the lock in the UI
+        if "supplier" in self.fields:
+            if self._locked_supplier:
+                self.fields["supplier"].initial = self._locked_supplier.pk
+                self.fields["supplier"].disabled = True
+                # Nice to have: ensure it's obvious in HTML too
+                self.fields["supplier"].widget.attrs.update({"readonly": "readonly"})
+        # If your form EXCLUDES 'supplier' from fields, that's fine too—the lock
+        # will still be enforced in clean()/save() below.
+
+    def clean(self):
+        cleaned = super().clean()
+        # Force supplier when locked (disabled fields are not submitted)
+        if self._locked_supplier is not None:
+            cleaned["supplier"] = self._locked_supplier
+        return cleaned
+
+    def save(self, commit=True):
+        obj: CoffeePurchase = super().save(commit=False)
+        # Enforce the locked supplier at the model level as a final safety net
+        if self._locked_supplier is not None:
+            obj.supplier = self._locked_supplier
+        if commit:
+            obj.save()
+        return obj
+
+    class Meta:
+        model = CoffeePurchase
+        fields = [
+            # include 'supplier' if you want it visible on the generic create page
+            "supplier",
+            "coffee_category",
+            "coffee_type",
+            "quantity",
+            "bags",
+            "payment_status",
+            "assessment_needed",
+            "purchase_date",
+            "delivery_date",
+            "notes",
+        ]

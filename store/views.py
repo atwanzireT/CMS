@@ -4,7 +4,6 @@ from __future__ import annotations
 from datetime import timedelta
 from decimal import Decimal
 from typing import Any, Iterable
-
 import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -32,13 +31,13 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.encoding import smart_str
-
+from django.views.decorators.http import require_http_methods
 from accounts.permissions import module_required
 from assessment.models import Assessment
 from inventory.models import CoffeeInventory
 from sales.forms import CoffeeSaleForm
 from sales.models import CoffeeSale
-from .forms import CoffeePurchaseForm, SupplierForm, SupplierTransactionForm
+from .forms import CoffeePurchaseForm, SupplierForm, SupplierTransactionForm, PurchaseForm
 from .models import CoffeePurchase, Supplier, SupplierAccount, SupplierTransaction
 
 logger = logging.getLogger(__name__)
@@ -628,6 +627,100 @@ def purchase_detail(request: HttpRequest, pk: int) -> HttpResponse:
 
     return render(request, "purchase_detail.html", ctx)
 
+
+@module_required("access_store")
+@login_required
+@require_http_methods(["GET", "POST"])
+@transaction.atomic
+def purchase_create(request: HttpRequest, supplier_pk: str | None = None) -> HttpResponse:
+    """
+    Create a CoffeePurchase.
+    - If supplier_pk is provided in the URL, the supplier is preselected (and locked).
+    - Also supports ?supplier=<ID> on the generic URL.
+    """
+    # ---------- Resolve (and lock) supplier
+    locked_supplier: Supplier | None = None
+    if supplier_pk:
+        locked_supplier = get_object_or_404(Supplier, pk=supplier_pk)
+    elif request.method == "GET":
+        sid = (request.GET.get("supplier") or "").strip()
+        if sid:
+            locked_supplier = get_object_or_404(Supplier, pk=sid)
+
+    if request.method == "POST":
+        # Ensure the supplier id is present in POST so ModelForm validation passes
+        data = request.POST.copy()
+        if locked_supplier:
+            data["supplier"] = locked_supplier.pk  # force the locked supplier
+        elif not data.get("supplier"):
+            # fallback: accept supplier from POST (generic create page)
+            sid = (data.get("supplier") or "").strip()
+            if not sid:
+                messages.error(request, "Please select a supplier.")
+                # Re-render form with original POST to keep user inputs
+                form = CoffeePurchaseForm(data, user=request.user, locked_supplier=None)
+                return render(
+                    request,
+                    "purchase_form.html",
+                    {"form": form, "page_title": "New Coffee Purchase", "current_page": "purchases", "locked_supplier": None},
+                )
+
+        form = CoffeePurchaseForm(data, user=request.user, locked_supplier=locked_supplier)
+        if form.is_valid():
+            try:
+                obj: CoffeePurchase = form.save(commit=False)
+
+                # Hard-enforce supplier on the instance
+                if locked_supplier is not None:
+                    obj.supplier = locked_supplier
+                elif obj.supplier_id is None:
+                    # As a safety net, read from POST if form excluded/disabled the field
+                    sid = (data.get("supplier") or "").strip()
+                    obj.supplier = get_object_or_404(Supplier, pk=sid)
+
+                # Defaults / audit
+                if not obj.recorded_by_id:
+                    obj.recorded_by = request.user
+                obj.purchase_date = obj.purchase_date or timezone.now().date()
+                obj.delivery_date = obj.delivery_date or timezone.now().date()
+                if obj.assessment_needed is None:
+                    obj.assessment_needed = True
+
+                obj.save()
+
+                messages.success(
+                    request,
+                    f"Purchase recorded successfully for {obj.supplier.name} ({obj.quantity} kg)."
+                )
+                if locked_supplier:
+                    return redirect("store:supplier_detail", pk=locked_supplier.pk)
+                return redirect("store:purchase_detail", pk=obj.pk)
+            except (IntegrityError, DatabaseError, ValidationError) as e:
+                messages.error(request, f"Could not save purchase: {e}")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        # GET
+        initial = {
+            "purchase_date": timezone.now().date(),
+            "delivery_date": timezone.now().date(),
+        }
+        if locked_supplier:
+            initial["supplier"] = locked_supplier.pk
+
+        form = PurchaseForm(
+            user=request.user,
+            initial=initial,
+            locked_supplier=locked_supplier,  # let the form disable the field if you implemented that
+        )
+
+    context = {
+        "form": form,
+        "page_title": "New Coffee Purchase",
+        "current_page": "purchases",
+        "locked_supplier": locked_supplier,
+    }
+    return render(request, "purchase_form.html", context)
 
 # =====================================================================
 # Sales

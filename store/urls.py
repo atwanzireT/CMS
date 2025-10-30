@@ -18,6 +18,8 @@ urlpatterns = [
     # Coffee Purchase URLs
     path('purchases/', purchase_list, name='purchase_list'),
     path('purchases/<int:pk>/', purchase_detail, name='purchase_detail'),
+    path("purchases/new/", purchase_create, name="purchase_create"),
+    path("suppliers/<str:supplier_pk>/purchases/new/", purchase_create, name="supplier_purchase_create"),
     path('transactions/new/', transaction_create, name='transaction_create'),
 
 ]

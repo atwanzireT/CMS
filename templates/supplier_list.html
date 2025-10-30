@@ -4,32 +4,14 @@
 {% block title %}Coffee Suppliers · Great Pearl Coffee{% endblock %}
 
 {% block extra_css %}
-  <!-- Select2 -->
+  <!-- (Optional) Select2 styles kept in case you later add selects in the supplier modal -->
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet">
   <style>
-    /* Premium rounded look for Select2 */
-    .select2-container--bootstrap4 .select2-selection--single {
-      height: 42px; padding: .5rem .75rem; border-radius: .75rem; border-color: #d1d5db;
-      background-color: var(--tw-bg, #fff);
-    }
-    .dark .select2-container--bootstrap4 .select2-selection--single {
-      border-color: #4b5563; background-color: #374151; color: #e5e7eb;
-    }
-    .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { height: 40px }
-    .select2-container--bootstrap4 .select2-dropdown { border: 1px solid #d1d5db; border-radius: .75rem }
-    .dark .select2-container--bootstrap4 .select2-dropdown { border-color: #4b5563; background: #1f2937 }
-    .select2-container--bootstrap4 .select2-results__option--highlighted { background-color: #2563eb !important; color: #fff !important }
-
-    /* Hover rows */
     .supplier-row { transition: background-color .15s ease }
     .supplier-row:hover { background-color: #f9fafb }
     .dark .supplier-row:hover { background-color: #374151 }
-
-    /* Badges */
-    .badge {
-      font-size: .75rem; padding: .25rem .5rem; border-radius: .5rem; display: inline-flex; align-items: center; gap: .25rem;
-    }
+    .badge { font-size:.75rem; padding:.25rem .5rem; border-radius:.5rem; display:inline-flex; align-items:center; gap:.25rem }
   </style>
 {% endblock %}
 
@@ -37,7 +19,6 @@
 
 {% block header_actions %}
   <div class="flex items-center gap-3">
-    <!-- Back button -->
     <a
       href="{{ store_home_url|default:request.META.HTTP_REFERER|default:'/' }}"
       onclick="if(this.getAttribute('href')==='/'||this.getAttribute('href')===''){ event.preventDefault(); history.back(); }"
@@ -48,7 +29,6 @@
       <i class="fas fa-arrow-left mr-2"></i><span class="hidden sm:inline">Back</span>
     </a>
 
-    <!-- Add Supplier -->
     <button type="button"
             onclick="openSupplierModal()"
             class="inline-flex items-center px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-primary-700 dark:hover:bg-primary-600 transition">
@@ -58,8 +38,6 @@
 {% endblock %}
 
 {% block content %}
-
-<!-- Search + toolbar -->
 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
   <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
     <form method="get" class="grid gap-3 md:grid-cols-12 items-end">
@@ -103,16 +81,15 @@
     </form>
   </div>
 
-  <!-- Table -->
   <div class="overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
       <thead class="bg-gray-50 dark:bg-gray-700/50">
         <tr>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Supplier</th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Contact</th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Coffee Types</th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide hidden md:table-cell">Last Supply</th>
-          <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Actions</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Supplier</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Contact</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Coffee Types</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide hidden md:table-cell">Last Supply</th>
+          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Actions</th>
         </tr>
       </thead>
       <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -162,11 +139,11 @@
                         class="px-3 py-2 rounded-md text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20">
                   <i class="fas fa-edit mr-1"></i><span class="hidden sm:inline">Edit</span>
                 </button>
-                <button type="button"
-                        onclick="openPurchaseModal('{{ supplier.id|escapejs }}','{{ supplier.name|escapejs }}')"
-                        class="px-3 py-2 rounded-md text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20">
+                {# NEW: Navigate to locked create view #}
+                <a href="{% url 'store:supplier_purchase_create' supplier.id %}"
+                   class="px-3 py-2 rounded-md text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20">
                   <i class="fas fa-plus-circle mr-1"></i><span class="hidden sm:inline">Purchase</span>
-                </button>
+                </a>
               </div>
             </td>
           </tr>
@@ -191,7 +168,6 @@
     </table>
   </div>
 
-  <!-- Pagination -->
   {% if suppliers.has_other_pages %}
     <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div class="text-sm text-gray-700 dark:text-gray-400">
@@ -199,27 +175,24 @@
       </div>
       <div class="flex flex-wrap gap-2">
         {% if suppliers.has_previous %}
-          <a href="?page={{ suppliers.previous_page_number }}&q={{ q|urlencode }}&per_page={{ per_page }}"
-             class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
+          <a href="?page={{ suppliers.previous_page_number }}&q={{ q|urlencode }}&per_page={{ per_page }}" class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Previous</a>
         {% endif %}
         {% for i in suppliers.paginator.page_range %}
           {% if suppliers.number == i %}
             <span class="px-3 py-1.5 rounded-lg bg-primary-600 text-white">{{ i }}</span>
           {% else %}
-            <a href="?page={{ i }}&q={{ q|urlencode }}&per_page={{ per_page }}"
-               class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">{{ i }}</a>
+            <a href="?page={{ i }}&q={{ q|urlencode }}&per_page={{ per_page }}" class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">{{ i }}</a>
           {% endif %}
         {% endfor %}
         {% if suppliers.has_next %}
-          <a href="?page={{ suppliers.next_page_number }}&q={{ q|urlencode }}&per_page={{ per_page }}"
-             class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
+          <a href="?page={{ suppliers.next_page_number }}&q={{ q|urlencode }}&per_page={{ per_page }}" class="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Next</a>
         {% endif %}
       </div>
     </div>
   {% endif %}
 </div>
 
-<!-- Overlay -->
+<!-- Overlay (used only by Supplier modal now) -->
 <div id="modalOverlay" class="fixed inset-0 bg-black/50 dark:bg-black/70 z-40 hidden"></div>
 
 <!-- Supplier Modal -->
@@ -266,82 +239,16 @@
     </div>
   </div>
 </div>
-
-<!-- Purchase Modal -->
-<div id="purchaseModal" class="fixed inset-0 z-50 hidden p-4">
-  <div class="mx-auto max-w-md">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
-      <div class="p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 id="purchaseFormTitle" class="text-lg font-semibold text-gray-900 dark:text-white">Add Coffee Purchase</h2>
-          <button type="button" onclick="closePurchaseModal()" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300" aria-label="Close purchase form">
-            <i class="fas fa-times text-lg"></i>
-          </button>
-        </div>
-        <form method="post" id="purchaseForm" action="{% url 'store:supplier_list' %}?q={{ q|urlencode }}&per_page={{ per_page }}" class="space-y-4">
-          {% csrf_token %}
-          <input type="hidden" name="form_kind" value="purchase">
-          <input type="hidden" name="supplier_id" id="purchase_supplier_id" value="">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier</label>
-            <p id="purchase_supplier_name" class="text-base font-medium text-primary-600 dark:text-primary-400"></p>
-          </div>
-          <div>
-            <label for="id_coffee_category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coffee Form <span class="text-rose-500">*</span></label>
-            <select id="id_coffee_category" name="coffee_category" required
-                    class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              <option value="">Select coffee form</option>
-              <option value="GR">Green Coffee</option>
-              <option value="PA">Parchment Coffee</option>
-              <option value="KB">Kiboko Coffee</option>
-            </select>
-          </div>
-          <div>
-            <label for="id_coffee_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coffee Type <span class="text-rose-500">*</span></label>
-            <select id="id_coffee_type" name="coffee_type" required
-                    class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              <option value="AR" selected>Arabica</option>
-              <option value="RB">Robusta</option>
-            </select>
-          </div>
-          <div>
-            <label for="id_quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantity (kg) <span class="text-rose-500">*</span></label>
-            <input id="id_quantity" name="quantity" type="number" min="1" step="1" required
-                   class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Weight in kilograms">
-          </div>
-          <div>
-            <label for="id_bags" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bags</label>
-            <input id="id_bags" name="bags" type="number" min="0" value="0"
-                   class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-          </div>
-          <div>
-            <label for="id_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
-            <textarea id="id_notes" name="notes" rows="3"
-                      class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="Any special notes/remarks…"></textarea>
-          </div>
-          <div class="mt-6 flex justify-end gap-3">
-            <button type="button" onclick="closePurchaseModal()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-sm">Cancel</button>
-            <button type="submit" class="px-4 py-2 bg-primary-600 dark:bg-primary-700 text-white text-sm font-medium rounded-xl hover:bg-primary-700 dark:hover:bg-primary-600">Record Purchase</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
 {% endblock %}
 
 {% block extra_js %}
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script>
-    // Helpers
     const overlay = document.getElementById('modalOverlay');
 
     function showOverlay(){ overlay.classList.remove('hidden'); }
     function hideOverlay(){ overlay.classList.add('hidden'); }
 
-    // Supplier modal
+    // Supplier modal only
     function openSupplierModal(id='', name='', phone='', email='', address=''){
       document.getElementById('supplier_id').value = id || '';
       document.getElementById('id_name').value = name || '';
@@ -358,42 +265,11 @@
       hideOverlay();
     }
 
-    // Purchase modal
-    function openPurchaseModal(supplierId, supplierName){
-      document.getElementById('purchase_supplier_id').value = supplierId;
-      document.getElementById('purchase_supplier_name').textContent = supplierName;
-      document.getElementById('id_coffee_category').value = '';
-      document.getElementById('id_coffee_type').value = 'AR';
-      document.getElementById('id_quantity').value = '';
-      document.getElementById('id_bags').value = '0';
-      document.getElementById('id_notes').value = '';
-      document.getElementById('purchaseFormTitle').textContent = `Add Purchase · ${supplierName}`;
-      document.getElementById('purchaseModal').classList.remove('hidden');
-      showOverlay();
-      setTimeout(()=>document.getElementById('id_coffee_category').focus(),0);
-    }
-    function closePurchaseModal(){
-      document.getElementById('purchaseModal').classList.add('hidden');
-      hideOverlay();
-    }
+    overlay.addEventListener('click', () => { closeSupplierModal(); });
 
-    // Close on overlay click
-    overlay.addEventListener('click', () => {
-      closeSupplierModal();
-      closePurchaseModal();
-    });
-
-    // Keyboard shortcuts
     document.addEventListener('keydown', function(e){
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's'){ e.preventDefault(); openSupplierModal(); }
-      if (e.key === 'Escape'){ closeSupplierModal(); closePurchaseModal(); }
-    });
-
-    // Enhance selects inside modals only (requires jQuery; if absent, skip gracefully)
-    document.addEventListener('DOMContentLoaded', function () {
-      if (window.jQuery) {
-        $('#id_coffee_category, #id_coffee_type').select2({ theme: 'bootstrap4', width: '100%' });
-      }
+      if (e.key === 'Escape'){ closeSupplierModal(); }
     });
   </script>
 {% endblock %}
